@@ -184,12 +184,14 @@ Rectangle Field::enemyGoal() const
 
 Point Field::penaltyEnemy() const
 {
-    return Point(enemyGoalCenter().x() - 6.0, enemyGoalCenter().y());
+    // 2/3 factor accounts for 8 m distance in Div A and 6 m for Div B
+    return Point((enemyGoalCenter().x() - ((double) 2/3 * xLength())), enemyGoalCenter().y());
 }
 
 Point Field::penaltyFriendly() const
 {
-    return Point(friendlyGoalCenter().x() + defenseAreaXLength(),
+    // 2/3 factor accounts for 8 m distance in Div A and 6 m for Div B
+    return Point((friendlyGoalCenter().x() + ((double) 2/3 * xLength())),
                  friendlyGoalCenter().y());
 }
 

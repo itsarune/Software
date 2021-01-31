@@ -56,9 +56,12 @@ void SimulatedTestFixture::SetUp()
     {
         enableVisualizer();
     }
-
-	MutableDynamicParameters->getMutableSensorFusionConfig->
-		mutableOverrideRefereeCommand()->registerCallbackFunction([]() overrideRefereeCommand);
+    // MutableDynamicParameters->getMutableSensorFusionConfig()->
+    // mutableOverrideRefereeCommand()->registerCallbackFunction(
+    //     [this](bool override_referee) { 
+    //         if (override_referee)
+    //             sensor_fusion.overrideRefereeCommand();
+    //         });
 }
 
 void SimulatedTestFixture::setBallState(const BallState &ball)
@@ -110,14 +113,14 @@ void SimulatedTestFixture::setRefereeCommand(
     const RefereeCommand &previous_referee_command)
 {
     MutableDynamicParameters->getMutableSensorFusionConfig()
-        ->mutableOverrideRefereeCommand()
-        ->setValue(true);
-    MutableDynamicParameters->getMutableSensorFusionConfig()
         ->mutableCurrentRefereeCommand()
         ->setValue(toString(current_referee_command));
     MutableDynamicParameters->getMutableSensorFusionConfig()
         ->mutablePreviousRefereeCommand()
         ->setValue(toString(previous_referee_command));
+    MutableDynamicParameters->getMutableSensorFusionConfig()
+        ->mutableOverrideRefereeCommand()
+        ->setValue(true);
 }
 
 void SimulatedTestFixture::enableVisualizer()
@@ -175,9 +178,7 @@ void SimulatedTestFixture::runTest(
     const std::vector<ValidationFunction> &terminating_validation_functions,
     const std::vector<ValidationFunction> &non_terminating_validation_functions,
     const Duration &timeout)
-{
-	
-	
+{	
     updateSensorFusion();
     std::shared_ptr<World> world;
     if (auto world_opt = sensor_fusion.getWorld())

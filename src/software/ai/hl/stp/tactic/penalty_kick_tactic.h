@@ -62,10 +62,10 @@ class PenaltyKickTactic : public Tactic
     static constexpr double PENALTY_KICK_GOALIE_MAX_ACC = 1.5;
     static constexpr double SSL_VISION_DELAY            = 0.30;  // seconds
 	// offset from the goal post in y direction when shooting
-    static constexpr double PENALTY_KICK_POST_OFFSET = 0.04;
+    static constexpr double PENALTY_KICK_POST_OFFSET = 0.02;
 
     // this is the timeout that forces a shot after the robot approaches the
     // ball and advances towards the keeper
-    const Duration PENALTY_FORCE_SHOOT_TIMEOUT = Duration::fromSeconds(4);
+    const Duration PENALTY_FORCE_SHOOT_TIMEOUT = Duration::fromSeconds(7);
     const Duration PENALTY_SHOT_TIMEOUT        = Duration::fromSeconds(10);
 };

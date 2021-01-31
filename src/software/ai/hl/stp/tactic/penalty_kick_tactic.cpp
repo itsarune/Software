@@ -140,7 +140,8 @@ void PenaltyKickTactic::calculateNextAction(ActionCoroutine::push_type& yield)
     // We will need to keep track of time so we don't break the rules by taking
     // too long
     const Timestamp penalty_kick_start = robot->timestamp();
-    const Timestamp complete_approach  = penalty_kick_start + Duration::fromSeconds(4);
+    const Timestamp complete_approach  = penalty_kick_start + Duration::fromSeconds(7);
+    const Timestamp end_penalty_timestamp = penalty_kick_start + PENALTY_FORCE_SHOOT_TIMEOUT;
 
     auto approach_ball_move_act = std::make_shared<MoveAction>(false);
     auto approach_goalie_act    = std::make_shared<MoveAction>(
@@ -161,12 +162,13 @@ void PenaltyKickTactic::calculateNextAction(ActionCoroutine::push_type& yield)
         approach_ball_move_act->updateControlParams(
             *robot, behind_ball, (-behind_ball_vector).orientation(), 0,
             DribblerMode::MAX_FORCE, BallCollisionType::ALLOW);
-        yield(approach_ball_move_act);
-		std::cout << "(robot->timestamp() <= complete_approach) "
-				  << (robot->timestamp() - penalty_kick_start) << '\n';
+        yield(approach_ball_move_act);;
     }
 
     const Timestamp penalty_start_approaching_goalie = robot->timestamp();
+    const double time_to_approach_keeper = 
+        (end_penalty_timestamp - penalty_start_approaching_goalie).toSeconds();
+    const Vector shooter_velocity = (field.enemyGoalCenter() - ball.position()) / time_to_approach_keeper;
 
     // prepare to shoot:
     // keep moving forward toward the goalkeeper until we have a viable shot or
@@ -174,11 +176,12 @@ void PenaltyKickTactic::calculateNextAction(ActionCoroutine::push_type& yield)
     Angle shot_angle;
     do
     {
+        const double time_passed = 
+            (robot->timestamp() - penalty_start_approaching_goalie).toSeconds();
         const Point next_shot_position = evaluateNextShotPosition();
         shot_angle = (next_shot_position - ball.position()).orientation();
-        const Point next_robot_position = robot.value().position() + Vector(0.48, 0);
-		std::cout << "robot->timestamp() - penalty_start_approaching_goalie " <<
-			(robot->timestamp() - penalty_start_approaching_goalie) << '\n';
+        const Point next_robot_position = robot.value().position() + 
+            time_passed*shooter_velocity;
         approach_goalie_act->updateControlParams(*robot, next_robot_position, shot_angle,
                                                  0, DribblerMode::MAX_FORCE,
                                                  BallCollisionType::ALLOW);
@@ -194,7 +197,7 @@ void PenaltyKickTactic::calculateNextAction(ActionCoroutine::push_type& yield)
                                          PENALTY_KICK_SHOT_SPEED);
         yield(kick_act);
     } while (!kick_act->done() &&
-             ((robot->timestamp() - penalty_kick_start) < PENALTY_SHOT_TIMEOUT));
+             (robot->timestamp() <= end_penalty_timestamp));
 }
 
 void PenaltyKickTactic::accept(TacticVisitor& visitor) const

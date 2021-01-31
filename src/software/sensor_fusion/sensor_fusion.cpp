@@ -53,6 +53,27 @@ void SensorFusion::processSensorProto(const SensorProto &sensor_msg)
     }
 
     updateWorld(sensor_msg.robot_status_msgs());
+
+    if (sensor_fusion_config->OverrideRefereeCommand()->value())
+    {
+        std::string current_state_string =
+            sensor_fusion_config->CurrentRefereeCommand()->value();
+        std::string previous_state_string =
+            sensor_fusion_config->PreviousRefereeCommand()->value();
+        try
+        {
+            RefereeCommand previous_state =
+                fromStringToRefereeCommand(previous_state_string);
+            game_state.updateRefereeCommand(previous_state);
+            RefereeCommand current_state =
+                fromStringToRefereeCommand(current_state_string);
+            game_state.updateRefereeCommand(current_state);
+        }
+        catch (std::invalid_argument e)
+        {
+            LOG(WARNING) << e.what();
+        }
+    }
 }
 
 void SensorFusion::updateWorld(const SSLProto::SSL_WrapperPacket &packet)
@@ -302,28 +323,26 @@ void SensorFusion::resetWorldComponents()
     friendly_team_filter = RobotTeamFilter();
     enemy_team_filter    = RobotTeamFilter();
     team_with_possession = TeamSide::ENEMY;
+    overrideRefereeCommand();
 }
 
 void SensorFusion::overrideRefereeCommand()
 {
-    if (sensor_fusion_config->OverrideRefereeCommand()->value())
+    std::string previous_state_string =
+        sensor_fusion_config->PreviousRefereeCommand()->value();
+    std::string current_state_string =
+        sensor_fusion_config->CurrentRefereeCommand()->value();
+    try
     {
-        std::string previous_state_string =
-            sensor_fusion_config->PreviousRefereeCommand()->value();
-        std::string current_state_string =
-            sensor_fusion_config->CurrentRefereeCommand()->value();
-        try
-        {
-            RefereeCommand previous_state =
-                fromStringToRefereeCommand(previous_state_string);
-            game_state.updateRefereeCommand(previous_state);
-            RefereeCommand current_state =
-                fromStringToRefereeCommand(current_state_string);
-            game_state.updateRefereeCommand(current_state);
-        }
-        catch (std::invalid_argument e)
-        {
-            LOG(WARNING) << e.what();
-        }
+        RefereeCommand previous_state =
+            fromStringToRefereeCommand(previous_state_string);
+        game_state.updateRefereeCommand(previous_state);
+        RefereeCommand current_state =
+            fromStringToRefereeCommand(current_state_string);
+        game_state.updateRefereeCommand(current_state);
+    }
+    catch (std::invalid_argument e)
+    {
+        LOG(WARNING) << e.what();
     }
 }
