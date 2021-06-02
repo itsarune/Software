@@ -13,11 +13,7 @@ SimulatedTestFixture::SimulatedTestFixture()
           std::const_pointer_cast<const ThunderbotsConfig>(mutable_thunderbots_config)),
       sensor_fusion(thunderbots_config->getSensorFusionConfig()),
       should_log_replay(false),
-      run_simulation_in_realtime(false),
-      tick_count(0),
-      total_tick_duration(0),
-      max_tick_duration(std::numeric_limits<double>::min()),
-      min_tick_duration(std::numeric_limits<double>::max())
+      run_simulation_in_realtime(false)
 {
 }
 
@@ -231,7 +227,6 @@ void SimulatedTestFixture::runTest(
         validation_functions_done =
             tickTest(simulation_time_step, ai_time_step, world, simulator);
     }
-
     // Output the tick duration results
     double avg_tick_duration = total_tick_duration / tick_count;
     LOG(INFO) << "max tick duration: " << max_tick_duration << "ms" << std::endl;
@@ -284,16 +279,7 @@ bool SimulatedTestFixture::tickTest(Duration simulation_time_step, Duration ai_t
             return validation_functions_done;
         }
 
-        // Logging duration of updatePrimitives for every tick
-        tick_count++;
-        auto start_tick_time = std::chrono::system_clock::now();
-
         updatePrimitives(*world_opt, simulator);
-
-        double duration_ms = ::TestUtil::millisecondsSince(start_tick_time);
-        total_tick_duration += duration_ms;
-        max_tick_duration = std::max(max_tick_duration, duration_ms);
-        min_tick_duration = std::min(min_tick_duration, duration_ms);
 
         if (run_simulation_in_realtime)
         {
