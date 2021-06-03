@@ -133,13 +133,20 @@ TEST(RasterizeTest, test_rasterize_polygon)
 
     for (Point p : expected_points)
     {
-        EXPECT_NE(rasterized_points.end(),
-                    std::find(rasterized_points.begin(), rasterized_points.end(), p));
+        EXPECT_TRUE(contains(polygon, p));
     }
+}
 
-    for (auto i = rasterized_points.begin(); i != rasterized_points.end(); ++i)
+TEST(RasterizeTest, test_rasterize_polygon_triangle)
+{
+	std::vector<Point> points = { Point(0, 5), Point(-5, 0), Point(5, 0) };
+    double offset = 1;
+    Polygon polygon = Polygon(points);
+    std::vector<Point> rasterized_points = rasterize(polygon, offset);
+    std::vector<Point> expected_points = { Point(-5, 0), Point(0, 5), Point(5, 0) };
+
+    for (Point p : expected_points)
     {
-        std::cout << *i << ", ";
-        std::cout << std::endl;
+        EXPECT_TRUE(contains(polygon, p));
     }
 }

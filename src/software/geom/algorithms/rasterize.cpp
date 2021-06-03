@@ -230,6 +230,13 @@ std::vector<Point> rasterize(const Polygon &polygon, const double resolution_siz
 //        }
 //    }
 
+	
+    for (auto i = contained_points.begin(); i != contained_points.end(); ++i)
+    {
+        std::cout << *i << ", ";
+    }
+	std::cout << std::endl;
+	
     return contained_points;
 }
 
