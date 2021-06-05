@@ -1,6 +1,7 @@
 #pragma once
 
-#include "shared/test_util/tbots_gtest_main.h"
+#include <gtest/gtest.h>
+
 #include "software/ai/hl/stp/play/halt_play.h"
 #include "software/gui/full_system/threaded_full_system_gui.h"
 #include "software/proto/logging/proto_logger.h"
@@ -19,6 +20,15 @@ class SimulatedTestFixture : public ::testing::Test
 {
    public:
     explicit SimulatedTestFixture();
+
+    // Controls whether the visualizer will be enabled during the simulated tests
+    // if false, visualizer does not run during simulated tests
+    // if true, running tests are displayed on the visualizer
+    static bool enable_visualizer;
+
+    // Controls whether the AI will be stopped when the simulated test starts
+    // only if enable_visualizer is true
+    static bool stop_ai_on_start;
 
    protected:
     void SetUp() override;

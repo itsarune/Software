@@ -19,10 +19,13 @@ SimulatedTestFixture::SimulatedTestFixture()
 
 void SimulatedTestFixture::SetUp()
 {
-    LoggerSingleton::initializeLogger(TbotsGtestMain::logging_dir);
+    LoggerSingleton::initializeLogger(
+        thunderbots_config->getStandaloneSimulatorMainCommandLineArgs()
+            ->getLoggingDir()
+            ->value());
 
     mutable_thunderbots_config->getMutableAiControlConfig()->getMutableRunAi()->setValue(
-        !TbotsGtestMain::stop_ai_on_start);
+        !SimulatedTestFixture::stop_ai_on_start);
 
     // The simulated test abstracts and maintains the invariant that the friendly team
     // is always the yellow team
@@ -53,7 +56,7 @@ void SimulatedTestFixture::SetUp()
     mutable_thunderbots_config->getMutableSensorFusionConfig()
         ->getMutableFriendlyColorYellow()
         ->setValue(true);
-    if (TbotsGtestMain::enable_visualizer)
+    if (SimulatedTestFixture::enable_visualizer)
     {
         enableVisualizer();
     }
