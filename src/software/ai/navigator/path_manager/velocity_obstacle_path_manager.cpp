@@ -31,7 +31,8 @@ const std::map<RobotId, std::optional<Path>> VelocityObstaclePathManager::getMan
                               current_objective.obstacles.end());
         path_planning_obstacles.insert(path_planning_obstacles.end(),
                                        path_obstacles.begin(), path_obstacles.end());
-        auto path = path_planner->findPath(current_objective.start, current_objective.end,
+        std::unique_ptr<EnlsvgPathPlanner> planner = std::make_unique<EnlsvgPathPlanner>(navigable_area, path_obstacles);
+        auto path = planner->findPath(current_objective.start, current_objective.end,
                                            navigable_area, path_obstacles);
 
         // store path in managed_paths

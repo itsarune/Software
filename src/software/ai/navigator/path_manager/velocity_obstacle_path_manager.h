@@ -3,6 +3,7 @@
 #include "software/ai/navigator/obstacle/obstacle.hpp"
 #include "software/ai/navigator/obstacle/robot_navigation_obstacle_factory.h"
 #include "software/ai/navigator/path_manager/path_manager.h"
+#include "software/ai/navigator/path_planner/enlsvg_path_planner.h"
 
 /**
  * VelocityObstaclePathManager uses obstacles to arbitrate between paths.

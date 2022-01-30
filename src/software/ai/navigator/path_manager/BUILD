@@ -24,6 +24,7 @@ cc_library(
         ":path_manager",
         "//shared/parameter:cpp_configs",
         "//software/ai/navigator/obstacle:robot_navigation_obstacle_factory",
+        "//software/ai/navigator/path_planner:enlsvg_path_planner",
     ],
 )
 
