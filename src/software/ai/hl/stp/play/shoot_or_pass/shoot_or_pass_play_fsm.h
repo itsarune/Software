@@ -143,4 +143,5 @@ struct ShootOrPassPlayFSM
     PassWithRating best_pass_and_score_so_far;
     Duration time_since_commit_stage_start;
     double min_pass_score_threshold;
+	Pass pass_in_progress;
 };

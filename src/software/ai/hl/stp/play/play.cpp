@@ -80,7 +80,10 @@ std::vector<std::unique_ptr<Intent>> Play::get(
     updateTactics(PlayUpdate(new_world, num_tactics,
                              [&priority_tactics](PriorityTacticVector new_tactics) {
                                  priority_tactics = std::move(new_tactics);
-                             }));
+                             },
+			     [&play_message](InterplayMessage message) {
+			     	play_message = message;
+			     }));
 
     ConstPriorityTacticVector const_priority_tactics;
 
@@ -132,4 +135,10 @@ void Play::getNextTacticsWrapper(TacticCoroutine::push_type &yield)
 void Play::updateTactics(const PlayUpdate &play_update)
 {
     play_update.set_tactics(getTactics(play_update.world));
+}
+
+
+std::vector<InterplayMessage> getOutgoingPlayMessages() const;
+{
+	return outgoing_play_messages;
 }

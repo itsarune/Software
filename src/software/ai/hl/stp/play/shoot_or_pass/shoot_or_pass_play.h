@@ -10,7 +10,7 @@
 class ShootOrPassPlay : public Play
 {
    public:
-    ShootOrPassPlay(std::shared_ptr<const AiConfig> config);
+    ShootOrPassPlay(std::shared_ptr<const AiConfig> config, std::vector<InterplayMessage> incoming_play_messages);
 
     void getNextTactics(TacticCoroutine::push_type &yield, const World &world) override;
     void updateTactics(const PlayUpdate &play_update) override;

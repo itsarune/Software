@@ -5,9 +5,20 @@
 #include "software/logger/logger.h"
 #include "software/util/generic_factory/generic_factory.h"
 
-ShootOrPassPlay::ShootOrPassPlay(std::shared_ptr<const AiConfig> config)
+ShootOrPassPlay::ShootOrPassPlay(std::shared_ptr<const AiConfig> config, std::vector<InterplayMessage> incoming_play_messages)
     : Play(config, true), fsm{ShootOrPassPlayFSM{config}}, control_params{}
 {
+	control_params = {};
+	for (InterplayMessage message : incoming_play_messages)
+	{
+		if (message.message_type == InterplayMessageType::PASS_IN_PROGRESS)
+		{
+			PassInProgressMessage pass_in_progress_message = static_cast<PassInProgressMessage>(message);
+			fsm = {ShootOrPassPlayFSM{config, std::make_optional<Pass>(pass_in_progress.pass)}};
+			return;		
+		}	
+	}
+	fsm = {ShootOrPassPlayFSM{config}};
 }
 
 void ShootOrPassPlay::getNextTactics(TacticCoroutine::push_type &yield,

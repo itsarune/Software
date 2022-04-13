@@ -7,11 +7,10 @@
 #include "software/logger/logger.h"
 #include "software/util/generic_factory/generic_factory.h"
 
-OffensePlay::OffensePlay(std::shared_ptr<const AiConfig> config)
+OffensePlay::OffensePlay(std::shared_ptr<const AiConfig> config, std::vector<InterplayMessage> incoming_play_messages)
     : Play(config, true),
-      shoot_or_pass_play(std::make_shared<ShootOrPassPlay>(ai_config)),
+      shoot_or_pass_play(std::make_shared<ShootOrPassPlay>(ai_config, incoming_play_messages)),
       crease_defense_play(std::make_shared<CreaseDefensePlay>(ai_config))
-
 {
 }
 
