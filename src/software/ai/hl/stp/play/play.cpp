@@ -1,4 +1,4 @@
-#include "software/ai/hl/stp/play/play.h"
+include "software/ai/hl/stp/play/play.h"
 
 Play::Play(std::shared_ptr<const AiConfig> ai_config, bool requires_goalie)
     : ai_config(ai_config),
@@ -67,7 +67,9 @@ PriorityTacticVector Play::getTactics(const World &world)
 
 std::vector<std::unique_ptr<Intent>> Play::get(
     RobotToTacticAssignmentFunction robot_to_tactic_assignment_algorithm,
-    MotionConstraintBuildFunction motion_constraint_builder, const World &new_world)
+    MotionConstraintBuildFunction motion_constraint_builder, const World &new_world,
+    const InterPlayCommunication &inter_play_communication,
+    const SetInterPlayCommunicationCallback &set_inter_play_communication_fun)
 {
     std::vector<std::unique_ptr<Intent>> intents;
     PriorityTacticVector priority_tactics;
@@ -84,7 +86,6 @@ std::vector<std::unique_ptr<Intent>> Play::get(
 			     [&play_message](InterplayMessage message) {
 			     	play_message = message;
 			     }));
-
     ConstPriorityTacticVector const_priority_tactics;
 
     // convert pointers to const pointers
