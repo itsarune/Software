@@ -80,7 +80,7 @@ PriorityTacticVector KickoffFriendlyPlay::choosePassOrChip(const PlayUpdate &pla
     else if (play_update.num_tactics > 1)
     {
         int num_attackers = std::max(static_cast<int>(play_update.num_tactics)-2, 2);
-        int num_defenders = play_update.num_tactics - num_attackers;
+        int num_defenders = static_cast<int>(play_update.num_tactics) - num_attackers;
         
         crease_defense_play->updateControlParams(play_update.world.ball().position(),
                                                 TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT);

@@ -113,15 +113,18 @@ struct ShootOrPassPlayFSM
         DEFINE_SML_ACTION(lookForPass)
         DEFINE_SML_ACTION(startLookingForPass)
         DEFINE_SML_ACTION(takePass)
+	DEFINE_SML_ACTION(maintainPassInProgress)
 
         DEFINE_SML_GUARD(passFound)
         DEFINE_SML_GUARD(shouldAbortPass)
         DEFINE_SML_GUARD(passCompleted)
         DEFINE_SML_GUARD(tookShot)
+	DEFINE_SML_GUARD(hasPassInProgress)
 
         return make_transition_table(
             // src_state + event [guard] / action = dest_state
-            *StartState_S + Update_E / startLookingForPass_A        = AttemptShotState_S,
+	    *StartState_S + Update_E[hasPassInProgress_G] / maintainPassInProgress_A = TakePassState_S,
+            StartState_S + Update_E / startLookingForPass_A        = AttemptShotState_S,
             AttemptShotState_S + Update_E[passFound_G] / takePass_A = TakePassState_S,
             AttemptShotState_S + Update_E[!passFound_G] / lookForPass_A =
                 AttemptShotState_S,

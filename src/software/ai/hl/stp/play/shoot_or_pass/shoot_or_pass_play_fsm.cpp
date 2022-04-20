@@ -171,3 +171,16 @@ bool ShootOrPassPlayFSM::tookShot(const Update& event)
     // TODO (#2384): implement this
     return false;
 }
+
+bool ShootOrPassPlayFSM::hasPassInProgress(const Update &event)
+{
+	return event.common.inter_play_communication.last_committed_pass.has_value();
+}
+
+void ShootOrPassPlayFSM::maintainPassInProgress(const Update &event)
+{
+	best_pass_and_score_so_far = event.common.inter_play_communication.last_committed_pass.value();
+
+	// reset interplay communication
+	event.common.set_inter_play_communication_fun(InterPlayCommunication{.last_committed_pass = std::nullopt});
+}	
