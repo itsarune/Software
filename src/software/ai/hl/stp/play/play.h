@@ -7,7 +7,6 @@
 #include "shared/parameter/cpp_dynamic_parameters.h"
 #include "software/ai/hl/stp/play/play_fsm.h"
 #include "software/ai/hl/stp/tactic/tactic.h"
-#include "software/ai/hl/stp/play/interplay_messages/interplay_messages.h"
 
 using RobotToTacticAssignmentFunction =
     std::function<std::map<std::shared_ptr<const Tactic>, Robot>(
@@ -138,8 +137,6 @@ class Play
     virtual void getNextTactics(TacticCoroutine::push_type& yield,
                                 const World& world) = 0;
 
-	std::vector<InterplayMessage> getOutgoingPlayMessages() const;
-
     // Whether this plays requires a goalie
     const bool requires_goalie;
 
@@ -153,8 +150,6 @@ class Play
 
     // TODO (#2359): remove this
     PriorityTacticVector priority_tactics;
-
-    std::vector<InterplayMessage> outgoing_play_messages;
 };
 
 // Function that creates a play

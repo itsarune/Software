@@ -36,6 +36,7 @@ cc_test(
     name = "kickoff_friendly_play_fsm_test",
     srcs = ["kickoff_friendly_play_fsm_test.cpp"],
     deps = [
-        ":kickoff_friendly_play"
+        ":kickoff_friendly_play",
+		"//software/test_util",
     ],
 )

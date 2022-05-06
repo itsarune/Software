@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-ShootOrPassPlayFSM::ShootOrPassPlayFSM(std::shared_ptr<const AiConfig> ai_config, std::optional<Pass> pass_in_progress=std::nullopt)
+ShootOrPassPlayFSM::ShootOrPassPlayFSM(std::shared_ptr<const AiConfig> ai_config)
     : ai_config(ai_config),
       attacker_tactic(std::make_shared<AttackerTactic>(ai_config)),
       receiver_tactic(std::make_shared<ReceiverTactic>()),
@@ -16,7 +16,6 @@ ShootOrPassPlayFSM::ShootOrPassPlayFSM(std::shared_ptr<const AiConfig> ai_config
           PassWithRating{.pass = Pass(Point(), Point(), 0), .rating = 0}),
       time_since_commit_stage_start(Duration::fromSeconds(0)),
       min_pass_score_threshold(0),
-	  pass_in_progress(pass_in_progress)
 {
 }
 
