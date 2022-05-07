@@ -1,4 +1,6 @@
 #include "software/ai/hl/stp/play/kickoff_friendly/kickoff_friendly_play.h"
+#include <algorithm>
+#include <cstdlib>
 
 KickoffFriendlyPlay::KickoffFriendlyPlay(std::shared_ptr<const AiConfig> config)
     : Play(config, true),
@@ -41,7 +43,8 @@ void KickoffFriendlyPlay::updateTactics(const PlayUpdate &play_update)
                           {
                               tactics_to_return.push_back(tactic_vector);
                           }
-                        }));
+                        },
+						play_update.inter_play_communication, play_update.set_inter_play_communication_fun));
         
         kickoff_friendly_play->updateTactics(PlayUpdate(play_update.world, num_setup_tactics,
                                                         [&tactics_to_return](PriorityTacticVector new_tactics)
@@ -50,7 +53,9 @@ void KickoffFriendlyPlay::updateTactics(const PlayUpdate &play_update)
                                                             {
                                                                 tactics_to_return.push_back(tactic_vector);
                                                             }
-                                                        }));
+                                                        },
+														play_update.inter_play_communication, 
+														play_update.set_inter_play_communication_fun));
     }
     else
     {
@@ -100,7 +105,9 @@ PriorityTacticVector KickoffFriendlyPlay::choosePassOrChip(const PlayUpdate &pla
                                                          {
                                                              tactics.push_back(tactic_vector);
                                                          }
-                                                     }));
+                                                     },
+													 play_update.inter_play_communication,
+													 play_update.set_inter_play_communication_fun));
     }
     else
     {
