@@ -96,7 +96,9 @@ PriorityTacticVector KickoffFriendlyPlay::choosePassOrChip(const PlayUpdate &pla
                                                           {
                                                               tactics.push_back(tactic_vector);
                                                           }
-                                                      }));
+                                                      },
+						      play_update.inter_play_communication,
+						      play_update.set_inter_play_communication_fun));
         
         shoot_or_pass_play->updateTactics(PlayUpdate(play_update.world, num_attackers,
                                                     [&tactics](PriorityTacticVector new_tactics)
@@ -106,8 +108,8 @@ PriorityTacticVector KickoffFriendlyPlay::choosePassOrChip(const PlayUpdate &pla
                                                              tactics.push_back(tactic_vector);
                                                          }
                                                      },
-													 play_update.inter_play_communication,
-													 play_update.set_inter_play_communication_fun));
+						 	play_update.inter_play_communication,
+							play_update.set_inter_play_communication_fun));
     }
     else
     {

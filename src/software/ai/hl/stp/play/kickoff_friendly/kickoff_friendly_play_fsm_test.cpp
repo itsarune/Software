@@ -11,5 +11,5 @@ TEST(KickoffFriendlyPlaySetupFSMTest, test_transitions)
 	FSM<KickoffFriendlyPlayFSM> fsm(
 					KickoffFriendlyPlayFSM{});
 
-	EXPECT_TRUE(fsm.is(boost::sml::state<KickoffFriendlyPlayFSM::StartState));
+	EXPECT_TRUE(fsm.is(boost::sml::state<KickoffFriendlyPlayFSM::StartState>));
 }

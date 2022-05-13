@@ -79,12 +79,13 @@ std::vector<std::unique_ptr<Intent>> Play::get(
     {
         num_tactics--;
     }
-    updateTactics(PlayUpdate(new_world, num_tactics,
-                             [&priority_tactics](PriorityTacticVector new_tactics) {
-                                 priority_tactics = std::move(new_tactics);
-                             },
-							 inter_play_communication, set_inter_play_communication_fun
-	));
+    updateTactics(PlayUpdate(
+        new_world, num_tactics,
+        [&priority_tactics](PriorityTacticVector new_tactics) {
+            priority_tactics = std::move(new_tactics);
+        },
+        inter_play_communication, set_inter_play_communication_fun));
+
     ConstPriorityTacticVector const_priority_tactics;
 
     // convert pointers to const pointers
