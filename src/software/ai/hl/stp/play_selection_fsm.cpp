@@ -95,8 +95,7 @@ void PlaySelectionFSM::setupHaltPlay(const Update& event)
 
 void PlaySelectionFSM::setupOffensePlay(const Update& event)
 {
-	auto outgoing_play_messages = current_play.getOutgoingMessages();
     // TODO (2440): We should have smarter logic for analysing the state of play to
     // configure which robots should do what
-    event.set_current_play(std::make_unique<OffensePlay>(ai_config, outgoing_play_messages));
+    event.set_current_play(std::make_unique<OffensePlay>(ai_config));
 }
