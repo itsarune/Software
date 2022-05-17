@@ -4,10 +4,11 @@ import pytest
 
 import software.python_bindings as tbots
 from proto.play_pb2 import Play
+from proto.message_translation.tbots_protobuf import create_world_state
+from proto.ssl_gc_geometry_pb2 import Vector2
 from software.simulated_tests.simulated_test_fixture import simulated_test_runner
 from proto.import_all_protos import *
 from proto.ssl_gc_common_pb2 import Team
-from proto.message_translation.tbots_protobuf import create_world_state
 
 def test_kickoff_friendly_play(simulated_test_runner):
     friendly_robots = [
@@ -44,13 +45,15 @@ def test_kickoff_friendly_play(simulated_test_runner):
                 yellow_robot_locations=enemy_robots,
                 blue_robot_locations=friendly_robots,
                 ball_location=tbots.Point(0, 0),
-                ball_velocity=tbots.Vector(0, 0),
-            ),
+                ball_velocity=tbots.Vector(0, 0),),
     )
 
     always_validation_sequence_set = [[]]
 
-    eventually_validation_sequence_set =[[]]
+    eventually_validation_sequence_set =[
+        [ 
+        ]
+    ]
 
     simulated_test_runner.run_test(
             eventually_validation_sequence_set=eventually_validation_sequence_set,

@@ -4,10 +4,12 @@
 
 KickoffFriendlyPlay::KickoffFriendlyPlay(std::shared_ptr<const AiConfig> config)
     : Play(config, true),
-      kickoff_friendly_play(std::make_shared<KickoffFriendlyPlay>(ai_config)),
+	  fsm{KickoffFriendlyPlayFSM{}},
+	  control_params{},
       crease_defense_play(std::make_shared<CreaseDefensePlay>(ai_config)),
       shoot_or_pass_play(std::make_shared<ShootOrPassPlay>(ai_config))
 {
+	std::cout << "consider this play constructed!";
 }
 
 void KickoffFriendlyPlay::getNextTactics(TacticCoroutine::push_type &yield, const World &world)
@@ -45,17 +47,17 @@ void KickoffFriendlyPlay::updateTactics(const PlayUpdate &play_update)
                           }
                         },
 						play_update.inter_play_communication, play_update.set_inter_play_communication_fun));
-        
-        kickoff_friendly_play->updateTactics(PlayUpdate(play_update.world, num_setup_tactics,
-                                                        [&tactics_to_return](PriorityTacticVector new_tactics)
-                                                        {
-                                                            for (const auto &tactic_vector : new_tactics)
-                                                            {
-                                                                tactics_to_return.push_back(tactic_vector);
-                                                            }
-                                                        },
-														play_update.inter_play_communication, 
-														play_update.set_inter_play_communication_fun));
+    	fsm.process_event(KickoffFriendlyPlayFSM::Update(control_params,
+					PlayUpdate(play_update.world, num_setup_tactics,
+						[&tactics_to_return](PriorityTacticVector new_tactics)
+						{
+							for (const auto &tactic_vector : new_tactics)
+							{
+								tactics_to_return.push_back(tactic_vector);
+							}
+						},
+						play_update.inter_play_communication, 
+						play_update.set_inter_play_communication_fun)));    
     }
     else
     {
@@ -118,3 +120,6 @@ PriorityTacticVector KickoffFriendlyPlay::choosePassOrChip(const PlayUpdate &pla
     
     return tactics;
 }
+
+// Register this play in the genericFactory
+static TGenericFactory<std::string, Play, KickoffFriendlyPlay, AiConfig> factory;

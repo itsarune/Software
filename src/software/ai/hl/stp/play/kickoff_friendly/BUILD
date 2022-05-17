@@ -21,7 +21,8 @@ cc_library(
         "//software/ai/hl/stp/tactic/move:move_tactic",
         "//software/ai/hl/stp/play/crease_defense:crease_defense_play",
         "//software/ai/hl/stp/play/shoot_or_pass:shoot_or_pass_play",
-        "//software/ai/hl/stp/tactic:all_tactics"
+        "//software/ai/hl/stp/tactic:all_tactics",
+		"//software/util/generic_factory",
     ],
     alwayslink = True,
 )
