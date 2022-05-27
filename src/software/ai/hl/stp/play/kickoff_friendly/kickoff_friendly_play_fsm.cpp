@@ -4,12 +4,12 @@ void KickoffFriendlyPlayFSM::moveToSetupPositions(const Update& event)
 {
     PriorityTacticVector ret_tactics = {{}};
     
-    std::vector<std::shared_ptr<MoveTactic>> move_tactics = std::vector<std::shared_ptr<MoveTactic>>(event.common.num_tactics);
+    std::vector<std::shared_ptr<MoveTactic>> move_tactics = std::vector<std::shared_ptr<MoveTactic>>(event.common.num_tactics-1);
     
     std::vector<Point> kickoff_setup_positions = {
         // Robot 1
-        Point(event.common.world.field().centerPoint() +
-              Vector(-event.common.world.field().centerCircleRadius() + 0.1, 0)),
+        //Point(event.common.world.field().centerPoint() +
+        //      Vector(-event.common.world.field().centerCircleRadius() + 0.1, 0)),
         // Robot 3
         Point(event.common.world.field().centerPoint() +
               Vector(-event.common.world.field().centerCircleRadius() - 4 * ROBOT_MAX_RADIUS_METERS,
@@ -19,7 +19,12 @@ void KickoffFriendlyPlayFSM::moveToSetupPositions(const Update& event)
               Vector(-event.common.world.field().centerCircleRadius() - 4 * ROBOT_MAX_RADIUS_METERS,
                      1.0 / 3.0 * event.common.world.field().yLength()))
     };
-    
+   	std::shared_ptr<MoveTactic> kickoff_setup_tactic = std::make_shared<MoveTactic>(); 
+	Point kickoff_start_position = Point() + Vector(0.1, 0);
+	kickoff_setup_tactic->updateControlParams(kickoff_start_position, Angle::fromDegrees(180), 
+					0, TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT);
+	ret_tactics[0].push_back(kickoff_setup_tactic);
+
     std::generate(move_tactics.begin(), move_tactics.end(), [](){ return std::make_shared<MoveTactic>(); });
     
     for (unsigned int i = 0; i < event.common.num_tactics; ++i)

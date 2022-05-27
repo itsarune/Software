@@ -61,6 +61,16 @@ def test_kickoff_friendly_play(simulated_test_runner):
             test_timeout_s=10,
     )
 
+    simulated_test_runner.gamecontroller.send_ci_input(
+        gc_command=Command.Type.NORMAL_START, team=Team.BLUE
+    )
+
+    simulated_test_runner.run_test(
+            eventually_validation_sequence_set=eventually_validation_sequence_set,
+            always_validation_sequence_set=always_validation_sequence_set,
+            test_timeout_s=10,
+    )
+
 if __name__ == "__main__":
     # Run the test, -s disables all capturing at -vv increases verbosity
     sys.exit(pytest.main([__file__, "-svv"]))
