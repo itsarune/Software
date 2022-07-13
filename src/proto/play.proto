@@ -27,6 +27,7 @@ enum PlayName
     DribblingParcourPlay               = 21;
     ScoringFromContestedPossessionPlay = 22;
     PassEndurancePlay                  = 23;
+    MoveToDestPlay                     = 24;
 }
 
 message Play
