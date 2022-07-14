@@ -1,4 +1,5 @@
 #include "software/ai/hl/stp/tactic/kick/kick_fsm.h"
+
 #include "proto/parameters.pb.h"
 
 

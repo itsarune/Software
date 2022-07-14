@@ -66,7 +66,9 @@ class RobotCommunication(object):
         self.run_thread = threading.Thread(target=self.run)
 
         try:
-            self.estop_reader = ThreadedEstopReader(self.estop_path, self.estop_buadrate)
+            self.estop_reader = ThreadedEstopReader(
+                self.estop_path, self.estop_buadrate
+            )
         except Exception:
             raise Exception("connect estop - not found")
 
@@ -76,7 +78,6 @@ class RobotCommunication(object):
                 EstopState, EstopState(is_playing=self.estop_reader.isEstopPlay())
             )
             time.sleep(0.1)
-
 
     def run(self):
         """Forward World and PrimitiveSet protos from fullsystem to the robots.

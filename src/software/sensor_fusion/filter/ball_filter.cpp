@@ -104,7 +104,8 @@ void BallFilter::addNewDetectionsToBuffer(std::vector<BallDetection> new_ball_de
 }
 
 std::optional<Ball> BallFilter::estimateBallStateFromBuffer(
-    boost::circular_buffer<BallDetection> ball_detections, double ball_rolling_acceleration=0)
+    boost::circular_buffer<BallDetection> ball_detections,
+    double ball_rolling_acceleration = 0)
 {
     // Sort the detections in decreasing order before processing. This places the most
     // recent detections (with the largest timestamp) at the front of the buffer, and the
@@ -148,8 +149,8 @@ std::optional<Ball> BallFilter::estimateBallStateFromBuffer(
 
     if (estimated_velocity->average_velocity.length() < 0.1)
     {
-        acceleration =
-            -1 * std::abs(ball_rolling_acceleration) * estimated_velocity->average_velocity;
+        acceleration = -1 * std::abs(ball_rolling_acceleration) *
+                       estimated_velocity->average_velocity;
     }
 
     return Ball(ball_state, ball_detections.front().timestamp, acceleration);

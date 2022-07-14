@@ -176,8 +176,8 @@ std::size_t HRVOSimulator::addHRVORobotAgent(const Robot &robot, TeamSide type)
 
     return addHRVOAgent(position, ROBOT_MAX_RADIUS_METERS,
                         FRIENDLY_ROBOT_RADIUS_MAX_INFLATION, velocity, max_speed,
-                        max_accel, path, MAX_NEIGHBOR_SEARCH_DIST,
-                        MAX_NEIGHBORS, robot.id(), type);
+                        max_accel, path, MAX_NEIGHBOR_SEARCH_DIST, MAX_NEIGHBORS,
+                        robot.id(), type);
 }
 
 std::size_t HRVOSimulator::addLinearVelocityRobotAgent(const Robot &robot,
@@ -203,13 +203,12 @@ std::size_t HRVOSimulator::addHRVOAgent(const Vector &position, float agent_radi
                                         float max_radius_inflation,
                                         const Vector &curr_velocity, float maxSpeed,
                                         float maxAccel, AgentPath &path,
-                                        float neighborDist, std::size_t maxNeighbors, RobotId robot_id,
-                                        TeamSide type)
+                                        float neighborDist, std::size_t maxNeighbors,
+                                        RobotId robot_id, TeamSide type)
 {
     std::shared_ptr<HRVOAgent> agent = std::make_shared<HRVOAgent>(
         this, position, neighborDist, maxNeighbors, agent_radius, max_radius_inflation,
-        curr_velocity, maxAccel, path, maxSpeed, robot_id,
-        type);
+        curr_velocity, maxAccel, path, maxSpeed, robot_id, type);
     agents.push_back(std::move(agent));
     return agents.size() - 1;
 }

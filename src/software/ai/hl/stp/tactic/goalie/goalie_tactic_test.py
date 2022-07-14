@@ -12,12 +12,30 @@ from proto.message_translation.tbots_protobuf import create_world_state
 from proto.ssl_gc_common_pb2 import Team
 
 
-#target 0 = pos post
-#target 1 = center
-#target 2 = neg post
+# target 0 = pos post
+# target 1 = center
+# target 2 = neg post
 
-pos_post = tbots.Point((tbots.Field.createSSLDivisionBField().friendlyGoalpostPos() - tbots.Point(0,0.2)).x(), (tbots.Field.createSSLDivisionBField().friendlyGoalpostPos() - tbots.Point(0,0.2)).y())
-neg_post = tbots.Point((tbots.Field.createSSLDivisionBField().friendlyGoalpostNeg() - tbots.Point(0, -0.2)).x(), (tbots.Field.createSSLDivisionBField().friendlyGoalpostNeg() - tbots.Point(0,-0.2)).y())
+pos_post = tbots.Point(
+    (
+        tbots.Field.createSSLDivisionBField().friendlyGoalpostPos()
+        - tbots.Point(0, 0.2)
+    ).x(),
+    (
+        tbots.Field.createSSLDivisionBField().friendlyGoalpostPos()
+        - tbots.Point(0, 0.2)
+    ).y(),
+)
+neg_post = tbots.Point(
+    (
+        tbots.Field.createSSLDivisionBField().friendlyGoalpostNeg()
+        - tbots.Point(0, -0.2)
+    ).x(),
+    (
+        tbots.Field.createSSLDivisionBField().friendlyGoalpostNeg()
+        - tbots.Point(0, -0.2)
+    ).y(),
+)
 center_goal = tbots.Field.createSSLDivisionBField().friendlyGoalCenter()
 
 
@@ -200,9 +218,6 @@ center_goal = tbots.Field.createSSLDivisionBField().friendlyGoalCenter()
 #         eventually_validation_sequence_set=eventually_validation_sequence_set,
 #         always_validation_sequence_set=always_validation_sequence_set,
 #     )
-
-
-
 
 
 if __name__ == "__main__":
