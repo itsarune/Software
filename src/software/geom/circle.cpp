@@ -1,5 +1,4 @@
 #include "software/geom/circle.h"
-
 #include "software/geom/line.h"
 #include "software/geom/vector.h"
 

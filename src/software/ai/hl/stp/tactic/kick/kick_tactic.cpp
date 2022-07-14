@@ -1,8 +1,7 @@
 #include "software/ai/hl/stp/tactic/kick/kick_tactic.h"
+#include "proto/parameters.pb.h"
 
 #include <algorithm>
-
-#include "proto/parameters.pb.h"
 
 
 KickTactic::KickTactic()
