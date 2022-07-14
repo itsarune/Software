@@ -10,14 +10,14 @@ NetworkSink::NetworkSink(unsigned int channel, const std::string& interface, int
         std::string(ROBOT_MULTICAST_CHANNELS.at(channel)) + "%" + interface,
         ROBOT_LOGS_PORT, true));
     serialized_proto_log_output.reset(new ThreadedProtoUdpSender<TbotsProto::SerializedProto>(
-                std::string(ROBOT_MULTICAST_CHANNELS.at(channel)) + "%" + interface,
-                SERIALIZED_PROTO_LOGS_PORT, true));
+                            std::string(ROBOT_MULTICAST_CHANNELS.at(channel)) + "%" + interface,
+                            SERIALIZED_PROTO_LOGS_PORT, true));
 }
 
 void NetworkSink::sendToNetwork(g3::LogMessageMover log_entry)
 {
     auto level = log_entry.get()._level;
-  
+
    if (level.value == VISUALIZE.value)
    {
        auto log_msg_proto = std::make_unique<TbotsProto::SerializedProto>();

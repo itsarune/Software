@@ -70,6 +70,17 @@ void Thunderloop::runLoop()
     for (;;)
     {
         {
+            TbotsProto::HRVOVisualization hrvo_visualization;
+            hrvo_visualization.set_robot_id(0);
+            auto vo_proto      = *createVelocityObstacleProto(VelocityObstacle(Vector(),
+                                                                               Vector::createFromAngle(Angle::fromDegrees(45)),
+                                                                               Vector::createFromAngle(Angle::fromDegrees(-45))));
+            auto vo_protos = {vo_proto};
+            *(hrvo_visualization.mutable_velocity_obstacles()) = {vo_protos.begin(),
+                                                                  vo_protos.end()};
+            LOG(VISUALIZE) << hrvo_visualization;
+            LOG(INFO) << "Sending HRVO Visualization";
+
             redis_client_->set("/battery_voltage",
                                std::to_string(power_status_.battery_voltage()));
             redis_client_->set("/current_draw",
