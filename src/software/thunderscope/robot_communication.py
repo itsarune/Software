@@ -10,7 +10,7 @@ from software.logger.logger import createLogger
 logger = createLogger(__name__)
 
 # todo remove
-IGNORE_ESTOP = False
+IGNORE_ESTOP = True 
 
 
 class RobotCommunication(object):
@@ -48,6 +48,8 @@ class RobotCommunication(object):
         self.world_buffer = ThreadSafeBuffer(1, World)
         self.primitive_buffer = ThreadSafeBuffer(1, PrimitiveSet)
 
+        self.hrvo_sim_state_buffer = ThreadSafeBuffer(1, HRVOVisualization)
+
         self.motor_control_diagnostics_buffer = ThreadSafeBuffer(1, MotorControl)
         self.power_control_diagnostics_buffer = ThreadSafeBuffer(1, PowerControl)
 
@@ -71,6 +73,7 @@ class RobotCommunication(object):
             )
         except Exception:
             raise Exception("connect estop - not found")
+            pass
 
     def __send_estop_state(self):
         while True:
@@ -201,14 +204,14 @@ class RobotCommunication(object):
             True,
         )
 
-        # self.receive_robot_status = HRVOVisualizationProtoListener(
-            # self.multicast_channel + "%" + self.interface,
-            # SERIALIZED_PROTO_LOGS,
-            # lambda data: self.full_system_proto_unix_io.send_proto(
-                # HRVOVisualization, data
-            # ),
-            # True,
-        # )
+        self.receive_hrvo_visualizations = HRVOVisualizationProtoListener(
+            self.multicast_channel + "%" + self.interface,
+            SERIALIZED_PROTO_LOGS_PORT,
+            lambda data: self.full_system_proto_unix_io.send_proto(
+                HRVOVisualization, data
+            ),
+            True,
+         )
 
         # Create multicast senders
         self.send_primitive_set = PrimitiveSetProtoSender(
@@ -220,7 +223,7 @@ class RobotCommunication(object):
         )
 
         self.connect_fullsystem_to_robots()
-        self.disconnect_fullsystem_from_robots()
+        #self.disconnect_fullsystem_from_robots()
         # self.connect_robot_to_diagnostics(0)
         # self.connect_robot_to_diagnostics(1)
         # self.connect_robot_to_diagnostics(1)
