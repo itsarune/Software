@@ -10,7 +10,7 @@ from software.logger.logger import createLogger
 logger = createLogger(__name__)
 
 # todo remove
-IGNORE_ESTOP = True 
+IGNORE_ESTOP = False 
 
 
 class RobotCommunication(object):
@@ -222,8 +222,12 @@ class RobotCommunication(object):
             self.multicast_channel + "%" + self.interface, VISION_PORT, True
         )
 
+<<<<<<< HEAD
         self.connect_fullsystem_to_robots()
         #self.disconnect_fullsystem_from_robots()
+=======
+        # self.disconnect_fullsystem_from_robots()
+>>>>>>> b7027873a2ff9c9881879b58b7b8de46671d837d
         # self.connect_robot_to_diagnostics(0)
         # self.connect_robot_to_diagnostics(1)
         # self.connect_robot_to_diagnostics(1)
@@ -231,6 +235,8 @@ class RobotCommunication(object):
         # self.connect_robot_to_diagnostics(4)
         # self.connect_robot_to_diagnostics(5)
         # self.connect_robot_to_diagnostics(6)
+        # self.connect_robot_to_diagnostics(7)
+        self.connect_fullsystem_to_robots()
 
         self.send_estop_state_thread.start()
         self.run_thread.start()

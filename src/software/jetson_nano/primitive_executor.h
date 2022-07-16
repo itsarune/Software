@@ -71,7 +71,7 @@ class PrimitiveExecutor
      * @returns Vector The target linear velocity
      */
     Vector getTargetLinearVelocity(const unsigned int robot_id,
-                                   const RobotState &robot_state);
+                                   const Angle& curr_orientation);
     Vector getTargetLinearVelocity(const TbotsProto::MovePrimitive& move_primitive,
                                    const RobotState& robot_state);
     double getTargetLinearSpeed(const TbotsProto::MovePrimitive& move_primitive,
@@ -93,6 +93,5 @@ class PrimitiveExecutor
     TbotsProto::Primitive current_primitive_;
     TbotsProto::MovePrimitive move_primitive_;
     TbotsProto::World current_world_;
-    RobotConstants_t robot_constants_;
     HRVOSimulator hrvo_simulator_;
 };
