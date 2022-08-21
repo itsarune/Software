@@ -3,11 +3,15 @@
 #include "proto/robot_log_msg.pb.h"
 #include "shared/constants.h"
 
+std::string m_interface;
+
 NetworkSink::NetworkSink(unsigned int channel, const std::string& interface, int robot_id)
     : robot_id(robot_id)
 {
-    log_output.reset(new ThreadedProtoUdpSender<TbotsProto::RobotLog>(
-        std::string(ROBOT_MULTICAST_CHANNELS.at(channel)) + "%" + interface,
+    m_interface = std::string(ROBOT_MULTICAST_CHANNELS.at(channel)) + "%" + interface;
+
+        log_output.reset(new ThreadedProtoUdpSender<TbotsProto::RobotLog>(
+        std::string(ROBOT_MULTICAST_CHANNELS.at(channel)),
         ROBOT_LOGS_PORT, true));
     serialized_proto_log_output.reset(new ThreadedProtoUdpSender<TbotsProto::HRVOVisualization>(
                             std::string(ROBOT_MULTICAST_CHANNELS.at(channel)) + "%" + interface,
@@ -16,8 +20,10 @@ NetworkSink::NetworkSink(unsigned int channel, const std::string& interface, int
 
 void NetworkSink::sendToNetwork(g3::LogMessageMover log_entry)
 {
+    LOG(INFO) << "Network Sink " << m_interface;
+
     auto level = log_entry.get()._level;
-    LOG(INFO) << "receiving level " << level.value;
+    //LOG(INFO) << "receiving level " << level.value;
 
    if (level.value == VISUALIZE.value)
    {
@@ -37,8 +43,11 @@ void NetworkSink::sendToNetwork(g3::LogMessageMover log_entry)
        {
            LOG(INFO) << "Parsing a HRVOVisualization";
            log_msg_proto->ParseFromString(serialized_proto);
+           std::string data_buffer;
+           log_msg_proto->SerializeToString(&data_buffer);
 
            serialized_proto_log_output->sendProto(*log_msg_proto);
+           LOG(INFO) << "serialized message: " << data_buffer;
            LOG(INFO) << "Sent a HRVO Visualization";
        } 
    }

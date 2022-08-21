@@ -34,6 +34,8 @@ class ThreadedProtoUdpSender
      */
     void sendProto(const SendProto& message);
 
+    unsigned short port; //TODO: remove
+
    private:
     // The io_service that will be used to service all network requests
     boost::asio::io_service io_service;
@@ -47,7 +49,8 @@ template <class SendProtoT>
 ThreadedProtoUdpSender<SendProtoT>::ThreadedProtoUdpSender(const std::string& ip_address,
                                                            const unsigned short port,
                                                            bool multicast)
-    : io_service(),
+    : port(port),
+      io_service(),
       udp_sender(io_service, ip_address, port, multicast),
       io_service_thread([this]() { io_service.run(); })
 {
@@ -71,5 +74,6 @@ ThreadedProtoUdpSender<SendProtoT>::~ThreadedProtoUdpSender()
 template <class SendProtoT>
 void ThreadedProtoUdpSender<SendProtoT>::sendProto(const SendProtoT& message)
 {
+    std::cout << "THREADEDPROTOSENDER sending";
     udp_sender.sendProto(message);
 }

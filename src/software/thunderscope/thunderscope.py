@@ -397,6 +397,7 @@ class Thunderscope(object):
         self.widgets[friendly_colour_yellow] = {}
         widgets = self.widgets[friendly_colour_yellow]
 
+        print("setup field widget")
         widgets["field_widget"] = self.setup_field_widget(
             sim_proto_unix_io, full_system_proto_unix_io, friendly_colour_yellow
         )
@@ -508,6 +509,7 @@ class Thunderscope(object):
         :returns: the field widget
 
         """
+        print("setup field widget")
         self.player = ProtoPlayer(
             self.yellow_replay_log if friendly_colour_yellow else self.blue_replay_log,
             full_system_proto_unix_io,

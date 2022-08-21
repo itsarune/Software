@@ -21,6 +21,7 @@ class HRVOLayer(FieldLayer):
         self.robot_id = robot_id
         self.hrvo_buffer = ThreadSafeBuffer(buffer_size, HRVOVisualization)
         self.prev_message = HRVOVisualization(robot_id=self.robot_id)
+        print("init HRVO layer")
 
     def paint(self, painter, option, widget):
         """Paint this layer
@@ -35,6 +36,7 @@ class HRVOLayer(FieldLayer):
 
         velocity_obstacle_msg = self.prev_message
         while not self.hrvo_buffer.queue.empty():
+            print("hrvo buffer not empty!")
             msg = self.hrvo_buffer.get(block=False)
             if msg.robot_id == self.robot_id:
                 velocity_obstacle_msg = msg
