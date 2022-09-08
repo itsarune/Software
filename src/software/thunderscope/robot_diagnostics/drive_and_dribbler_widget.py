@@ -7,14 +7,14 @@ from software.thunderscope.common import common_widgets
 from proto.import_all_protos import *
 
 # TODO (#2683) get these values from robot constants
-MAX_DRIBBLER_RPM = 10000
-MIN_DRIBBLER_RPM = -10000
+MAX_DRIBBLER_RPM = 15000
+MIN_DRIBBLER_RPM = -15000
 
 MAX_LINEAR_SPEED_MPS = 5
 MIN_LINEAR_SPEED_MPS = -5
 
-MAX_ANGULAR_SPEED_RAD_PER_S = 20
-MIN_ANGULAR_SPEED_RAD_PER_S = -20
+MAX_ANGULAR_SPEED_RAD_PER_S = 1000
+MIN_ANGULAR_SPEED_RAD_PER_S = -1000
 
 
 class DriveAndDribblerWidget(QWidget):
@@ -49,7 +49,28 @@ class DriveAndDribblerWidget(QWidget):
         self.tabs.currentChanged.connect(self.reset_all_sliders)
 
         self.setLayout(layout)
+        self.motor_control = MotorControl()
+        self.power_control = PowerControl()
 
+    def on_axis_moved(self, axis):
+        # If we are on the direct per-wheel control tab
+        # If we are on the direct velocity control tab
+        # if self.tabs.currentIndex() == 0:
+        if axis.name == 'axis_l':
+            self.motor_control.direct_velocity_control.velocity.x_component_meters = (
+                axis.y * -2.0
+            )
+            self.motor_control.direct_velocity_control.velocity.y_component_meters = (
+                axis.x * -2.0
+            )
+        if axis.name == 'axis_r':
+            self.motor_control.direct_velocity_control.angular_velocity.radians_per_second = (
+                axis.x * -10.0
+            )
+
+        self.proto_unix_io.send_proto(MotorControl, self.motor_control)
+
+    
     def refresh(self):
         """Refresh the widget and send the a MotorControl message with the current values
         """
@@ -57,21 +78,6 @@ class DriveAndDribblerWidget(QWidget):
         motor_control.dribbler_speed_rpm = int(
             self.dribbler_speed_rpm_slider.value() / 1000.0
         )
-
-        # If we are on the direct per-wheel control tab
-        # If we are on the direct velocity control tab
-        if self.tabs.currentIndex() == 0:
-            motor_control.direct_velocity_control.velocity.x_component_meters = (
-                self.x_velocity_slider.value() / 1000.0
-            )
-            motor_control.direct_velocity_control.velocity.y_component_meters = (
-                self.y_velocity_slider.value() / 1000.0
-            )
-            motor_control.direct_velocity_control.angular_velocity.radians_per_second = (
-                self.angular_velocity_slider.value() / 1000.0
-            )
-
-        self.proto_unix_io.send_proto(MotorControl, motor_control)
 
     def value_change(self, slider):
         """Change the slider's value by 0.1 per step

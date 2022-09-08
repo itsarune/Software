@@ -666,10 +666,10 @@ class Thunderscope(object):
         :returns: The drive and dribbler widget
 
         """
-        drive_and_dribbler_widget = DriveAndDribblerWidget(proto_unix_io)
-        self.register_refresh_function(drive_and_dribbler_widget.refresh)
+        self.drive_and_dribbler_widget = DriveAndDribblerWidget(proto_unix_io)
+        self.register_refresh_function(self.drive_and_dribbler_widget.refresh)
 
-        return drive_and_dribbler_widget
+        return self.drive_and_dribbler_widget
 
     def show(self):
         """Show the main window"""

@@ -274,6 +274,7 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
                                            double time_elapsed_since_last_poll_s)
 {
     TbotsProto::MotorStatus motor_status;
+    static int ramp_rpm              = 0;
 
     bool encoders_calibrated = (encoder_calibrated_[FRONT_LEFT_MOTOR_CHIP_SELECT] &&
                                 encoder_calibrated_[FRONT_RIGHT_MOTOR_CHIP_SELECT] &&
@@ -306,6 +307,7 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
         checkDriverFault(DRIBBLER_MOTOR_CHIP_SELECT);
         startController(DRIBBLER_MOTOR_CHIP_SELECT, true);
         tmc4671_setTargetVelocity(DRIBBLER_MOTOR_CHIP_SELECT, 0);
+        ramp_rpm = 0;
 
         encoder_calibration_signal = true;
         encoders_calibrated        = false;
@@ -397,7 +399,6 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
 
     EuclideanSpace_t target_velocity = {0.0, 0.0, 0.0};
     int target_dribbler_rpm          = motor.dribbler_speed_rpm();
-    static int ramp_rpm              = 0;
 
     switch (motor.drive_control_case())
     {

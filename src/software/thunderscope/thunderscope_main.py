@@ -12,6 +12,9 @@ from software.py_constants import *
 from software.thunderscope.robot_communication import RobotCommunication
 from software.thunderscope.replay.proto_logger import ProtoLogger
 
+import signal
+from xbox360controller import Xbox360Controller
+
 NUM_ROBOTS = 6
 SIM_TICK_RATE_MS = 16
 
@@ -238,7 +241,11 @@ if __name__ == "__main__":
             proto_unix_io, getRobotMulticastChannel(0), args.interface
         ), FullSystem(
             runtime_dir, debug, friendly_colour_yellow
-        ) as full_system:
+        ) as full_system, Xbox360Controller(0, axis_threshold=0.001) as controller:
+        
+            # Left and right axis move event
+            controller.axis_l.when_moved = tscope.drive_and_dribbler_widget.on_axis_moved
+            controller.axis_r.when_moved = tscope.drive_and_dribbler_widget.on_axis_moved
 
             proto_unix_io.register_to_observe_everything(blue_logger.buffer)
             proto_unix_io.register_to_observe_everything(yellow_logger.buffer)
