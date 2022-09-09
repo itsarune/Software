@@ -73,6 +73,13 @@ class ChickerWidget(QWidget):
         self.geneva_value = 3
         self.power_value = 1
 
+    def on_kick(self) :
+        print("on_kick callback")
+        power_control.chicker.auto_chip_or_kick.autokick_speed_m_per_s = (
+                power_value
+            )
+        self.proto_unix_io.send_proto(PowerControl, power_control)
+
     def change_button_state(self, button, enable):
         """Change button color and clickable state.
 

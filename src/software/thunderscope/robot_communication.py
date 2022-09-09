@@ -227,7 +227,7 @@ class RobotCommunication(object):
         # self.connect_robot_to_diagnostics(4)
         # self.connect_robot_to_diagnostics(5)
         # self.connect_robot_to_diagnostics(6)
-        self.connect_robot_to_diagnostics(3)
+        self.connect_robot_to_diagnostics(0)
 
         self.send_estop_state_thread.start()
         self.run_thread.start()

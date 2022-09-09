@@ -53,6 +53,7 @@ class DriveAndDribblerWidget(QWidget):
         self.power_control = PowerControl()
 
     def on_axis_moved(self, axis):
+        print("axis moved callback")
         # If we are on the direct per-wheel control tab
         # If we are on the direct velocity control tab
         # if self.tabs.currentIndex() == 0:

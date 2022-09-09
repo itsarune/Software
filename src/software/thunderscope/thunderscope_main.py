@@ -246,6 +246,7 @@ if __name__ == "__main__":
             # Left and right axis move event
             controller.axis_l.when_moved = tscope.drive_and_dribbler_widget.on_axis_moved
             controller.axis_r.when_moved = tscope.drive_and_dribbler_widget.on_axis_moved
+            controller.button_a.when_pressed = tscope.chicker_widget.on_kick
 
             proto_unix_io.register_to_observe_everything(blue_logger.buffer)
             proto_unix_io.register_to_observe_everything(yellow_logger.buffer)
