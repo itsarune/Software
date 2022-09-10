@@ -4,7 +4,7 @@ from software.python_bindings import *
 from proto.import_all_protos import *
 import threading
 import time
-
+import enum
 
 class RobotCommunication(object):
 
@@ -44,6 +44,9 @@ class RobotCommunication(object):
         self.motor_control_diagnostics_buffer = ThreadSafeBuffer(1, MotorControl)
         self.power_control_diagnostics_buffer = ThreadSafeBuffer(1, PowerControl)
 
+        self.motor_control_controller_buffer = ThreadSafeBuffer(1, MotorControl)
+        self.power_control_controller_buffer = ThreadSafeBuffer(1, PowerControl)
+
         self.full_system_proto_unix_io.register_observer(World, self.world_buffer)
         self.full_system_proto_unix_io.register_observer(
             PrimitiveSet, self.primitive_buffer
@@ -57,6 +60,8 @@ class RobotCommunication(object):
 
         self.send_estop_state_thread = threading.Thread(target=self.__send_estop_state)
         self.run_thread = threading.Thread(target=self.run)
+
+        self.robot_id_to_diagnostics_proto_source_map = dict()
 
         try:
             self.estop_reader = ThreadedEstopReader(
@@ -109,13 +114,23 @@ class RobotCommunication(object):
                     ),
                 )
 
+                controller_primitive = DirectControlPrimitive(
+                    motor_control=self.motor_control_controller_buffer.get(
+                        block=False
+                    ),
+                    power_control=self.power_control_controller_buffer.get(
+                        block=False
+                    ),
+                )
+
                 primitive_set = PrimitiveSet(
                     time_sent=Timestamp(epoch_timestamp_seconds=time.time()),
                     stay_away_from_ball=False,
                     robot_primitives={
-                        robot_id: Primitive(direct_control=diagnostics_primitive)
-                        for robot_id in self.robots_connected_to_diagnostics
-                    },
+                        robot_id: Primitive(direct_control=diagnostics_primitive) if robot_id_to_diagnostics_proto_source_map[robot_id] == self.DiagosticProtoSource.RobotDiagostics
+                        else robot_id: Primitive(direct_control=controller_primitive) if robot_id_to_diagnostics_proto_source_map[robot_id] == self.DiagosticProtoSource.HandheldController
+                        for robot_id in self.robot_id_to_diagnostics_proto_source_map
+                },
                     sequence_number=self.sequence_number,
                 )
 
@@ -133,17 +148,21 @@ class RobotCommunication(object):
         self.fullsystem_connected_to_robots = True
         self.robots_connected_to_handheld_controllers = set()
         self.robots_connected_to_diagnostics = set()
+        self.robot_id_to_diagnostics_proto_source_map = set()
 
     def disconnect_fullsystem_from_robots(self):
         """ Disconnect the robots from fullsystem """
 
         self.fullsystem_connected_to_robots = False
 
-    def connect_robot_to_diagnostics(self, robot_id):
-        self.robots_connected_to_diagnostics.add(robot_id)
+    def connect_robot_to_robot_diagnostics(self, robot_id):
+        self.robot_id_to_diagnostics_proto_source_map[robot_id] = self.DiagosticProtoSource.RobotDiagnostics
 
-    def discconnect_robot_from_diagnostics(self, robot_id):
-        self.robots_connected_to_diagnostics.remove(robot_id)
+    def disconnect_robot_from_diagnostics(self, robot_id):
+        del robot_id_to_diagnostics_proto_source_map[robot_id]
+
+    def connect_robot_to_handheld_controller(self, robot_id):
+        self.robot_id_to_diagnostics_proto_source_map[robot_id] = self.DiagosticProtoSource.HandheldController
 
     def __enter__(self):
         """Enter RobotCommunication context manager. Setup multicast listener
@@ -199,3 +218,7 @@ class RobotCommunication(object):
 
         """
         self.run_thread.join()
+
+    class DiagosticProtoSource(enum.Enum) :
+        RobotDiagnostics
+        HandheldController
