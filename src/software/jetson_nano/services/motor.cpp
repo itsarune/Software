@@ -18,6 +18,9 @@
 #include "shared/constants.h"
 #include "software/logger/logger.h"
 
+#include "external/tracy/public/tracy/Tracy.hpp"
+
+
 extern "C"
 {
 #include "external/trinamic/tmc/ic/TMC4671/TMC4671.h"

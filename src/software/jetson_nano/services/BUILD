@@ -10,6 +10,7 @@ cc_library(
         "//software/jetson_nano:gpio",
         "//software/logger",
         "//software/physics:euclidean_to_wheel",
+        "@tracy",
         "@trinamic",
     ],
 )
@@ -22,6 +23,7 @@ cc_library(
         "//shared/uart_framing",
         "//software/logger",
         "//software/uart:boost_uart_communication",
+        "@tracy",
         "@boost//:asio",
     ],
 )
@@ -36,6 +38,7 @@ cc_library(
         "//software/logger",
         "//software/networking:threaded_proto_udp_listener",
         "//software/networking:threaded_proto_udp_sender",
+        "@tracy",
         "@boost//:asio",
     ],
 )
