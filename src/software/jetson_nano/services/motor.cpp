@@ -278,6 +278,7 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
                                            bool encoder_calibration_signal,
                                            double time_elapsed_since_last_poll_s)
 {
+    ZoneScoped;
     TbotsProto::MotorStatus motor_status;
 
     bool encoders_calibrated = (encoder_calibrated_[FRONT_LEFT_MOTOR_CHIP_SELECT] &&

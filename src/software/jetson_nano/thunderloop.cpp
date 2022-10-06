@@ -12,6 +12,8 @@
 #include "software/world/robot_state.h"
 #include "software/world/team.h"
 
+#include "external/tracy/public/tracy/Tracy.hpp"
+
 /**
  * https://rt.wiki.kernel.org/index.php/Squarewave-example
  * using clock_nanosleep of librt
@@ -70,6 +72,8 @@ Thunderloop::~Thunderloop() {}
 
     for (;;)
     {
+        FrameMarkNamed("Thunderloop");
+
         {
                         redis_client_->set("/battery_voltage",
                                std::to_string(power_status_.battery_voltage()));

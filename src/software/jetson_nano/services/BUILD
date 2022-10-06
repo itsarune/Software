@@ -13,6 +13,7 @@ cc_library(
         "//software/util/scoped_timespec_timer",
         "//proto/message_translation:tbots_geometry",
         "@eigen",
+        "@tracy",
         "@trinamic",
     ],
 )
@@ -27,6 +28,7 @@ cc_library(
         "//software/logger",
         "//software/uart:boost_uart_communication",
         "@boost//:asio",
+        "@tracy",
     ],
 )
 
@@ -41,5 +43,6 @@ cc_library(
         "//software/networking:threaded_proto_udp_listener",
         "//software/networking:threaded_proto_udp_sender",
         "@boost//:asio",
+        "@tracy",
     ],
 )
