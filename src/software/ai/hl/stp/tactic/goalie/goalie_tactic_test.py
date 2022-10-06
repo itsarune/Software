@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 import software.python_bindings as tbots
@@ -10,7 +12,6 @@ from software.simulated_tests.robot_speed_threshold import *
 from software.simulated_tests.excessive_dribbling import *
 from software.simulated_tests.simulated_test_fixture import (
     simulated_test_runner,
-    pytest_main,
 )
 from proto.message_translation.tbots_protobuf import create_world_state
 from proto.ssl_gc_common_pb2 import Team
@@ -172,4 +173,5 @@ def test_goalie_blocks_shot(
 
 
 if __name__ == "__main__":
-    pytest_main(__file__)
+    # Run the test, -s disables all capturing at -vv increases verbosity
+    sys.exit(pytest.main([__file__, "-svv"]))

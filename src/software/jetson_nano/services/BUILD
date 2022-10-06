@@ -10,7 +10,9 @@ cc_library(
         "//software/jetson_nano:gpio",
         "//software/logger",
         "//software/physics:euclidean_to_wheel",
-        "@tracy",
+        "//software/util/scoped_timespec_timer",
+        "//proto/message_translation:tbots_geometry",
+        "@eigen",
         "@trinamic",
     ],
 )
@@ -19,11 +21,11 @@ cc_library(
     name = "power",
     srcs = ["power.cpp"],
     hdrs = ["power.h"],
+    linkopts = ["-latomic"],  # Necessary due to <atomic> not containing load/store for all sizes
     deps = [
         "//shared/uart_framing",
         "//software/logger",
         "//software/uart:boost_uart_communication",
-        "@tracy",
         "@boost//:asio",
     ],
 )
@@ -38,7 +40,6 @@ cc_library(
         "//software/logger",
         "//software/networking:threaded_proto_udp_listener",
         "//software/networking:threaded_proto_udp_sender",
-        "@tracy",
         "@boost//:asio",
     ],
 )

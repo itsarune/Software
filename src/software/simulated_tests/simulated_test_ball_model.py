@@ -5,17 +5,13 @@ from software.simulated_tests.robot_enters_region import *
 from software.simulated_tests.ball_enters_region import *
 from software.simulated_tests.ball_moves_forward import *
 from software.simulated_tests.friendly_has_ball_possession import *
-from software.simulated_tests.ball_speed_threshold import *
-from software.simulated_tests.robot_speed_threshold import *
 from software.simulated_tests.ball_stops_in_region import *
 from software.simulated_tests.excessive_dribbling import *
 from proto.message_translation.tbots_protobuf import create_world_state
 from proto.ssl_gc_common_pb2 import Team
 from proto.geometry_pb2 import Point, Angle
-from software.simulated_tests.simulated_test_fixture import (
-    simulated_test_runner,
-    pytest_main,
-)
+from software.simulated_tests.simulated_test_fixture import simulated_test_runner
+from software.simulated_tests.pytest_main import pytest_main
 
 # the friction model currently used in the er-force simulator
 
@@ -38,8 +34,7 @@ def test_simulator_move_ball(
     ball_initial_position, ball_initial_velocity, simulated_test_runner,
 ):
     # Setup Ball
-    simulated_test_runner.simulator_proto_unix_io.send_proto(
-        WorldState,
+    simulated_test_runner.set_worldState(
         create_world_state(
             [],
             blue_robot_locations=[],
@@ -51,15 +46,11 @@ def test_simulator_move_ball(
     # Setup Tactic
     params = AssignedTacticPlayControlParams()
 
-    simulated_test_runner.blue_full_system_proto_unix_io.send_proto(
-        AssignedTacticPlayControlParams, params
-    )
+    simulated_test_runner.set_tactics(params, proto.ssl_gc_common_pb2.Team.BLUE)
 
     # Setup no tactics on the enemy side
     params = AssignedTacticPlayControlParams()
-    simulated_test_runner.yellow_full_system_proto_unix_io.send_proto(
-        AssignedTacticPlayControlParams, params
-    )
+    simulated_test_runner.set_tactics(params, proto.ssl_gc_common_pb2.Team.YELLOW)
 
     # expected ball position
     initial_v = ball_initial_velocity.length()
@@ -83,6 +74,76 @@ def test_simulator_move_ball(
     # Eventually Validation
     eventually_validation_sequence_set = [
         [BallEventuallyStopsInRegion([tbots.Circle(ball_expected_position, 0.1)]),]
+    ]
+
+    simulated_test_runner.run_test(
+        test_timeout_s=8,
+        eventually_validation_sequence_set=eventually_validation_sequence_set,
+        always_validation_sequence_set=always_validation_sequence_set,
+    )
+
+
+def test_simulator_kick_ball(simulated_test_runner):
+
+    ball_initial_position = tbots.Point(-2.5, 0)
+    kick_velocity = tbots.Vector(2, 0)
+
+    rob_pos = ball_initial_position - (kick_velocity.normalize() * 0.1)
+
+    # Setup Ball
+    simulated_test_runner.set_worldState(
+        create_world_state(
+            [],
+            blue_robot_locations=[rob_pos],
+            ball_location=ball_initial_position,
+            ball_velocity=tbots.Vector(0, 0),
+        ),
+    )
+
+    # Setup Tactic
+    params = AssignedTacticPlayControlParams()
+    kick_origin = Point(
+        x_meters=ball_initial_position.x(), y_meters=ball_initial_position.y()
+    )
+
+    params.assigned_tactics[0].kick.CopyFrom(
+        KickTactic(
+            kick_origin=kick_origin,
+            kick_direction=Angle(radians=kick_velocity.orientation().toRadians()),
+            kick_speed_meters_per_second=kick_velocity.length(),
+        )
+    )
+
+    simulated_test_runner.set_tactics(params, proto.ssl_gc_common_pb2.Team.BLUE)
+
+    # Setup no tactics on the enemy side
+    params = AssignedTacticPlayControlParams()
+    simulated_test_runner.set_tactics(params, proto.ssl_gc_common_pb2.Team.YELLOW)
+
+    # expected ball position
+
+    initial_v = kick_velocity.length()
+
+    # velocity at which ball starts to roll
+    rolling_v = TRANSITION_FACTOR * initial_v
+    time_until_roll = abs((rolling_v - initial_v) / SLIDING_ACCELERATION)
+    time_until_stop = abs((rolling_v - STOPPING_SPEED) / ROLLING_ACCELERATION)
+
+    d_slide = (initial_v + rolling_v) / 2 * time_until_roll
+    d_roll = (rolling_v / 2) * time_until_stop
+    total_distance = d_slide + d_roll
+
+    ball_expected_position = (
+        total_distance * kick_velocity.normalize() + ball_initial_position
+    )
+
+    # Always Validation
+    always_validation_sequence_set = []
+
+    # Eventually Validation
+    # use larger error margin because we can't account for robot-ball collision impact
+    eventually_validation_sequence_set = [
+        [BallEventuallyStopsInRegion([tbots.Circle(ball_expected_position, 0.5)]),]
     ]
 
     simulated_test_runner.run_test(
@@ -167,6 +228,7 @@ def test_ball_robot_collision(simulated_test_runner):
     simulated_test_runner.run_test(
         eventually_validation_sequence_set=eventually_validation_sequence_set,
         always_validation_sequence_set=always_validation_sequence_set,
+        test_timeout_s=4,
     )
 
 
