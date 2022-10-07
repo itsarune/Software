@@ -61,6 +61,7 @@ cc_library(
     #alwayslink = True,
     defines = [
         "TRACY_ENABLE",
+        "TRACY_NO_SAMPLING",
     ],
     visibility = ["//visibility:public"],
 )

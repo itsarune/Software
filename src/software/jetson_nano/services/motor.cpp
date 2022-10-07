@@ -278,7 +278,6 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
                                            bool encoder_calibration_signal,
                                            double time_elapsed_since_last_poll_s)
 {
-    ZoneScoped;
     TbotsProto::MotorStatus motor_status;
 
     bool encoders_calibrated = (encoder_calibrated_[FRONT_LEFT_MOTOR_CHIP_SELECT] &&
@@ -380,26 +379,9 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
     motor_status.mutable_local_velocity()->set_y_component_meters(
         static_cast<float>(current_euclidean_velocity[1]));
 
-
-//    Vector actual_velocity(-current_euclidean_velocity[1], current_euclidean_velocity[0]);
-//    TbotsProto::HRVOVisualization hrvo_visualization;
-//    hrvo_visualization.set_robot_id(0);
-//    auto vo_proto      = *createVelocityObstacleProto(VelocityObstacle(Vector(),
-//                                                                       actual_velocity,
-//                                                                       actual_velocity));
-//    auto vo_protos = {vo_proto};
-//    *(hrvo_visualization.mutable_velocity_obstacles()) = {vo_protos.begin(),
-//                                                          vo_protos.end()};
-//    LOG(VISUALIZE) << hrvo_visualization;
-
-//    LOG(INFO) << "Target and wheel vel difference: " << prev_target_vel -
-//    Vector target_vel = createVector(motor.direct_velocity_control().velocity());
-//    Vector target_vel_flipped(-motor.direct_velocity_control().velocity().y_component_meters(), motor.direct_velocity_control().velocity().x_component_meters());
-//    LOG(INFO) << "target_vel " << target_vel << " ==> " << target_vel.length() << " ::: target_vel_flipped " << target_vel_flipped;
-//    LOG(INFO) << "Target vel " << target_total_wheel_velocities[0] << ", " << target_total_wheel_velocities[1] << ", " << target_total_wheel_velocities[2] << ", " << target_total_wheel_velocities[3];
-
-
-    // LOG HRVOVisualization the robot velocity
+    TracyPlot("current_y", current_euclidean_velocity[0]);
+    TracyPlot("current_x", current_euclidean_velocity[1]);
+    TracyPlot("current_t", current_euclidean_velocity[2]);
 
     WheelSpace_t target_total_wheel_velocities   = {0.0, 0.0, 0.0, 0.0};
     WheelSpace_t target_linear_wheel_velocities  = {0.0, 0.0, 0.0, 0.0};
@@ -421,13 +403,10 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
             target_velocity = {
                 -motor.direct_velocity_control().velocity().y_component_meters(),
                 motor.direct_velocity_control().velocity().x_component_meters(),
-                motor.direct_velocity_control().angular_velocity().radians_per_second()};
+                motor.direct_velocity_control().angular_velocity().radians_per_second()
+            };
             prev_target_vel = Vector(-motor.direct_velocity_control().velocity().y_component_meters(),
                                      motor.direct_velocity_control().velocity().x_component_meters());
-//            target_velocity = {
-//                    motor.direct_velocity_control().velocity().x_component_meters(),
-//                    motor.direct_velocity_control().velocity().y_component_meters(),
-//                    motor.direct_velocity_control().angular_velocity().radians_per_second()};
             break;
         };
 
@@ -446,15 +425,15 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
 
     target_angular_wheel_velocities = rampWheelVelocity(
         prev_angular_wheel_velocities, {0.0, 0.0, target_velocity[2]},
-        static_cast<double>(robot_constants_.robot_max_ang_speed_rad_per_s),
-        static_cast<double>(robot_constants_.robot_max_ang_acceleration_rad_per_s_2),
+        static_cast<double>(robot_constants_.robot_max_ang_speed_rad_per_s / 5.0),
+        static_cast<double>(robot_constants_.robot_max_ang_acceleration_rad_per_s_2 / 5.0),
         time_elapsed_since_last_poll_s);
 
     prev_linear_wheel_velocities  = target_linear_wheel_velocities;
     prev_angular_wheel_velocities = target_angular_wheel_velocities;
-
     target_total_wheel_velocities =
         prev_linear_wheel_velocities + prev_angular_wheel_velocities;
+
     static const float LOCAL_EPSILON = 0.01f;
 
     if (std::abs(target_total_wheel_velocities[0]) <= LOCAL_EPSILON &&
@@ -470,53 +449,41 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
         driver_control_enable_gpio.setValue(GpioState::HIGH);
     }
 
-//    LOG(INFO) << "Target vel " << target_total_wheel_velocities[0] << ", " << target_total_wheel_velocities[1] << ", " << target_total_wheel_velocities[2] << ", " << target_total_wheel_velocities[3];
-    if (Vector(-motor.direct_velocity_control().velocity().y_component_meters(),
-           motor.direct_velocity_control().velocity().x_component_meters()).length() > 0.05)
     {
-        LOG(INFO) << "Wheel vel diff "
-                  << current_wheel_velocities[0] - target_total_wheel_velocities[0] << ", "
-                  << current_wheel_velocities[1] - target_total_wheel_velocities[1] << ", "
-                  << current_wheel_velocities[2] - target_total_wheel_velocities[2] << ", "
-                  << current_wheel_velocities[3] - target_total_wheel_velocities[3];
+        ZoneScopedN("Motor Spi Transfer");
+        // Set target speeds accounting for acceleration
+        tmc4671_writeInt(FRONT_RIGHT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
+                static_cast<int>(target_total_wheel_velocities[0] *
+                    ELECTRICAL_RPM_PER_MECHANICAL_MPS));
+        tmc4671_writeInt(FRONT_LEFT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
+                static_cast<int>(target_total_wheel_velocities[1] *
+                    ELECTRICAL_RPM_PER_MECHANICAL_MPS));
+        tmc4671_writeInt(BACK_LEFT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
+                static_cast<int>(target_total_wheel_velocities[2] *
+                    ELECTRICAL_RPM_PER_MECHANICAL_MPS));
+        tmc4671_writeInt(BACK_RIGHT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
+                static_cast<int>(target_total_wheel_velocities[3] *
+                    ELECTRICAL_RPM_PER_MECHANICAL_MPS));
     }
 
-    // Set target speeds accounting for acceleration
-    tmc4671_writeInt(FRONT_RIGHT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
-                     static_cast<int>(target_total_wheel_velocities[0] *
-                                      ELECTRICAL_RPM_PER_MECHANICAL_MPS));
-    tmc4671_writeInt(FRONT_LEFT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
-                     static_cast<int>(target_total_wheel_velocities[1] *
-                                      ELECTRICAL_RPM_PER_MECHANICAL_MPS));
-    tmc4671_writeInt(BACK_LEFT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
-                     static_cast<int>(target_total_wheel_velocities[2] *
-                                      ELECTRICAL_RPM_PER_MECHANICAL_MPS));
-    tmc4671_writeInt(BACK_RIGHT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
-                     static_cast<int>(target_total_wheel_velocities[3] *
-                                      ELECTRICAL_RPM_PER_MECHANICAL_MPS));
+    {
+        ZoneScopedN("Dribbler Spi Transfer");
 
-//    auto target_rpm1 = tmc4671_readInt(FRONT_RIGHT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET);
-//    auto target_rpm2 = tmc4671_readInt(FRONT_LEFT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET);
-//    auto target_rpm3 = tmc4671_readInt(BACK_LEFT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET);
-//    auto target_rpm4 = tmc4671_readInt(BACK_RIGHT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET);
-//    LOG(INFO) << "motor target vel " << target_rpm1 << ", " << target_rpm2 << ", " << target_rpm3 << ", " << target_rpm4;
-
-    // If the dribbler only needs to change by DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S,
-    // just set the value
-    if (std::abs(target_dribbler_rpm - ramp_rpm) <=
-        DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S)
-    {
-        tmc4671_setTargetVelocity(DRIBBLER_MOTOR_CHIP_SELECT, target_dribbler_rpm);
-    }
-    else if (target_dribbler_rpm > ramp_rpm + DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S)
-    {
-        ramp_rpm += DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S;
-        tmc4671_setTargetVelocity(DRIBBLER_MOTOR_CHIP_SELECT, ramp_rpm);
-    }
-    else if (target_dribbler_rpm < ramp_rpm - DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S)
-    {
-        ramp_rpm -= DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S;
-        tmc4671_setTargetVelocity(DRIBBLER_MOTOR_CHIP_SELECT, ramp_rpm);
+        if (std::abs(target_dribbler_rpm - ramp_rpm) <=
+                DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S)
+        {
+            tmc4671_writeInt(DRIBBLER_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET, target_dribbler_rpm);
+        }
+        else if (target_dribbler_rpm > ramp_rpm + DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S)
+        {
+            ramp_rpm += DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S;
+            tmc4671_writeInt(DRIBBLER_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET, ramp_rpm);
+        }
+        else if (target_dribbler_rpm < ramp_rpm - DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S)
+        {
+            ramp_rpm -= DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S;
+            tmc4671_writeInt(DRIBBLER_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET, ramp_rpm);
+        }
     }
 
     return motor_status;
@@ -549,6 +516,8 @@ WheelSpace_t MotorService::rampWheelVelocity(
     double max_allowable_wheel_velocity, double allowed_acceleration,
     const double& time_to_ramp)
 {
+    ZoneScoped;
+
     // ramp wheel velocity
     WheelSpace_t ramp_wheel_velocity;
 
@@ -1071,11 +1040,13 @@ void MotorService::startController(uint8_t motor, bool dribbler)
 
 EuclideanSpace_t MotorService::getCurrentEuclideanVelocity() const
 {
+    ZoneScopedN("getCurrentEuclidieanVel");
     return euclidean_to_four_wheel.getEuclideanVelocity(getCurrentWheelVelocities());
 }
 
 WheelSpace_t MotorService::getCurrentWheelVelocities() const
 {
+    ZoneScopedN("Get Current Velocities SPI");
     // Get current wheel electical RPMs (don't account for pole pairs)
     double front_right_velocity =
             static_cast<double>(tmc4671_getActualVelocity(FRONT_RIGHT_MOTOR_CHIP_SELECT)) *

@@ -75,44 +75,36 @@ Thunderloop::~Thunderloop() {}
         FrameMarkNamed("Thunderloop");
 
         {
-                        redis_client_->set("/battery_voltage",
-                               std::to_string(power_status_.battery_voltage()));
-            redis_client_->set("/current_draw",
-                               std::to_string(power_status_.current_draw()));
-
             // Wait until next shot
             //
             // Note: CLOCK_MONOTONIC is used over CLOCK_REALTIME since
             // CLOCK_REALTIME can jump backwards
-            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next_shot, NULL);
+            {
+                ZoneScopedN("Nanosleep");
+                clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next_shot, NULL);
+            }
             ScopedTimespecTimer iteration_timer(&iteration_time);
 
             // Collect jetson status
             jetson_status_.set_cpu_temperature(getCpuTemperature());
 
             // Grab the latest configs from redis
-            auto robot_id = std::stoi(redis_client_->get(ROBOT_ID_REDIS_KEY));
-            auto channel_id =
-                std::stoi(redis_client_->get(ROBOT_MULTICAST_CHANNEL_REDIS_KEY));
-            auto network_interface =
-                redis_client_->get(ROBOT_NETWORK_INTERFACE_REDIS_KEY);
+            int robot_id = 2;
+            int channel_id = 0;
+            std::string network_interface = "wlan0";
 
-            if (first_shot)
             {
-//                NetworkLoggerSingleton::initializeLogger(channel_id, network_interface, robot_id);
-                first_shot = false;
+                ZoneScopedN("Log visualize");
+                TbotsProto::HRVOVisualization hrvo_visualization;
+                hrvo_visualization.set_robot_id(0);
+                auto vo_proto      = *createVelocityObstacleProto(VelocityObstacle(Vector(),
+                                                                                   Vector::createFromAngle(Angle::fromDegrees(45)),
+                                                                                   Vector::createFromAngle(Angle::fromDegrees(-45))));
+                auto vo_protos = {vo_proto};
+                *(hrvo_visualization.mutable_velocity_obstacles()) = {vo_protos.begin(),
+                                                                      vo_protos.end()};
+                LOG(VISUALIZE) << hrvo_visualization;
             }
-            
-            TbotsProto::HRVOVisualization hrvo_visualization;
-            hrvo_visualization.set_robot_id(0);
-            auto vo_proto      = *createVelocityObstacleProto(VelocityObstacle(Vector(),
-                                                                               Vector::createFromAngle(Angle::fromDegrees(45)),
-                                                                               Vector::createFromAngle(Angle::fromDegrees(-45))));
-            auto vo_protos = {vo_proto};
-            *(hrvo_visualization.mutable_velocity_obstacles()) = {vo_protos.begin(),
-                                                                  vo_protos.end()};
-            LOG(VISUALIZE) << hrvo_visualization;
-//            LOG(INFO) << "Sending HRVO Visualization";
 
             // If any of the configs have changed, update the network service to switch
             // to the new interface and channel with the correct robot ID
@@ -235,6 +227,7 @@ Thunderloop::~Thunderloop() {}
             // Power Service: execute the power control command
             {
                 ScopedTimespecTimer timer(&poll_time);
+                ZoneScopedN("Power Poll");
                 power_status_ = power_service_->poll(direct_control_.power_control());
             }
             thunderloop_status_.set_power_service_poll_time_ns(
@@ -243,9 +236,7 @@ Thunderloop::~Thunderloop() {}
             // Motor Service: execute the motor control command
             {
                 ScopedTimespecTimer timer(&poll_time);
-
-//                LOG(DEBUG) << "Motor service being polled!!! ";
-//                LOG(DEBUG) << direct_control_.motor_control().DebugString();
+                ZoneScopedN("Motor Poll");
                 motor_status_ = motor_service_->poll(direct_control_.motor_control(),
                                                      power_status_.breakbeam_tripped(),
                                                      loop_duration_seconds);
@@ -268,12 +259,6 @@ Thunderloop::~Thunderloop() {}
         // Make sure the iteration can fit inside the period of the loop
         loop_duration_seconds =
             static_cast<double>(loop_duration) * SECONDS_PER_NANOSECOND;
-        static int throttly_boi = 0;
-
-        if (throttly_boi++ % 100 == 0)
-        {
-            LOG(DEBUG) << "Loop duration: " << loop_duration_seconds << " seconds";
-        }
 
         // Calculate next shot taking into account how long this iteration took
         next_shot.tv_nsec += interval - loop_duration;

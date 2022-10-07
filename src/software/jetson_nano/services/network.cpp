@@ -3,6 +3,7 @@
 #include "software/networking/threaded_proto_udp_listener.hpp"
 #include "software/networking/threaded_proto_udp_sender.hpp"
 
+#include "external/tracy/public/tracy/Tracy.hpp"
 
 
 NetworkService::NetworkService(const std::string& ip_address,
@@ -24,6 +25,7 @@ NetworkService::NetworkService(const std::string& ip_address,
 std::tuple<TbotsProto::PrimitiveSet, TbotsProto::World> NetworkService::poll(
     const TbotsProto::RobotStatus& robot_status)
 {
+    ZoneScopedN("Network Poll");
     std::scoped_lock lock{primitive_set_mutex, world_mutex};
     TbotsProto::RobotStatus new_status = robot_status;
     new_status.set_last_handled_primitive_set(primitive_set_msg.sequence_number());
