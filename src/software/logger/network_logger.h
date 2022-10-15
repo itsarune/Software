@@ -6,6 +6,7 @@
 #include <g3log/logworker.hpp>
 
 #include "software/logger/coloured_cout_sink.h"
+#include "software/logger/csv_sink.h"
 #include "software/logger/network_sink.h"
 
 static const std::string CSV_PATH = "/tmp";

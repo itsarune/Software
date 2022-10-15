@@ -15,6 +15,7 @@
 #include "proto/ssl_vision_wrapper.pb.h"
 #include "proto/tbots_software_msgs.pb.h"
 #include "proto/team.pb.h"
+#include "proto/visualization.pb.h"
 #include "proto/world.pb.h"
 #include "pybind11_protobuf/native_proto_caster.h"
 #include "software/estop/threaded_estop_reader.h"
@@ -287,6 +288,8 @@ PYBIND11_MODULE(python_bindings, m)
     declareThreadedProtoUdpListener<TbotsProto::RobotStatus>(m, "RobotStatus");
     declareThreadedProtoUdpListener<TbotsProto::RobotLog>(m, "RobotLog");
     declareThreadedProtoUdpListener<SSLProto::SSL_WrapperPacket>(m, "SSLWrapperPacket");
+    declareThreadedProtoUdpListener<TbotsProto::HRVOVisualization>(m,
+                                                                   "HRVOVisualization");
 
     // Senders
     declareThreadedProtoUdpSender<TbotsProto::World>(m, "World");

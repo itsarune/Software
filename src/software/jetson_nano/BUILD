@@ -9,6 +9,7 @@ cc_library(
         "//proto:tbots_cc_proto",
         "//proto/primitive:primitive_msg_factory",
         "//shared:constants",
+        "//software/logger:network_logger",
         "//software/math:math_functions",
         "//software/world",
     ],

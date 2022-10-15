@@ -6,7 +6,6 @@
 #include "shared/constants.h"
 #include "software/jetson_nano/primitive_executor.h"
 #include "software/jetson_nano/services/motor.h"
-#include "software/logger/logger.h"
 #include "software/logger/network_logger.h"
 #include "software/util/scoped_timespec_timer/scoped_timespec_timer.h"
 #include "software/world/robot_state.h"
@@ -22,20 +21,22 @@ Thunderloop::Thunderloop(const RobotConstants_t& robot_constants, const int loop
     // TODO (#2495): Set the friendly team colour once we receive World proto
     : primitive_executor_(loop_hz, robot_constants, TeamColour::YELLOW)
 {
-    robot_id_        = MAX_ROBOT_IDS + 1;  // Initialize to a robot ID that is not valid
-    channel_id_      = 0;
     loop_hz_         = loop_hz;
     robot_constants_ = robot_constants;
 
     redis_client_ = std::make_unique<RedisClient>(REDIS_DEFAULT_HOST, REDIS_DEFAULT_PORT);
+    robot_id_     = std::stoi(redis_client_->get(ROBOT_ID_REDIS_KEY));
+    channel_id_   = std::stoi(redis_client_->get(ROBOT_MULTICAST_CHANNEL_REDIS_KEY));
+    network_interface_ = redis_client_->get(ROBOT_NETWORK_INTERFACE_REDIS_KEY);
 
-    auto robot_id   = std::stoi(redis_client_->get(ROBOT_ID_REDIS_KEY));
-    auto channel_id = std::stoi(redis_client_->get(ROBOT_MULTICAST_CHANNEL_REDIS_KEY));
-    auto network_interface = redis_client_->get(ROBOT_NETWORK_INTERFACE_REDIS_KEY);
+    NetworkLoggerSingleton::initializeLogger(channel_id_, network_interface_, robot_id_);
+    LOG(INFO) << "init NetworkLoggerSingleton: " << channel_id_ << ", "
+              << network_interface_ << ", " << robot_id_;
 
-    NetworkLoggerSingleton::initializeLogger(channel_id, network_interface, robot_id);
-
-    motor_service_ = std::make_unique<MotorService>(robot_constants, loop_hz);
+    // motor_service_ = std::make_unique<MotorService>(robot_constants, loop_hz);
+    network_service_ = std::make_unique<NetworkService>(
+        std::string(ROBOT_MULTICAST_CHANNELS.at(channel_id_)) + "%" + network_interface_,
+        VISION_PORT, PRIMITIVE_PORT, ROBOT_STATUS_PORT, true);
 }
 
 Thunderloop::~Thunderloop() {}
@@ -68,6 +69,18 @@ void Thunderloop::runLoop()
     for (;;)
     {
         {
+            LOG(INFO) << "send hrvo visualization\n";
+            TbotsProto::HRVOVisualization hrvo_visualization;
+            hrvo_visualization.set_robot_id(1);
+            auto vo_proto  = *createVelocityObstacleProto(VelocityObstacle(
+                Vector(), Vector::createFromAngle(Angle::fromDegrees(45)),
+                Vector::createFromAngle(Angle::fromDegrees(-45))));
+            auto vo_protos = {vo_proto};
+            *(hrvo_visualization.mutable_velocity_obstacles()) = {vo_protos.begin(),
+                                                                  vo_protos.end()};
+            *(hrvo_visualization.add_robots()) = *createCircleProto(Circle(Point(), 0.5));
+            LOG(VISUALIZE) << hrvo_visualization;
+
             // Wait until next shot
             //
             // Note: CLOCK_MONOTONIC is used over CLOCK_REALTIME since
@@ -90,6 +103,8 @@ void Thunderloop::runLoop()
             if (robot_id != robot_id_ || channel_id != channel_id_ ||
                 network_interface != network_interface_)
             {
+                LOG(INFO) << "re-init NetworkLoggerSingleton: " << channel_id << ", "
+                          << network_interface << ", " << robot_id;
                 NetworkLoggerSingleton::initializeLogger(channel_id, network_interface,
                                                          robot_id);
 
@@ -182,19 +197,19 @@ void Thunderloop::runLoop()
                 static_cast<unsigned long>(poll_time.tv_nsec));
 
             // Motor Service: execute the motor control command
-            {
-                ScopedTimespecTimer timer(&poll_time);
-                motor_status_ = motor_service_->poll(direct_control_.motor_control());
-                primitive_executor_.updateLocalVelocity(
-                    createVector(motor_status_.local_velocity()));
-            }
+            //{
+            //    ScopedTimespecTimer timer(&poll_time);
+            //    motor_status_ = motor_service_->poll(direct_control_.motor_control());
+            //    primitive_executor_.updateLocalVelocity(
+            //        createVector(motor_status_.local_velocity()));
+            //}
             thunderloop_status_.set_motor_service_poll_time_ns(
                 static_cast<unsigned long>(poll_time.tv_nsec));
 
             // Update Robot Status with poll responses
             *(robot_status_.mutable_thunderloop_status()) = thunderloop_status_;
-            *(robot_status_.mutable_motor_status())       = motor_status_;
-            *(robot_status_.mutable_jetson_status())      = jetson_status_;
+            //*(robot_status_.mutable_motor_status())       = motor_status_;
+            *(robot_status_.mutable_jetson_status()) = jetson_status_;
         }
 
         auto loop_duration =

@@ -63,6 +63,15 @@ class RobotCommunication(object):
             True,
         )
 
+        self.receive_hrvo_vis = HRVOVisualizationProtoListener(
+            self.multicast_channel + "%" + self.interface,
+            SERIALIZED_PROTO_LOGS_PORT,
+            lambda data: self.proto_unix_io.send_proto(
+                HRVOVisualization, data
+            ),
+            True,
+        )
+
         self.send_primitive_set = PrimitiveSetProtoSender(
             self.multicast_channel + "%" + self.interface, PRIMITIVE_PORT, True
         )
