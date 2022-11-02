@@ -89,7 +89,7 @@ Thunderloop::~Thunderloop() {}
             jetson_status_.set_cpu_temperature(getCpuTemperature());
 
             // Grab the latest configs from redis
-            int robot_id = 2;
+            int robot_id = 1;
             int channel_id = 0;
             std::string network_interface = "wlan0";
 
@@ -135,6 +135,7 @@ Thunderloop::~Thunderloop() {}
                 auto result       = network_service_->poll(robot_status_);
                 new_primitive_set = std::get<0>(result);
                 new_world         = std::get<1>(result);
+                LOG(INFO) << "new primitive set received\n";
             }
 
             thunderloop_status_.set_network_service_poll_time_ns(
