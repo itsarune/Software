@@ -1,9 +1,11 @@
 import random
 import time
+import socket
+import json
 from collections import deque
 
 import pyqtgraph as pg
-from proto.visualization_pb2 import NamedValue
+from proto.visualization_pb2 import NamedValue, PlotJugglerValue
 from pyqtgraph.Qt.QtWidgets import *
 from pyqtgraph.Qt import QtGui, QtCore
 
@@ -93,6 +95,10 @@ class ProtoPlotter(QWidget):
         self.update_interval = 1.0 / plot_rate_hz
         self.buffer_size = buffer_size
 
+
+        self.sock = socket.socket(socket.AF_INET, # Internet
+                     socket.SOCK_DGRAM) # UDP
+
     def refresh(self):
         """Refreshes ProtoPlotter and updates data in the respective
         plots.
@@ -105,6 +111,12 @@ class ProtoPlotter(QWidget):
             for _ in range(buffer.queue.qsize()):
 
                 data = self.configuration[proto_class](buffer.get(block=False))
+
+                if proto_class == PlotJugglerValue:
+                    print(data)
+                    self.sock.sendto(json.dumps(data).encode(), ("127.0.0.1", 9870))
+                    continue
+
 
                 # If named_value is new, create a plot and for the new value and
                 # add it to necessary maps

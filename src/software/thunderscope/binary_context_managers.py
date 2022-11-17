@@ -302,6 +302,8 @@ gdb --args bazel-bin/{simulator_command}
         for arg in [
             (SIMULATION_TICK_PATH, SimulatorTick),
             (WORLD_STATE_PATH, WorldState),
+
+            # ("", PlotJugglerValue, True),
         ]:
             simulator_proto_unix_io.attach_unix_sender(self.simulator_runtime_dir, *arg)
 
@@ -318,6 +320,7 @@ gdb --args bazel-bin/{simulator_command}
             (BLUE_SSL_WRAPPER_PATH, SSL_WrapperPacket),
             (BLUE_ROBOT_STATUS_PATH, RobotStatus),
             (SIMULATOR_STATE_PATH, SimulatorState),
+            ("", PlotJugglerValue, True),
         ] + [
             # TODO (#2655): Add/Remove HRVO layers dynamically based on the HRVOVisualization proto messages
             (BLUE_HRVO_PATH, HRVOVisualization, True)

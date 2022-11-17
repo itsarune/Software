@@ -91,7 +91,12 @@ std::unique_ptr<TbotsProto::Timestamp> createTimestamp(const Timestamp& timestam
  *         specified name and value
  */
 std::unique_ptr<TbotsProto::NamedValue> createNamedValue(const std::string name,
-                                                         float value);
+                                                         double value);
+
+/**
+ * TODO
+ */
+std::unique_ptr<TbotsProto::PlotJugglerValue> createPlotJugglerValue(const std::map<std::string, double> &values);
 
 /**
  * Returns a timestamp msg with the time that this function was called

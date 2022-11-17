@@ -28,6 +28,7 @@ from pyqtgraph.Qt.QtWidgets import *
 
 from software.py_constants import *
 from proto.import_all_protos import *
+from google.protobuf.json_format import MessageToDict
 from software.thunderscope.common.proto_plotter import ProtoPlotter
 from extlibs.er_force_sim.src.protobuf.world_pb2 import *
 from software.thunderscope.dock_label_style import *
@@ -612,16 +613,20 @@ class Thunderscope(object):
         def extract_namedvalue_data(named_value_data):
             return {named_value_data.name: named_value_data.value}
 
+        def extract_plotjuggler_data(plotjuggler_data):
+            return MessageToDict(plotjuggler_data)
+
         # Performance Plots plot HZ so the values can't be negative
         proto_plotter = ProtoPlotter(
             min_y=0,
             max_y=100,
             window_secs=15,
-            configuration={NamedValue: extract_namedvalue_data},
+            configuration={NamedValue: extract_namedvalue_data, PlotJugglerValue: extract_plotjuggler_data},
         )
 
         # Register observer
         proto_unix_io.register_observer(NamedValue, proto_plotter.buffers[NamedValue])
+        proto_unix_io.register_observer(PlotJugglerValue, proto_plotter.buffers[PlotJugglerValue])
         # Register refresh function
         self.register_refresh_function(proto_plotter.refresh)
         return proto_plotter
