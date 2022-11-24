@@ -95,9 +95,7 @@ class ProtoPlotter(QWidget):
         self.update_interval = 1.0 / plot_rate_hz
         self.buffer_size = buffer_size
 
-
-        self.sock = socket.socket(socket.AF_INET, # Internet
-                     socket.SOCK_DGRAM) # UDP
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet  # UDP
 
     def refresh(self):
         """Refreshes ProtoPlotter and updates data in the respective
@@ -113,10 +111,9 @@ class ProtoPlotter(QWidget):
                 data = self.configuration[proto_class](buffer.get(block=False))
 
                 if proto_class == PlotJugglerValue:
-                    print(data)
+                    # print(data)
                     self.sock.sendto(json.dumps(data).encode(), ("127.0.0.1", 9870))
                     continue
-
 
                 # If named_value is new, create a plot and for the new value and
                 # add it to necessary maps

@@ -12,13 +12,13 @@ message PathVisualization
 
 message NamedValue
 {
-    string name = 1;
+    string name  = 1;
     double value = 2;
 }
 
 message PlotJugglerValue
 {
-    double timestamp = 1;
+    double timestamp         = 1;
     map<string, double> data = 2;
 }
 

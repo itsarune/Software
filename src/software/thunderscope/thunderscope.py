@@ -621,12 +621,17 @@ class Thunderscope(object):
             min_y=0,
             max_y=100,
             window_secs=15,
-            configuration={NamedValue: extract_namedvalue_data, PlotJugglerValue: extract_plotjuggler_data},
+            configuration={
+                NamedValue: extract_namedvalue_data,
+                PlotJugglerValue: extract_plotjuggler_data,
+            },
         )
 
         # Register observer
         proto_unix_io.register_observer(NamedValue, proto_plotter.buffers[NamedValue])
-        proto_unix_io.register_observer(PlotJugglerValue, proto_plotter.buffers[PlotJugglerValue])
+        proto_unix_io.register_observer(
+            PlotJugglerValue, proto_plotter.buffers[PlotJugglerValue]
+        )
         # Register refresh function
         self.register_refresh_function(proto_plotter.refresh)
         return proto_plotter

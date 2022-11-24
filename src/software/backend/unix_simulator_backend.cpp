@@ -60,9 +60,8 @@ void UnixSimulatorBackend::onValueReceived(TbotsProto::PrimitiveSet primitives)
     primitive_output->sendProto(primitives);
 
     LOG(VISUALIZE) << *createNamedValue(
-        "Primitive Hz",
-        FirstInFirstOutThreadedObserver<
-                           TbotsProto::PrimitiveSet>::getDataReceivedPerSecond());
+        "Primitive Hz", FirstInFirstOutThreadedObserver<
+                            TbotsProto::PrimitiveSet>::getDataReceivedPerSecond());
 }
 
 void UnixSimulatorBackend::onValueReceived(World world)
@@ -70,6 +69,5 @@ void UnixSimulatorBackend::onValueReceived(World world)
     world_output->sendProto(*createWorld(world));
 
     LOG(VISUALIZE) << *createNamedValue(
-        "World Hz",
-        FirstInFirstOutThreadedObserver<World>::getDataReceivedPerSecond());
+        "World Hz", FirstInFirstOutThreadedObserver<World>::getDataReceivedPerSecond());
 }

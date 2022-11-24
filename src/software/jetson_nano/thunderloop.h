@@ -50,7 +50,7 @@ class Thunderloop
 
     ~Thunderloop();
 
-    void runLoop();
+    [[noreturn]] void runLoop();
 
     // Services
     std::unique_ptr<MotorService> motor_service_;

@@ -34,6 +34,7 @@ cc_binary(
         "//software/networking:threaded_proto_unix_sender",
         "//software/simulation:er_force_simulator",
         "@boost//:program_options",
+        "//software/logger:network_logger"
     ],
 )
 

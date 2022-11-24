@@ -298,13 +298,16 @@ std::unique_ptr<TbotsProto::NamedValue> createNamedValue(const std::string name,
 }
 
 
-std::unique_ptr<TbotsProto::PlotJugglerValue> createPlotJugglerValue(const std::map<std::string, double> &values)
+std::unique_ptr<TbotsProto::PlotJugglerValue> createPlotJugglerValue(
+    const std::map<std::string, double>& values)
 {
     auto plot_juggler_value_msg = std::make_unique<TbotsProto::PlotJugglerValue>();
-    double now = static_cast<double>(std::chrono::system_clock::now().time_since_epoch().count() /
-                 NANOSECONDS_PER_SECOND);
+    double now =
+        static_cast<double>(std::chrono::system_clock::now().time_since_epoch().count() /
+                            NANOSECONDS_PER_SECOND);
     plot_juggler_value_msg->set_timestamp(now);
-    for (auto const& [key, val] : values) {
+    for (auto const& [key, val] : values)
+    {
         (*plot_juggler_value_msg->mutable_data())[key] = val;
     }
     return plot_juggler_value_msg;

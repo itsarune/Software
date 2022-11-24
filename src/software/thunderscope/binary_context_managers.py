@@ -302,7 +302,6 @@ gdb --args bazel-bin/{simulator_command}
         for arg in [
             (SIMULATION_TICK_PATH, SimulatorTick),
             (WORLD_STATE_PATH, WorldState),
-
             # ("", PlotJugglerValue, True),
         ]:
             simulator_proto_unix_io.attach_unix_sender(self.simulator_runtime_dir, *arg)
