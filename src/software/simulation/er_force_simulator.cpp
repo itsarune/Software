@@ -293,7 +293,7 @@ void ErForceSimulator::setBlueRobotPrimitiveSet(
         robot_xy_positions.insert(
             {std::to_string(robot.id()) + "e_y", robot.position().y()});
     }
-    LOG(PLOTJUGGLER) << *createPlotJugglerValue(robot_xy_positions);
+//    LOG(PLOTJUGGLER) << *createPlotJugglerValue(robot_xy_positions);
 }
 
 void ErForceSimulator::setRobotPrimitive(

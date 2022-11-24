@@ -39,7 +39,6 @@ void PlotJugglerSink::sendToPlotJuggler(g3::LogMessageMover log_entry)
     {
         data_buffer = log_entry.get().message();
         socket_.send_to(boost::asio::buffer(data_buffer), receiver_endpoint);
-        std::cout << "Sending: " << data_buffer << std::endl;
     }
 }
 
