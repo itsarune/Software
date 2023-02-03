@@ -1,4 +1,5 @@
 package(default_visibility = ["//visibility:public"])
+load("@simulated_tests_deps//:requirements.bzl", "requirement")
 
 cc_test(
     name = "simulated_hrvo_test",
@@ -13,6 +14,18 @@ cc_test(
         "//software/test_util",
         "//software/time:duration",
         "//software/world",
+    ],
+)
+
+py_test(
+    name = "simulated_hrvo_tes",
+    srcs = [
+        "simulated_hrvo_tes.py",
+    ],
+    deps = [
+        "//software/simulated_tests:simulated_test_fixture",
+        "//software/simulated_tests:validation",
+        requirement("pytest"),
     ],
 )
 

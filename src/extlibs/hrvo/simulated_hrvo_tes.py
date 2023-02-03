@@ -40,7 +40,7 @@ def test_robot_movement(
     simulated_test_runner.simulator_proto_unix_io.send_proto(
         WorldState,
         create_world_state(
-            [],
+            yellow_robot_states=[],
             blue_robot_states=[
                 RobotState(
                     global_position=robot_initial_position,
@@ -57,12 +57,12 @@ def test_robot_movement(
     #
     # NOTE: The gamecontroller responses are automatically handled by
     # the gamecontroller context manager class
-    simulated_test_runner.gamecontroller.send_ci_input(
-        gc_command=Command.Type.STOP, team=Team.UNKNOWN
-    )
-    simulated_test_runner.gamecontroller.send_ci_input(
-        gc_command=Command.Type.FORCE_START, team=Team.BLUE
-    )
+    #simulated_test_runner.gamecontroller.send_ci_input(
+    #    gc_command=Command.Type.STOP, team=Team.UNKNOWN
+    #)
+    #simulated_test_runner.gamecontroller.send_ci_input(
+    #    gc_command=Command.Type.FORCE_START, team=Team.BLUE
+    #)
 
     # Setup Tactic
     params = AssignedTacticPlayControlParams()
@@ -82,26 +82,26 @@ def test_robot_movement(
         AssignedTacticPlayControlParams, params
     )
 
-    #Setup Tactic for drive in straight line with enemy robot from behind
-    params = AssignedTacticPlayControlParams()
-    params.assigned_tactics[0].move.CopyFrom(
-        test_drive_in_straight_line_with_moving_enemy_from_behind(
-            destination=robot_destination,
-            initial_position=robot_initial_position,
-            ball_collision_type=BallCollisionType.ALLOW,
-        )
-    )
-    simulated_test_runner.blue_full_system_proto_unix_io.send_proto(
-        AssignedTacticPlayControlParams, params
-    )
+    ##Setup Tactic for drive in straight line with enemy robot from behind
+    #params = AssignedTacticPlayControlParams()
+    #params.assigned_tactics[0].move.CopyFrom(
+    #    test_drive_in_straight_line_with_moving_enemy_from_behind(
+    #        destination=robot_destination,
+    #        initial_position=robot_initial_position,
+    #        ball_collision_type=BallCollisionType.ALLOW,
+    #    )
+    #)
+    #simulated_test_runner.blue_full_system_proto_unix_io.send_proto(
+    #    AssignedTacticPlayControlParams, params
+    #)
 
-    #Setup Tactic for 
+    ##Setup Tactic for 
 
-    # Setup no tactics on the enemy side
-    params = AssignedTacticPlayControlParams()
-    simulated_test_runner.yellow_full_system_proto_unix_io.send_proto(
-        AssignedTacticPlayControlParams, params
-    )
+    ## Setup no tactics on the enemy side
+    #params = AssignedTacticPlayControlParams()
+    #simulated_test_runner.yellow_full_system_proto_unix_io.send_proto(
+    #    AssignedTacticPlayControlParams, params
+    #)
 
     # Always Validation
     always_validation_sequence_set = [[]]
