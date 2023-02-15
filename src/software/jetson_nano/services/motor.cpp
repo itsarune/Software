@@ -451,19 +451,27 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
 
     {
         ZoneScopedN("Motor Spi Transfer");
+        writeFourMotors(target_total_wheel_velocities[0] *
+                    ELECTRICAL_RPM_PER_MECHANICAL_MPS,
+                    target_total_wheel_velocities[1] *
+                    ELECTRICAL_RPM_PER_MECHANICAL_MPS,
+                    target_total_wheel_velocities[2] *
+                    ELECTRICAL_RPM_PER_MECHANICAL_MPS,
+                    target_total_wheel_velocities[3] *
+                    ELECTRICAL_RPM_PER_MECHANICAL_MPS);
         // Set target speeds accounting for acceleration
-        tmc4671_writeInt(FRONT_RIGHT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
-                static_cast<int>(target_total_wheel_velocities[0] *
-                    ELECTRICAL_RPM_PER_MECHANICAL_MPS));
-        tmc4671_writeInt(FRONT_LEFT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
-                static_cast<int>(target_total_wheel_velocities[1] *
-                    ELECTRICAL_RPM_PER_MECHANICAL_MPS));
-        tmc4671_writeInt(BACK_LEFT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
-                static_cast<int>(target_total_wheel_velocities[2] *
-                    ELECTRICAL_RPM_PER_MECHANICAL_MPS));
-        tmc4671_writeInt(BACK_RIGHT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
-                static_cast<int>(target_total_wheel_velocities[3] *
-                    ELECTRICAL_RPM_PER_MECHANICAL_MPS));
+        //tmc4671_writeInt(FRONT_RIGHT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
+        //        static_cast<int>(target_total_wheel_velocities[0] *
+        //            ELECTRICAL_RPM_PER_MECHANICAL_MPS));
+        //tmc4671_writeInt(FRONT_LEFT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
+        //        static_cast<int>(target_total_wheel_velocities[1] *
+        //            ELECTRICAL_RPM_PER_MECHANICAL_MPS));
+        //tmc4671_writeInt(BACK_LEFT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
+        //        static_cast<int>(target_total_wheel_velocities[2] *
+        //            ELECTRICAL_RPM_PER_MECHANICAL_MPS));
+        //tmc4671_writeInt(BACK_RIGHT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
+        //        static_cast<int>(target_total_wheel_velocities[3] *
+        //            ELECTRICAL_RPM_PER_MECHANICAL_MPS));
     }
 
     {
@@ -1064,4 +1072,8 @@ WheelSpace_t MotorService::getCurrentWheelVelocities() const
     // This order needs to match euclidean_to_four_wheel converters order
     // We also want to work in the meters per second space rather than electrical RPMs
     return {front_right_velocity, front_left_velocity, back_left_velocity, back_right_velocity};
+}
+
+void MotorService::writeFourMotors(int front_right, int front_left, int back_left, int back_right) {
+
 }
