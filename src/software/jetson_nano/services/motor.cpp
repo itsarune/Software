@@ -1075,5 +1075,35 @@ WheelSpace_t MotorService::getCurrentWheelVelocities() const
 }
 
 void MotorService::writeFourMotors(int front_right, int front_left, int back_left, int back_right) {
+    struct spi_ioc_transfer mesg[4];
+    //unsigned long front_right = (TMC4671_PID_VELOCITY_TARGET << 32) + front_right;
+    uint8_t front_right_tx[5];
+    front_right_tx[0] = TMC4671_PID_VELOCITY_TARGET;
+    front_right_tx[1] = (front_right & 0xFF000000) >> 24;
+    front_right_tx[2] = (front_right & 0x00FF0000) >> 16;
+    front_right_tx[3] = (front_right & 0x0000FF00) >> 8;
+    front_right_tx[4] = (front_right & 0x000000FF) >> 0;
+
+    mesg[0] = {0};
+    mesg[0].tx_buf = (unsigned long) front_right;
+    mesg[0].len = 40;
+    mesg[0].bits_per_word = 8
+    mesg[0].cs_change = true;
+
+    int status = ioctl(SPI_IOC_MESSAGE(1), mesg);
+
+    //int ret;
+
+    //tr[0].tx_buf        = (unsigned long)tx;
+    //tr[0].rx_buf        = (unsigned long)rx;
+    //tr[0].len           = len;
+    //tr[0].delay_usecs   = 0;
+    //tr[0].speed_hz      = spi_speed;
+    //tr[0].bits_per_word = 8;
+
+    //ret = ioctl(fd, SPI_IOC_MESSAGE(1), &mesg);
+
+    //CHECK(ret >= 1) << "SPI Transfer to motor failed, not safe to proceed: errno "
+    //                << strerror(errno);
 
 }
