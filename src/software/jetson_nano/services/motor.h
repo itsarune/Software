@@ -217,6 +217,8 @@ class MotorService
     uint8_t readWriteByte(uint8_t motor, uint8_t data, uint8_t last_transfer,
                           uint32_t spi_speed);
 
+    void writeFourMotors(int front_right, int front_left, int back_left, int back_right);
+
 
     /**
      * Log the driver fault in a human readable log msg
