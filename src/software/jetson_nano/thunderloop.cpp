@@ -37,6 +37,15 @@ Thunderloop::Thunderloop(const RobotConstants_t& robot_constants, const int loop
 
     power_service_ = std::make_unique<PowerService>();
     motor_service_ = std::make_unique<MotorService>(robot_constants, loop_hz);
+    int channel_id = 0;
+    std::string network_interface = "wlan0";
+
+    LOG(DEBUG) << "Thunderloop constructor running ";
+    network_service_ = std::make_unique<NetworkService>(
+        std::string(ROBOT_MULTICAST_CHANNELS.at(channel_id)) + "%" +
+        network_interface,
+        VISION_PORT, PRIMITIVE_PORT, ROBOT_STATUS_PORT, true);
+
 }
 
 Thunderloop::~Thunderloop() {}
@@ -89,7 +98,7 @@ Thunderloop::~Thunderloop() {}
             jetson_status_.set_cpu_temperature(getCpuTemperature());
 
             // Grab the latest configs from redis
-            int robot_id = 1;
+            int robot_id = 6;
             int channel_id = 0;
             std::string network_interface = "wlan0";
 

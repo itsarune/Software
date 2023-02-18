@@ -31,7 +31,7 @@ ROBOT_INITIAL_POSITIONS = [tbots.Field.createSSLDivisionBField().centerPoint()]
 # positions relative to robots initial position
 BALL_INITIAL_POSITIONS = [
     tbots.Field.createSSLDivisionBField().centerPoint() + tbots.Vector(*p)
-    for p in [(-1, 0), (-2, 0), (-4, 0)]
+    for p in [(-1, 0)]
 ]
 
 # cartesian product of parameters

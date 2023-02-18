@@ -70,19 +70,19 @@ class RobotCommunication(object):
         # TODO: ADDDDDDD
         self.fullsystem_connected_to_robots = False
 
-        try:
-            self.estop_reader = ThreadedEstopReader(
-                self.estop_path, self.estop_buadrate
-            )
-        except Exception:
-            raise Exception("connect estop - not found")
-            pass
+        #try:
+        #    self.estop_reader = ThreadedEstopReader(
+        #        self.estop_path, self.estop_buadrate
+        #    )
+        #except Exception:
+        #    raise Exception("connect estop - not found")
+        #    pass
 
     def __send_estop_state(self):
         while True:
-            self.full_system_proto_unix_io.send_proto(
-                EstopState, EstopState(is_playing=self.estop_reader.isEstopPlay())
-            )
+            #self.full_system_proto_unix_io.send_proto(
+            #    EstopState, EstopState(is_playing=self.estop_reader.isEstopPlay())
+            #)
             time.sleep(0.1)
 
     def run(self):
@@ -107,10 +107,10 @@ class RobotCommunication(object):
                 # Send the primitive set
                 primitive_set = self.primitive_buffer.get(block=False)
 
-                if IGNORE_ESTOP or self.estop_reader.isEstopPlay():
-                    # primitive_set.time_sent = Timestamp(epoch_timestamp_seconds=time.time())
-                    self.send_primitive_set.send_proto(primitive_set)
-                    # logger.info(primitive_set)
+                #if IGNORE_ESTOP or self.estop_reader.isEstopPlay():
+                #    # primitive_set.time_sent = Timestamp(epoch_timestamp_seconds=time.time())
+                #    self.send_primitive_set.send_proto(primitive_set)
+                #    # logger.info(primitive_set)
 
             else:
                 # print(len(self.motor_control_diagnostics_buffer))
@@ -135,9 +135,9 @@ class RobotCommunication(object):
 
                 self.sequence_number += 1
 
-                if self.estop_reader.isEstopPlay():
-                    self.last_time = primitive_set.time_sent.epoch_timestamp_seconds
-                    self.send_primitive_set.send_proto(primitive_set)
+                #if self.estop_reader.isEstopPlay():
+                self.last_time = primitive_set.time_sent.epoch_timestamp_seconds
+                self.send_primitive_set.send_proto(primitive_set)
 
                 time.sleep(0.001)
 
@@ -234,7 +234,7 @@ class RobotCommunication(object):
 #         self.connect_robot_to_diagnostics(1)
 #         self.connect_robot_to_diagnostics(2)
 #         self.connect_robot_to_diagnostics(3)
-        self.connect_robot_to_diagnostics(1)  # Connect for diagnostics
+        self.connect_robot_to_diagnostics(6)  # Connect for diagnostics
         # self.connect_robot_to_diagnostics(5)
         # self.connect_robot_to_diagnostics(6)
         # self.connect_robot_to_diagnostics(7)
