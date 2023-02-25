@@ -23,7 +23,7 @@ extern int clock_nanosleep(clockid_t __clock_id, int __flags,
 
 Thunderloop::Thunderloop(const RobotConstants_t& robot_constants, const int loop_hz)
     // TODO (#2495): Set the friendly team colour once we receive World proto
-    : robot_id_(MAX_ROBOT_IDS + 1),  // Initialize to a robot ID that is not valid
+    : robot_id_(7),  // Initialize to a robot ID that is not valid
       primitive_executor_(1.0 / loop_hz, robot_id_, robot_constants, TeamColour::YELLOW)
 {
     LOG(DEBUG) << "Thunderloop constructor running ";
@@ -98,7 +98,7 @@ Thunderloop::~Thunderloop() {}
             jetson_status_.set_cpu_temperature(getCpuTemperature());
 
             // Grab the latest configs from redis
-            int robot_id = 6;
+            int robot_id = 7;
             int channel_id = 0;
             std::string network_interface = "wlan0";
 

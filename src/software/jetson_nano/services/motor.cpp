@@ -451,14 +451,14 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
 
     {
         ZoneScopedN("Motor Spi Transfer");
-        writeFourMotors(target_total_wheel_velocities[0] *
-                    ELECTRICAL_RPM_PER_MECHANICAL_MPS,
-                    target_total_wheel_velocities[1] *
-                    ELECTRICAL_RPM_PER_MECHANICAL_MPS,
-                    target_total_wheel_velocities[2] *
-                    ELECTRICAL_RPM_PER_MECHANICAL_MPS,
-                    target_total_wheel_velocities[3] *
-                    ELECTRICAL_RPM_PER_MECHANICAL_MPS);
+        writeFourMotors(static_cast<int>(target_total_wheel_velocities[0] *
+                    ELECTRICAL_RPM_PER_MECHANICAL_MPS),
+                    static_cast<int>(target_total_wheel_velocities[1] *
+                    ELECTRICAL_RPM_PER_MECHANICAL_MPS),
+                    static_cast<int>(target_total_wheel_velocities[2] *
+                    ELECTRICAL_RPM_PER_MECHANICAL_MPS),
+                    static_cast<int>(target_total_wheel_velocities[3] *
+                    ELECTRICAL_RPM_PER_MECHANICAL_MPS));
         // Set target speeds accounting for acceleration
         //tmc4671_writeInt(FRONT_RIGHT_MOTOR_CHIP_SELECT, TMC4671_PID_VELOCITY_TARGET,
         //        static_cast<int>(target_total_wheel_velocities[0] *
@@ -1075,23 +1075,32 @@ WheelSpace_t MotorService::getCurrentWheelVelocities() const
 }
 
 void MotorService::writeFourMotors(int front_right, int front_left, int back_left, int back_right) {
+    spi_demux_select_0.setValue(GpioState::HIGH);
+    spi_demux_select_1.setValue(GpioState::LOW);
+
     struct spi_ioc_transfer mesg[4];
     //unsigned long front_right = (TMC4671_PID_VELOCITY_TARGET << 32) + front_right;
     uint8_t front_right_tx[5];
-    front_right_tx[0] = TMC4671_PID_VELOCITY_TARGET;
-    front_right_tx[1] = (front_right & 0xFF000000) >> 24;
-    front_right_tx[2] = (front_right & 0x00FF0000) >> 16;
-    front_right_tx[3] = (front_right & 0x0000FF00) >> 8;
-    front_right_tx[4] = (front_right & 0x000000FF) >> 0;
+    front_right_tx[0] = 0x8 | TMC4671_PID_VELOCITY_TARGET;
+    front_right_tx[1] = static_cast<uint8_t>((front_right & 0xFF000000) >> 24);
+    front_right_tx[2] = static_cast<uint8_t>((front_right & 0x00FF0000) >> 16);
+    front_right_tx[3] = static_cast<uint8_t>((front_right & 0x0000FF00) >> 8);
+    front_right_tx[4] = static_cast<uint8_t>((front_right & 0x000000FF) >> 0);
 
-    mesg[0] = {0};
-    mesg[0].tx_buf = (unsigned long) front_right;
-    mesg[0].len = 40;
-    mesg[0].bits_per_word = 8
+    LOG(INFO) << "trying to write: " << front_right;
+    LOG(INFO) << "writing: " << (unsigned long) front_right_tx;
+
+    memset(mesg, 0, sizeof(mesg));
+    mesg[0].tx_buf = (unsigned long) front_right_tx;
+    mesg[0].rx_buf        = (unsigned long)rx;
+    mesg[0].delay_usecs   = 0;
+    mesg[0].len = 5;
+    mesg[0].bits_per_word = 8;
     mesg[0].cs_change = true;
 
-    int status = ioctl(SPI_IOC_MESSAGE(1), mesg);
+    int status = ioctl(file_descriptors[FRONT_RIGHT_MOTOR_CHIP_SELECT], SPI_IOC_MESSAGE(1), &mesg);
 
+    LOG(INFO) << "spi transfer status: " << status;
     //int ret;
 
     //tr[0].tx_buf        = (unsigned long)tx;

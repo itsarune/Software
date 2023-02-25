@@ -175,6 +175,7 @@ class RobotCommunication(object):
             True,
         )
 
+        print("channel2: " + self.multicast_channel + "%" + self.interface)
         self.send_primitive_mcast_sender = PrimitiveSetProtoSender(
             self.multicast_channel + "%" + self.interface, PRIMITIVE_PORT, True
         )
@@ -220,6 +221,8 @@ class RobotCommunication(object):
             self.multicast_channel + "%" + self.interface, PRIMITIVE_PORT, True
         )
 
+        time.sleep(0.1)
+
         self.world_mcast_sender = WorldProtoSender(
             self.multicast_channel + "%" + self.interface, VISION_PORT, True
         )
@@ -234,7 +237,7 @@ class RobotCommunication(object):
 #         self.connect_robot_to_diagnostics(1)
 #         self.connect_robot_to_diagnostics(2)
 #         self.connect_robot_to_diagnostics(3)
-        self.connect_robot_to_diagnostics(6)  # Connect for diagnostics
+        self.connect_robot_to_diagnostics(7)  # Connect for diagnostics
         # self.connect_robot_to_diagnostics(5)
         # self.connect_robot_to_diagnostics(6)
         # self.connect_robot_to_diagnostics(7)
