@@ -27,7 +27,7 @@ class PenaltyKickTacticTest : public SimulatedErForceSimPlayTestFixture,
 };
 
 // TODO (#2232): Improve dribbling control so the ball is not lost during this test
-TEST_P(PenaltyKickTacticTest, DISABLED_penalty_kick_test)
+TEST_P(PenaltyKickTacticTest, penalty_kick_test)
 {
     RobotStateWithId enemy_robot = GetParam();
 
