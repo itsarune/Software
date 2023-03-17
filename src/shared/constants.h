@@ -31,8 +31,9 @@ static const short unsigned int VISION_PORT    = 42069;
 static const short unsigned int PRIMITIVE_PORT = 42070;
 
 // the port the AI receives msgs from the robot
-static const short unsigned int ROBOT_STATUS_PORT = 42071;
-static const short unsigned int ROBOT_LOGS_PORT   = 42072;
+static const short unsigned int ROBOT_STATUS_PORT           = 42071;
+static const short unsigned int ROBOT_LOGS_PORT             = 42072;
+static const short unsigned int HRVO_VISUALIZATIONS_PORT    = 42073;
 
 // the port to listen to for what side of the field to defend
 static const unsigned DEFENDING_SIDE_PORT = 42073;
