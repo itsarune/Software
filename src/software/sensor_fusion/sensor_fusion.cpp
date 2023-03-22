@@ -1,6 +1,7 @@
 #include "software/sensor_fusion/sensor_fusion.h"
 
 #include "software/logger/logger.h"
+#include "proto/message_translation/tbots_protobuf.h"
 
 SensorFusion::SensorFusion(TbotsProto::SensorFusionConfig sensor_fusion_config)
     : sensor_fusion_config(sensor_fusion_config),
@@ -289,6 +290,11 @@ void SensorFusion::updateWorld(const SSLProto::SSL_DetectionFrame &ssl_detection
 
     if (ball)
     {
+        std::map<std::string, double> plotjuggler_values;
+        plotjuggler_values.insert({"ball_x_from_ssl_detection", ball->position().x()});
+        plotjuggler_values.insert({"ball_y_from_ssl_detection", ball->position().y()});
+        LOG(PLOTJUGGLER) << *createPlotJugglerValue(plotjuggler_values);
+
         bool friendly_team_has_ball = teamHasBall(friendly_team, *ball);
         bool enemy_team_has_ball    = teamHasBall(enemy_team, *ball);
 

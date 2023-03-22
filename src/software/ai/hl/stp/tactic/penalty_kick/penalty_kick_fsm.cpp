@@ -138,7 +138,7 @@ void PenaltyKickFSM::updateApproachKeeper(
         (next_shot_position - event.common.world.ball().position()).orientation();
     Point position = field.enemyGoalCenter() + Vector(-field.defenseAreaXLength(), 0);
 
-    Robot robot = event.common.world.friendlyTeam().getAllRobots()[0];
+    Robot robot = event.common.world.friendlyTeam().getAllRobots()[1];
 
     std::map<std::string, double> plotjuggler_values;
     plotjuggler_values.insert({"dest_position_x", position.x()});
@@ -153,7 +153,7 @@ void PenaltyKickFSM::updateApproachKeeper(
     DribbleFSM::ControlParams control_params{
         .dribble_destination       = std::optional<Point>(position),
         .final_dribble_orientation = std::optional<Angle>(Angle::zero()),
-        .allow_excessive_dribbling = false};
+        .allow_excessive_dribbling = true};
     processEvent(DribbleFSM::Update(control_params, event.common));
 }
 
