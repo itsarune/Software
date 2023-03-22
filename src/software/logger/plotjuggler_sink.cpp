@@ -55,5 +55,6 @@ std::ostream& operator<<(std::ostream& os,
     MessageToJsonString(plotjuggler_value, &json_string, options);
 
     os << json_string;
+    std::cout << json_string;
     return os;
 }

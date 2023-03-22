@@ -1,4 +1,5 @@
 #include "software/ai/hl/stp/tactic/penalty_kick/penalty_kick_fsm.h"
+#include "proto/message_translation/tbots_protobuf.h"
 
 PenaltyKickFSM::PenaltyKickFSM() : complete_approach(std::nullopt), shot_angle() {}
 
@@ -137,10 +138,22 @@ void PenaltyKickFSM::updateApproachKeeper(
         (next_shot_position - event.common.world.ball().position()).orientation();
     Point position = field.enemyGoalCenter() + Vector(-field.defenseAreaXLength(), 0);
 
+    Robot robot = event.common.world.friendlyTeam().getAllRobots()[1];
+
+    std::map<std::string, double> plotjuggler_values;
+    plotjuggler_values.insert({"dest_position_x", position.x()});
+    plotjuggler_values.insert({"dest_position_y", position.y()});
+    plotjuggler_values.insert({"robot_position_x", robot.position().x()});
+    plotjuggler_values.insert({"robot_position_y", robot.position().y()});
+
+    plotjuggler_values.insert({"ball position_x", event.common.world.ball().position().x()});
+    plotjuggler_values.insert({"ball position_y", event.common.world.ball().position().y()});
+    LOG(PLOTJUGGLER) << *createPlotJugglerValue(plotjuggler_values);
+
     DribbleFSM::ControlParams control_params{
         .dribble_destination       = std::optional<Point>(position),
         .final_dribble_orientation = std::optional<Angle>(Angle::zero()),
-        .allow_excessive_dribbling = false};
+        .allow_excessive_dribbling = true};
     processEvent(DribbleFSM::Update(control_params, event.common));
 }
 
