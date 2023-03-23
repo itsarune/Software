@@ -176,6 +176,7 @@ void SensorFusion::updateWorld(
             friendly_robot_id_with_ball_in_dribbler = robot_id;
             ball_in_dribbler_timeout =
                 sensor_fusion_config.num_dropped_detections_before_ball_not_in_dribbler();
+            LOG(INFO) << "Detected ball in breakbeam!";
         }
         else if (friendly_robot_id_with_ball_in_dribbler.has_value() &&
                  friendly_robot_id_with_ball_in_dribbler.value() == robot_id)
@@ -293,6 +294,7 @@ void SensorFusion::updateWorld(const SSLProto::SSL_DetectionFrame &ssl_detection
         std::map<std::string, double> plotjuggler_values;
         plotjuggler_values.insert({"ball_x_from_ssl_detection", ball->position().x()});
         plotjuggler_values.insert({"ball_y_from_ssl_detection", ball->position().y()});
+        plotjuggler_values.insert({"ball_in_dribbler_timeout", ball_in_dribbler_timeout});
         LOG(PLOTJUGGLER) << *createPlotJugglerValue(plotjuggler_values);
 
         bool friendly_team_has_ball = teamHasBall(friendly_team, *ball);
