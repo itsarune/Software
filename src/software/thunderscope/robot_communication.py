@@ -167,6 +167,10 @@ class RobotCommunication(object):
         elif mode == IndividualRobotMode.AI:
             self.robots_connected_to_fullsystem.add(robot_id)
 
+    def print_and_forward(self, data):
+        print(data)
+        self.current_proto_unix_io.send_proto(SSL_WrapperPacket, data),
+
     def setup_for_fullsystem(self):
         """
         Sets up a world sender, a listener for SSL vision data, and connects all robots to fullsystem as default
@@ -174,7 +178,8 @@ class RobotCommunication(object):
         self.receive_ssl_wrapper = SSLWrapperPacketProtoListener(
             SSL_VISION_ADDRESS,
             SSL_VISION_PORT,
-            lambda data: self.current_proto_unix_io.send_proto(SSL_WrapperPacket, data),
+            #lambda data: self.current_proto_unix_io.send_proto(SSL_WrapperPacket, data),
+            self.print_and_forward,
             True,
         )
 
