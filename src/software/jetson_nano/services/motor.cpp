@@ -41,22 +41,22 @@ static const uint32_t SPI_MODE          = 0x3u;
 static const uint32_t NUM_RETRIES_SPI   = 3;
 
 // SPI Chip Selects
-static const uint8_t FRONT_LEFT_MOTOR_CHIP_SELECT  = 0;
-static const uint8_t FRONT_RIGHT_MOTOR_CHIP_SELECT = 3;
-static const uint8_t BACK_LEFT_MOTOR_CHIP_SELECT   = 1;
-static const uint8_t BACK_RIGHT_MOTOR_CHIP_SELECT  = 2;
-static const uint8_t NUM_DRIVE_MOTORS              = 4;
+//static const uint8_t FRONT_LEFT_MOTOR_CHIP_SELECT  = 0;
+//static const uint8_t FRONT_RIGHT_MOTOR_CHIP_SELECT = 3;
+//static const uint8_t BACK_LEFT_MOTOR_CHIP_SELECT   = 1;
+//static const uint8_t BACK_RIGHT_MOTOR_CHIP_SELECT  = 2;
+//static const uint8_t NUM_DRIVE_MOTORS              = 4;
 
 // TODO: we need to figure out which chip select is associate with each motor
-static const uint8_t FRONT_WHEEL_MOTOR_CHIP_SELECT              = 0;
-static const uint8_t BACK_RIGHT_THREE_WHEEL_MOTOR_CHIP_SELECT   = 2;
-static const uint8_t BACK_LEFT_THREE_WHEEL_MOTOR_CHIP_SELECT    = 1;
+static const uint8_t FRONT_WHEEL_MOTOR_CHIP_SELECT              = 1;
+static const uint8_t BACK_RIGHT_THREE_WHEEL_MOTOR_CHIP_SELECT   = 0;
+static const uint8_t BACK_LEFT_THREE_WHEEL_MOTOR_CHIP_SELECT    = 2;
 
 static const uint8_t DRIBBLER_MOTOR_CHIP_SELECT = 4;
 
 // SPI Trinamic Motor Driver Paths (indexed with chip select above)
-static const char* SPI_PATHS[] = {"/dev/spidev0.0", "/dev/spidev0.1", "/dev/spidev0.2",
-                                  "/dev/spidev0.3", "/dev/spidev0.4"};
+static const char* SPI_PATHS[] = {"/dev/spidev0.0", "/dev/spidev0.2", "/dev/spidev0.3", "/dev/spidev0.1"
+                                  , "/dev/spidev0.4"};
 
 static const char* SPI_CS_DRIVER_TO_CONTROLLER_MUX_0_GPIO = "51";
 static const char* SPI_CS_DRIVER_TO_CONTROLLER_MUX_1_GPIO = "76";
@@ -72,7 +72,7 @@ static double MECHANICAL_MPS_PER_ELECTRICAL_RPM = 0.000111;
 static double ELECTRICAL_RPM_PER_MECHANICAL_MPS = 1 / MECHANICAL_MPS_PER_ELECTRICAL_RPM;
 
 static double RUNAWAY_PROTECTION_THRESHOLD_MPS       = 2.00;
-static int DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S = 1000;
+//static int DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S = 1000;
 
 
 extern "C"
@@ -154,6 +154,39 @@ MotorService::MotorService(const RobotConstants_t& robot_constants,
 
 MotorService::~MotorService() {}
 
+void MotorService::setUpMotor()
+{
+    uint8_t motor = 3;
+
+    // Check for driver faults
+    checkDriverFault(motor);
+
+    // Clear faults by resetting all the chips on the motor board
+    reset_gpio.setValue(GpioState::LOW);
+    usleep(MICROSECONDS_PER_MILLISECOND * 100);
+
+    reset_gpio.setValue(GpioState::HIGH);
+    usleep(MICROSECONDS_PER_MILLISECOND * 100);
+
+    // Drive Motor Setup
+    startDriver(motor);
+    checkDriverFault(motor);
+    // Start all the controllers as drive motor controllers
+    startController(motor, false);
+
+    startEncoderCalibration(motor);
+    endEncoderCalibration(motor);
+
+    tmc4671_setTargetVelocity(motor, 0); 
+    //tmc4671_setTargetVelocity(motor, static_cast<int>(0.1*ELECTRICAL_RPM_PER_MECHANICAL_MPS));
+
+    double velocity =
+        static_cast<double>(tmc4671_getActualVelocity(motor)) *
+        MECHANICAL_MPS_PER_ELECTRICAL_RPM;
+
+    LOG(INFO) << "my velocity " << velocity;
+}
+
 void MotorService::setUpMotors()
 {
     prev_wheel_velocities = {0.0, 0.0, 0.0};
@@ -182,10 +215,10 @@ void MotorService::setUpMotors()
     }
 
     // Dribbler Motor Setup
-    startDriver(DRIBBLER_MOTOR_CHIP_SELECT);
-    checkDriverFault(DRIBBLER_MOTOR_CHIP_SELECT);
-    startController(DRIBBLER_MOTOR_CHIP_SELECT, true);
-    tmc4671_setTargetVelocity(DRIBBLER_MOTOR_CHIP_SELECT, 0);
+    //startDriver(DRIBBLER_MOTOR_CHIP_SELECT);
+    //checkDriverFault(DRIBBLER_MOTOR_CHIP_SELECT);
+    //startController(DRIBBLER_MOTOR_CHIP_SELECT, true);
+    //tmc4671_setTargetVelocity(DRIBBLER_MOTOR_CHIP_SELECT, 0);
 }
 
 
@@ -386,8 +419,8 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
 
     EuclideanSpace_t target_linear_velocity  = {0.0, 0.0, 0.0};
     EuclideanSpace_t target_angular_velocity = {0.0, 0.0, 0.0};
-    int target_dribbler_rpm                  = motor.dribbler_speed_rpm();
-    static int ramp_rpm                      = 0;
+    //int target_dribbler_rpm                  = motor.dribbler_speed_rpm();
+    //static int ramp_rpm                      = 0;
 
     switch (motor.drive_control_case())
     {
@@ -412,7 +445,7 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
         {
             target_linear_velocity  = {0.0, 0.0, 0.0};
             target_angular_velocity = {0.0, 0.0, 0.0};
-            target_dribbler_rpm     = 0;
+            //target_dribbler_rpm     = 0;
 
             break;
         }
@@ -442,21 +475,21 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
 
     // If the dribbler only needs to change by DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S,
     // just set the value
-    if (std::abs(target_dribbler_rpm - ramp_rpm) <=
-        DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S)
-    {
-        tmc4671_setTargetVelocity(DRIBBLER_MOTOR_CHIP_SELECT, target_dribbler_rpm);
-    }
-    else if (target_dribbler_rpm > ramp_rpm + DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S)
-    {
-        ramp_rpm += DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S;
-        tmc4671_setTargetVelocity(DRIBBLER_MOTOR_CHIP_SELECT, ramp_rpm);
-    }
-    else if (target_dribbler_rpm < ramp_rpm - DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S)
-    {
-        ramp_rpm -= DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S;
-        tmc4671_setTargetVelocity(DRIBBLER_MOTOR_CHIP_SELECT, ramp_rpm);
-    }
+    //if (std::abs(target_dribbler_rpm - ramp_rpm) <=
+    //    DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S)
+    //{
+    //    tmc4671_setTargetVelocity(DRIBBLER_MOTOR_CHIP_SELECT, target_dribbler_rpm);
+    //}
+    //else if (target_dribbler_rpm > ramp_rpm + DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S)
+    //{
+    //    ramp_rpm += DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S;
+    //    tmc4671_setTargetVelocity(DRIBBLER_MOTOR_CHIP_SELECT, ramp_rpm);
+    //}
+    //else if (target_dribbler_rpm < ramp_rpm - DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S)
+    //{
+    //    ramp_rpm -= DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S;
+    //    tmc4671_setTargetVelocity(DRIBBLER_MOTOR_CHIP_SELECT, ramp_rpm);
+    //}
 
     return motor_status;
 }

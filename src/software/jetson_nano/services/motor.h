@@ -88,6 +88,7 @@ class MotorService
      *
      */
     void setUpMotors();
+    void setUpMotor();
     /**
      * Calls the configuration functions below in the right sequence
      *
