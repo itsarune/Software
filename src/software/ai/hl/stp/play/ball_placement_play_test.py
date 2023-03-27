@@ -1,4 +1,5 @@
 import pytest
+import time
 
 import software.python_bindings as tbots
 from proto.play_pb2 import Play, PlayName
@@ -62,13 +63,16 @@ def test_two_ai_ball_placement(simulated_test_runner, run_enemy_ai):
     simulated_test_runner.blue_full_system_proto_unix_io.send_proto(Play, blue_play)
 
     # We can parametrize running in ai_vs_ai mode
+    yellow_play = Play()
     if run_enemy_ai:
-        yellow_play = Play()
         yellow_play.name = PlayName.EnemyBallPlacementPlay
+    else:
+        yellow_play.name = PlayName.HaltPlay
 
-        simulated_test_runner.yellow_full_system_proto_unix_io.send_proto(
-            Play, yellow_play
-        )
+    simulated_test_runner.yellow_full_system_proto_unix_io.send_proto(
+        Play, yellow_play
+    )
+
 
     # Create world state
     simulated_test_runner.simulator_proto_unix_io.send_proto(

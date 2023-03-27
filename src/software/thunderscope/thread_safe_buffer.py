@@ -93,3 +93,6 @@ class ThreadSafeBuffer(object):
             self.queue.put_nowait(proto)
         except queue.Full as full:
             self.protos_dropped += 1
+
+    def length(self):
+        return self.queue.qsize()

@@ -90,6 +90,8 @@ void DribbleFSM::getPossession(const Update &event)
                               event.common.world.field()) +
         Vector::createFromAngle(face_ball_orientation).normalize(0.05);
 
+    LOG(INFO) << "dribbled intercept at: " << intercept_position.x() << ", " << intercept_position.y();
+
     event.common.set_primitive(createMovePrimitive(
         CREATE_MOTION_CONTROL(intercept_position), face_ball_orientation, 0,
         TbotsProto::DribblerMode::MAX_FORCE, TbotsProto::BallCollisionType::ALLOW,

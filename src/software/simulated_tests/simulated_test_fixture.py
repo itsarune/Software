@@ -98,6 +98,7 @@ class SimulatorTestRunner(TbotsTestRunner):
             gamecontroller,
         )
         self.simulator_proto_unix_io = simulator_proto_unix_io
+        print("finished setting up the simulated test runner", flush=True)
 
     def set_worldState(self, worldstate: WorldState):
         """Sets the simulation worldstate
@@ -159,6 +160,7 @@ class SimulatorTestRunner(TbotsTestRunner):
             time_elapsed_s = 0
 
             while time_elapsed_s < test_timeout_s:
+                print(time_elapsed_s)
 
                 # Check for new CI commands at this time step
                 for (delay, cmd, team) in ci_cmd_with_delay:
@@ -175,6 +177,7 @@ class SimulatorTestRunner(TbotsTestRunner):
                     self.timestamp = ssl_wrapper.detection.t_capture
 
                 tick = SimulatorTick(
+
                     milliseconds=tick_duration_s * MILLISECONDS_PER_SECOND
                 )
                 self.simulator_proto_unix_io.send_proto(SimulatorTick, tick)
@@ -182,9 +185,13 @@ class SimulatorTestRunner(TbotsTestRunner):
 
                 if self.thunderscope:
                     time.sleep(tick_duration_s)
+                else :
+                    time.sleep(0.001)
 
                 while True:
                     try:
+                        print("waiting for a new world", flush=True)
+                        print("world buffer length: " + str(self.world_buffer.length()))
                         world = self.world_buffer.get(
                             block=True, timeout=WORLD_BUFFER_TIMEOUT
                         )

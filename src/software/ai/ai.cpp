@@ -18,11 +18,13 @@ Ai::Ai(TbotsProto::AiConfig ai_config)
 
 void Ai::overridePlay(std::unique_ptr<Play> play)
 {
+    LOG(INFO) << "Play overridden!";
     override_play = std::move(play);
 }
 
 void Ai::overridePlayFromProto(TbotsProto::Play play_proto)
 {
+    LOG(INFO) << "Play overridden: " << play_proto.DebugString();
     overridePlay(std::move(createPlay(play_proto, ai_config_)));
 }
 
