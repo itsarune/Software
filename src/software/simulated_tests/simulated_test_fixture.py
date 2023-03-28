@@ -188,11 +188,10 @@ class SimulatorTestRunner(TbotsTestRunner):
 
                 while True:
                     try:
-                        print("waiting for a new world", flush=True)
-                        print("world buffer length: " + str(self.world_buffer.length()))
                         world = self.world_buffer.get(
                             block=True, timeout=WORLD_BUFFER_TIMEOUT
                         )
+                        print("got new world")
                         break
                     except queue.Empty as empty:
                         # If we timeout, that means full_system missed the last
@@ -214,35 +213,32 @@ class SimulatorTestRunner(TbotsTestRunner):
                             block=True, timeout=WORLD_BUFFER_TIMEOUT
                         )
 
-                while world is not None:
-                    # Validate
-                    (
-                        eventually_validation_proto_set,
-                        always_validation_proto_set,
-                    ) = validation.run_validation_sequence_sets(
-                        world,
-                        eventually_validation_sequence_set,
-                        always_validation_sequence_set,
+                # Validate
+                (
+                    eventually_validation_proto_set,
+                    always_validation_proto_set,
+                ) = validation.run_validation_sequence_sets(
+                    world,
+                    eventually_validation_sequence_set,
+                    always_validation_sequence_set,
+                )
+
+                if self.thunderscope:
+
+                    # Set the test name eventually_validation_proto_set.test_name = self.test_name
+                    always_validation_proto_set.test_name = self.test_name
+
+                    # Send out the validation proto to thunderscope
+                    self.thunderscope.blue_full_system_proto_unix_io.send_proto(
+                        ValidationProtoSet, eventually_validation_proto_set
+                    )
+                    self.thunderscope.blue_full_system_proto_unix_io.send_proto(
+                        ValidationProtoSet, always_validation_proto_set
                     )
 
-                    if self.thunderscope:
+                # Check that all always validations are always valid
+                validation.check_validation(always_validation_proto_set)
 
-                        # Set the test name
-                        eventually_validation_proto_set.test_name = self.test_name
-                        always_validation_proto_set.test_name = self.test_name
-
-                        # Send out the validation proto to thunderscope
-                        self.thunderscope.blue_full_system_proto_unix_io.send_proto(
-                            ValidationProtoSet, eventually_validation_proto_set
-                        )
-                        self.thunderscope.blue_full_system_proto_unix_io.send_proto(
-                            ValidationProtoSet, always_validation_proto_set
-                        )
-
-                    # Check that all always validations are always valid
-                    validation.check_validation(always_validation_proto_set)
-
-                    world = self.world_buffer.get(block=False, return_cached=False)
 
             # Check that all eventually validations are eventually valid
             validation.check_validation(eventually_validation_proto_set)
@@ -438,7 +434,7 @@ def simulated_test_runner():
             )
 
             # Only validate on the blue worlds
-            blue_full_system_proto_unix_io.register_observer(World, runner.world_buffer)
+            # blue_full_system_proto_unix_io.register_observer(World, runner.world_buffer)
             # blue_full_system_proto_unix_io.register_observer(
             #     PrimitiveSet, runner.primitive_set_buffer
             # )
