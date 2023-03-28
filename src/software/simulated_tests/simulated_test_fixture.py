@@ -185,8 +185,6 @@ class SimulatorTestRunner(TbotsTestRunner):
 
                 if self.thunderscope:
                     time.sleep(tick_duration_s)
-                else :
-                    time.sleep(0.001)
 
                 while True:
                     try:
@@ -216,32 +214,35 @@ class SimulatorTestRunner(TbotsTestRunner):
                             block=True, timeout=WORLD_BUFFER_TIMEOUT
                         )
 
-                # Validate
-                (
-                    eventually_validation_proto_set,
-                    always_validation_proto_set,
-                ) = validation.run_validation_sequence_sets(
-                    world,
-                    eventually_validation_sequence_set,
-                    always_validation_sequence_set,
-                )
-
-                if self.thunderscope:
-
-                    # Set the test name
-                    eventually_validation_proto_set.test_name = self.test_name
-                    always_validation_proto_set.test_name = self.test_name
-
-                    # Send out the validation proto to thunderscope
-                    self.thunderscope.blue_full_system_proto_unix_io.send_proto(
-                        ValidationProtoSet, eventually_validation_proto_set
-                    )
-                    self.thunderscope.blue_full_system_proto_unix_io.send_proto(
-                        ValidationProtoSet, always_validation_proto_set
+                while world is not None:
+                    # Validate
+                    (
+                        eventually_validation_proto_set,
+                        always_validation_proto_set,
+                    ) = validation.run_validation_sequence_sets(
+                        world,
+                        eventually_validation_sequence_set,
+                        always_validation_sequence_set,
                     )
 
-                # Check that all always validations are always valid
-                validation.check_validation(always_validation_proto_set)
+                    if self.thunderscope:
+
+                        # Set the test name
+                        eventually_validation_proto_set.test_name = self.test_name
+                        always_validation_proto_set.test_name = self.test_name
+
+                        # Send out the validation proto to thunderscope
+                        self.thunderscope.blue_full_system_proto_unix_io.send_proto(
+                            ValidationProtoSet, eventually_validation_proto_set
+                        )
+                        self.thunderscope.blue_full_system_proto_unix_io.send_proto(
+                            ValidationProtoSet, always_validation_proto_set
+                        )
+
+                    # Check that all always validations are always valid
+                    validation.check_validation(always_validation_proto_set)
+
+                    world = self.world_buffer.get(block=False, return_cached=False)
 
             # Check that all eventually validations are eventually valid
             validation.check_validation(eventually_validation_proto_set)
