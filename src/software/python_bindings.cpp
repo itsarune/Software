@@ -326,6 +326,7 @@ PYBIND11_MODULE(python_bindings, m)
     declareThreadedProtoUdpListener<TbotsProto::RobotStatus>(m, "RobotStatus");
     declareThreadedProtoUdpListener<TbotsProto::RobotLog>(m, "RobotLog");
     declareThreadedProtoUdpListener<SSLProto::SSL_WrapperPacket>(m, "SSLWrapperPacket");
+    declareThreadedProtoUdpListener<TbotsProto::HRVOVisualization>(m, "HrvoVisualization");
 
     // Senders
     declareThreadedProtoUdpSender<TbotsProto::World>(m, "World");

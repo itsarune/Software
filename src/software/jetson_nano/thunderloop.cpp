@@ -34,7 +34,8 @@ Thunderloop::Thunderloop(const RobotConstants_t& robot_constants, const int loop
           std::stoi(redis_client_->getSync(ROBOT_CHIP_PULSE_WIDTH_REDIS_KEY))),
       primitive_executor_(loop_hz, robot_constants, TeamColour::YELLOW, robot_id_)
 {
-    NetworkLoggerSingleton::initializeLogger(channel_id_, network_interface_, robot_id_);
+    LoggerSingleton::initializeNetworkLogger("home/robot/logs", channel_id_, network_interface_, robot_id_);
+
     LOG(INFO)
         << "THUNDERLOOP: Network Logger initialized! Next initializing Network Service";
 

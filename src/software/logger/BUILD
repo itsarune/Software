@@ -10,6 +10,7 @@ cc_library(
         ":coloured_cout_sink",
         ":csv_sink",
         ":protobuf_sink",
+        ":network_logger",
         "@g3log",
         "@g3sinks",
     ],
@@ -25,6 +26,7 @@ cc_library(
         ":network_sink",
         "@g3log",
         "@g3sinks",
+        "//proto:visualization_cc_proto",
     ],
 )
 

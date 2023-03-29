@@ -7,7 +7,9 @@
 #include <g3log/loglevels.hpp>
 #include <g3log/logmessage.hpp>
 #include <g3log/logworker.hpp>
+#include <memory>
 
+#include "software/logger/network_sink.h"
 #include "software/logger/coloured_cout_sink.h"
 #include "software/logger/csv_sink.h"
 #include "software/logger/custom_logging_levels.h"
@@ -61,6 +63,12 @@ class LoggerSingleton
         static std::shared_ptr<LoggerSingleton> s(new LoggerSingleton(runtime_dir));
     }
 
+    static void initializeNetworkLogger(const std::string& runtime_dir, int channel_id, const std::string& interface, int robot_id)
+    {
+        static std::shared_ptr<LoggerSingleton> s(new LoggerSingleton(runtime_dir));
+        s->attachNetworkSink(channel_id, interface, robot_id);
+    }
+
    private:
     LoggerSingleton(const std::string& runtime_dir)
     {
@@ -108,6 +116,8 @@ class LoggerSingleton
 
         g3::initializeLogging(logWorker.get());
     }
+
+    void attachNetworkSink(int channel_id, const std::string& network_interface, int robot_id);
 
     // levels is this vector are filtered out of the filtered log rotate sink
     std::vector<LEVELS> filtered_level_filter = {DEBUG, VISUALIZE, CSV, INFO,
