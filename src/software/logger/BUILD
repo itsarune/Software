@@ -6,27 +6,16 @@ cc_library(
         "custom_logging_levels.h",
         "logger.h",
     ],
+    srcs = [
+        "logger.cpp",
+    ],
     deps = [
         ":coloured_cout_sink",
         ":csv_sink",
         ":protobuf_sink",
-        ":network_logger",
-        "@g3log",
-        "@g3sinks",
-    ],
-)
-
-cc_library(
-    name = "network_logger",
-    hdrs = [
-        "network_logger.h",
-    ],
-    deps = [
-        ":coloured_cout_sink",
         ":network_sink",
         "@g3log",
         "@g3sinks",
-        "//proto:visualization_cc_proto",
     ],
 )
 
@@ -86,12 +75,15 @@ cc_library(
     ],
     hdrs = [
         "network_sink.h",
+        "custom_logging_levels.h",
     ],
     deps = [
         "//proto:tbots_cc_proto",
         "//shared:constants",
         "//software/networking:threaded_proto_udp_sender",
         "@g3log",
+        "@base64",
+        "//proto:visualization_cc_proto",
     ],
 )
 

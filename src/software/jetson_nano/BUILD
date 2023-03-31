@@ -26,7 +26,7 @@ cc_library(
         "//software/jetson_nano/services:motor",
         "//software/jetson_nano/services:power",
         "//software/jetson_nano/services/network",
-        "//software/logger:network_logger",
+        "//software/logger:logger",
         "//software/util/scoped_timespec_timer",
         "//software/world:team",
     ],
@@ -38,7 +38,6 @@ cc_library(
     hdrs = ["gpio.h"],
     deps = [
         "//software/logger",
-        "//software/logger:network_logger",
         "//software/util/make_enum",
     ],
 )

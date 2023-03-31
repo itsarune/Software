@@ -42,7 +42,7 @@ void NetworkSink::sendToNetwork(g3::LogMessageMover log_entry)
         any.ParseFromString(base64_decode(serialized_proto));
         any.UnpackTo(&hrvo_proto);
         std::string data_buffer;
-        log_msg_proto.SerializeToString(&data_buffer);
+        hrvo_proto.SerializeToString(&data_buffer);
 
         hrvo_proto_output->sendProto(hrvo_proto);
     }

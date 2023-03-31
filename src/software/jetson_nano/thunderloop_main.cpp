@@ -12,7 +12,6 @@
 #include "shared/2021_robot_constants.h"
 #include "shared/constants.h"
 #include "software/jetson_nano/thunderloop.h"
-#include "software/logger/network_logger.h"
 #include "software/world/robot_state.h"
 
 // clang-format off
