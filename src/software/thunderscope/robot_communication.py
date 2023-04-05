@@ -7,7 +7,6 @@ from pyqtgraph.Qt import QtCore
 import threading
 import time
 
-
 class RobotCommunication(object):
 
     """ Communicate with the robots """
@@ -67,21 +66,22 @@ class RobotCommunication(object):
         self.run_thread = threading.Thread(target=self.run)
 
         # only checks for estop if checking is not disabled
-        if not self.disable_estop:
-            try:
-                self.estop_reader = ThreadedEstopReader(
-                    self.estop_path, self.estop_buadrate
-                )
-            except Exception:
-                raise Exception("Could not find estop, make sure its plugged in")
+        #if not self.disable_estop:
+        #    try:
+        #        self.estop_reader = ThreadedEstopReader(
+        #            self.estop_path, self.estop_buadrate
+        #        )
+        #    except Exception:
+        #        raise Exception("Could not find estop, make sure its plugged in")
 
     def __send_estop_state(self):
-        if not self.disable_estop:
-            while True:
-                self.current_proto_unix_io.send_proto(
-                    EstopState, EstopState(is_playing=self.estop_reader.isEstopPlay())
-                )
-            time.sleep(0.1)
+        time.sleep(0.1)
+        #if not self.disable_estop:
+        #    while True:
+        #        self.current_proto_unix_io.send_proto(
+        #            EstopState, EstopState(is_playing=self.estop_reader.isEstopPlay())
+        #        )
+        #    time.sleep(0.1)
 
     def run(self):
         """Forward World and PrimitiveSet protos from fullsystem to the robots.
@@ -105,7 +105,11 @@ class RobotCommunication(object):
                 world = self.world_buffer.get(block=True)
 
                 # send the world proto
-                self.send_world.send_proto(world)
+                try:
+                    self.send_world.send_proto(world)
+                except RuntimeError:
+                    print("UDP World send failure")
+                    pass
 
                 # Get the primitives
                 primitive_set = self.primitive_buffer.get(block=False)
@@ -143,9 +147,14 @@ class RobotCommunication(object):
 
             self.sequence_number += 1
 
-            if not self.disable_estop and self.estop_reader.isEstopPlay():
+            #if not self.disable_estop and self.estop_reader.isEstopPlay():
+            if True:
                 self.last_time = primitive_set.time_sent.epoch_timestamp_seconds
-                self.send_primitive_set.send_proto(primitive_set)
+                try :
+                    self.send_primitive_set.send_proto(primitive_set)
+                except RuntimeError:
+                    print("PrimitiveSet UDP send failed")
+                    pass
 
             time.sleep(0.01)
 

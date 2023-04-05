@@ -61,6 +61,7 @@ class LoggerSingleton
     static void initializeLogger(const std::string& runtime_dir)
     {
         static std::shared_ptr<LoggerSingleton> s(new LoggerSingleton(runtime_dir));
+        s->attachProtobufSink(runtime_dir);
     }
 
     static void initializeNetworkLogger(const std::string& runtime_dir, int channel_id, const std::string& interface, int robot_id)
@@ -109,15 +110,12 @@ class LoggerSingleton
                 text_level_filter),
             &LogRotateWithFilter::save);
 
-        // Sink for visualization
-        auto visualization_handle = logWorker->addSink(
-            std::make_unique<ProtobufSink>(runtime_dir), &ProtobufSink::sendProtobuf);
-
-
         g3::initializeLogging(logWorker.get());
     }
 
     void attachNetworkSink(int channel_id, const std::string& network_interface, int robot_id);
+
+    void attachProtobufSink(const std::string& runtime_dir);
 
     // levels is this vector are filtered out of the filtered log rotate sink
     std::vector<LEVELS> filtered_level_filter = {DEBUG, VISUALIZE, CSV, INFO,

@@ -92,6 +92,12 @@ Thunderloop::~Thunderloop() {}
     for (;;)
     {
         {
+            TbotsProto::HRVOVisualization hrvo_visualization;
+            hrvo_visualization.set_robot_id(0);
+            *(hrvo_visualization.add_robots()) = 
+                *createCircleProto(Circle(Point(1, 2), 1.5));
+            LOG(VISUALIZE) << hrvo_visualization;
+
             // Wait until next shot
             //
             // Note: CLOCK_MONOTONIC is used over CLOCK_REALTIME since
