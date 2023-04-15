@@ -174,7 +174,7 @@ void SensorFusion::updateWorld(
             robot_status_msg.power_status().breakbeam_tripped())
         {
             friendly_robot_id_with_ball_in_dribbler = robot_id;
-            ball_in_dribbler_timeout =
+            ball_in_dribbler_timeout = 
                 sensor_fusion_config.num_dropped_detections_before_ball_not_in_dribbler();
             LOG(INFO) << "Detected ball in breakbeam!";
         }
@@ -231,6 +231,9 @@ void SensorFusion::updateWorld(const SSLProto::SSL_DetectionFrame &ssl_detection
         enemy_team    = createEnemyTeam(yellow_team);
     }
 
+    if (ball_in_dribbler_timeout > 0 && isBallControlledByRobot(ball, friendly_robot_id_with_ball_in_dribbler)) {
+
+    }
     ball_in_dribbler_timeout--;
     if (ball_in_dribbler_timeout <= 0)
     {

@@ -126,6 +126,8 @@ class SensorFusion
      */
     static bool teamHasBall(const Team &team, const Ball &ball);
 
+    static bool isBallControlledByRobot(const Ball &ball, std::optional<Robot>
+
     TbotsProto::SensorFusionConfig sensor_fusion_config;
     std::optional<Field> field;
     std::optional<Ball> ball;
