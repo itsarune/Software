@@ -71,20 +71,20 @@ class RobotCommunication(object):
         self.run_primitive_set_thread = threading.Thread(target=self.run_primitive_set)
 
         # only checks for estop if checking is not disabled
-        if not self.disable_estop:
-            try:
-                self.estop_reader = ThreadedEstopReader(
-                    self.estop_path, self.estop_buadrate
-                )
-            except Exception:
-                raise Exception("Could not find estop, make sure its plugged in")
+        #if not self.disable_estop:
+        #    try:
+        #        self.estop_reader = ThreadedEstopReader(
+        #            self.estop_path, self.estop_buadrate
+        #        )
+        #    except Exception:
+        #        raise Exception("Could not find estop, make sure its plugged in")
 
     def __send_estop_state(self):
         if not self.disable_estop:
             while True:
-                self.current_proto_unix_io.send_proto(
-                    EstopState, EstopState(is_playing=self.estop_reader.isEstopPlay())
-                )
+                #self.current_proto_unix_io.send_proto(
+                #    EstopState, EstopState(is_playing=self.estop_reader.isEstopPlay())
+                #)
                 time.sleep(0.1)
 
     def run_world(self):
@@ -166,14 +166,16 @@ class RobotCommunication(object):
 
             self.sequence_number += 1
 
-            if (
-                not self.disable_estop
-                and self.estop_reader.isEstopPlay()
-                and (
-                    self.robots_connected_to_fullsystem
-                    or self.robots_connected_to_manual
-                )
-            ):
+            #if (
+            #    not self.disable_estop
+            #    and self.estop_reader.isEstopPlay()
+            #    and (
+            #        self.robots_connected_to_fullsystem
+            #        or self.robots_connected_to_manual
+            #    )
+            #):
+            if True :
+                print(primitive_set)
                 self.send_primitive_set.send_proto(primitive_set)
 
             # sleep if not running fullsystem

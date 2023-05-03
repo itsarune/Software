@@ -73,7 +73,7 @@
         - name: Add user robot to dialout
           become: true
           become_method: sudo
-          command: 'adduser robot dialout'
+          command: 'adduser bruhbot dialout'
 
         # Device tree setup
         - name: Sync Device Tree
@@ -125,7 +125,7 @@
           tags:
             - sync
             - device_tree
-          shell: 'mv /home/robot/device_tree.dtb /boot/kernel_tegra210-p3448-0000-p3449-0000-b00-user-custom.dtb'
+          shell: 'mv /home/bruhbot/device_tree.dtb /boot/kernel_tegra210-p3448-0000-p3449-0000-b00-user-custom.dtb'
           register: result
           args:
             chdir: ~/
@@ -136,7 +136,7 @@
           tags:
             - sync
             - device_tree
-          shell: 'mv /home/robot/extlinux.conf /boot/extlinux/extlinux.conf'
+          shell: 'mv /home/bruhbot/extlinux.conf /boot/extlinux/extlinux.conf'
           register: result
           args:
             chdir: ~/
@@ -148,7 +148,7 @@
         - name: Delete everything on ~/
           file:
             state: absent
-            path: /home/robot/thunderbots_binaries
+            path: /home/bruhbot/thunderbots_binaries
           become_method: sudo
           become: true
           register: result
