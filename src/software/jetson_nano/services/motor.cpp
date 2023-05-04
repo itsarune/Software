@@ -45,13 +45,12 @@ static const uint8_t FRONT_LEFT_MOTOR_CHIP_SELECT  = 0;
 static const uint8_t FRONT_RIGHT_MOTOR_CHIP_SELECT = 3;
 static const uint8_t BACK_LEFT_MOTOR_CHIP_SELECT   = 1;
 static const uint8_t BACK_RIGHT_MOTOR_CHIP_SELECT  = 2;
-static const uint8_t NUM_DRIVE_MOTORS              = 4;
 
 static const uint8_t DRIBBLER_MOTOR_CHIP_SELECT = 4;
 
 // SPI Trinamic Motor Driver Paths (indexed with chip select above)
-static const char* SPI_PATHS[] = {"/dev/spidev0.0", "/dev/spidev0.1", "/dev/spidev0.2",
-                                  "/dev/spidev0.3", "/dev/spidev0.4"};
+//static const char* SPI_PATHS[] = {"/dev/spidev0.0", "/dev/spidev0.1", "/dev/spidev0.2",
+//                                  "/dev/spidev0.3", "/dev/spidev0.4"};
 
 static const char* SPI_CS_DRIVER_TO_CONTROLLER_MUX_0_GPIO = "51";
 static const char* SPI_CS_DRIVER_TO_CONTROLLER_MUX_1_GPIO = "76";
@@ -66,8 +65,8 @@ static const char* DRIVER_CONTROL_ENABLE_GPIO             = "194";
 static double MECHANICAL_MPS_PER_ELECTRICAL_RPM = 0.000111;
 static double ELECTRICAL_RPM_PER_MECHANICAL_MPS = 1 / MECHANICAL_MPS_PER_ELECTRICAL_RPM;
 
-static double RUNAWAY_PROTECTION_THRESHOLD_MPS       = 2.00;
-static int DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S = 1000;
+//static double RUNAWAY_PROTECTION_THRESHOLD_MPS       = 2.00;
+//static int DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S = 1000;
 
 
 extern "C"
@@ -104,7 +103,7 @@ MotorService::MotorService(const RobotConstants_t& robot_constants,
 {
     robot_constants_ = robot_constants;
 
-    int ret = 0;
+    //int ret = 0;
 
     /**
      * Opens SPI File Descriptor
@@ -136,6 +135,8 @@ MotorService::MotorService(const RobotConstants_t& robot_constants,
     //OPEN_SPI_FILE_DESCRIPTOR(back_left, BACK_LEFT_MOTOR_CHIP_SELECT)
     //OPEN_SPI_FILE_DESCRIPTOR(back_right, BACK_RIGHT_MOTOR_CHIP_SELECT)
     //OPEN_SPI_FILE_DESCRIPTOR(dribbler, DRIBBLER_MOTOR_CHIP_SELECT)
+
+    spi_device_fd = open(MOTOR_SPI_DEVICE, O_RDWR);
 
     // Make this instance available to the static functions above
     g_motor_service = this;
@@ -279,7 +280,21 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
                                            double time_elapsed_since_last_poll_s)
 {
     TbotsProto::MotorStatus motor_status;
-//
+
+    writeAll(TMC4671_PID_VELOCITY_LIMIT, 0, 0, 0, 0, 0);
+    auto motor_velocities = readAll(TMC4671_PID_VELOCITY_LIMIT);
+    for (int i = 0; i < NUM_MOTORS; ++i)
+    {
+        LOG(INFO) << "wrote 0 to " << i << ", reading back " << motor_velocities[i];
+    }
+    writeAll(TMC4671_PID_VELOCITY_LIMIT, 45000, 45000, 45000, 45000, 15000);
+    motor_velocities = readAll(TMC4671_PID_VELOCITY_LIMIT);
+    for (int i = 0; i < NUM_MOTORS; ++i)
+    {
+        LOG(INFO) << "wrote a non zero value to " << i << ", reading back " << motor_velocities[i];
+    }
+
+
 //    bool encoders_calibrated = (encoder_calibrated_[FRONT_LEFT_MOTOR_CHIP_SELECT] ||
 //                                encoder_calibrated_[FRONT_RIGHT_MOTOR_CHIP_SELECT] ||
 //                                encoder_calibrated_[BACK_LEFT_MOTOR_CHIP_SELECT] ||
@@ -896,5 +911,66 @@ void MotorService::startController(uint8_t motor, bool dribbler)
         // Configure to brushless DC motor with 8 pole pairs
         writeToControllerOrDieTrying(motor, TMC4671_MOTOR_TYPE_N_POLE_PAIRS, 0x00030008);
         configureEncoder(motor);
+    }
+}
+
+std::unordered_map<int, int32_t> MotorService::readAll(uint8_t command)
+{
+    std::unordered_map<int, int32_t> motor_velocities;
+    ssize_t status;
+
+    uint8_t write_velocity_byte = command & 0x7f;
+    all_motors_rd_buf[0] = write_velocity_byte;
+
+    LOG(INFO) << "all motors read buffer first byte: " << std::hex << int(all_motors_rd_buf[0]);
+    
+    status = read(spi_device_fd, all_motors_rd_buf, 25);
+    LOG(WARNING) << "read back " << status << " bytes";
+
+    motor_velocities[FRONT_LEFT_MOTOR_CHIP_SELECT] = readFromBuf(all_motors_rd_buf, 4);
+    motor_velocities[BACK_LEFT_MOTOR_CHIP_SELECT] = readFromBuf(all_motors_rd_buf+4, 4);
+    motor_velocities[BACK_RIGHT_MOTOR_CHIP_SELECT] = readFromBuf(all_motors_rd_buf+8, 4);
+    motor_velocities[FRONT_RIGHT_MOTOR_CHIP_SELECT] = readFromBuf(all_motors_rd_buf+12, 4);
+
+    return motor_velocities;
+}
+
+int32_t MotorService::readFromBuf(uint8_t *buf, int len)
+{
+    int32_t n = buf[0];
+    for (int i = 1; i < len; ++i)
+    {
+        n <<= 8;
+        n |= buf[i];
+    }
+
+    return n;
+}
+
+ssize_t MotorService::writeAll(uint8_t command, int front_left, int back_left, int back_right, int front_right, int dribbler)
+{
+    ssize_t status;
+
+    for (int i = 0; i < 5; ++i)
+    {
+        all_motors_tx_buf[i*5] = (command | 0x80);
+    }
+    writeToBuf(all_motors_tx_buf+1, front_left, 4);
+    writeToBuf(all_motors_tx_buf+6, back_left, 4);
+    writeToBuf(all_motors_tx_buf+11, back_right, 4);
+    writeToBuf(all_motors_tx_buf+16, front_right, 4);
+    writeToBuf(all_motors_tx_buf+21, dribbler, 4);
+
+   status = write(spi_device_fd, all_motors_tx_buf, 25); 
+   LOG(WARNING) << "writeAll wrote " << status << " bytes";
+
+   return status;
+}
+
+void MotorService::writeToBuf(uint8_t *buf, int n, int len)
+{
+    for (int i = 0; i < len; ++i)
+    {
+        buf[i] = static_cast<uint8_t>(0xFF & (n >> ((len-i)*8-8)));
     }
 }

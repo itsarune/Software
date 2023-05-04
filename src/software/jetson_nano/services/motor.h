@@ -173,6 +173,13 @@ class MotorService
      */
     bool checkDriverFault(uint8_t motor);
 
+    std::unordered_map<int, int32_t> readAll(uint8_t command);
+    ssize_t writeAll(uint8_t command, int front_left_motor_speed, int back_left_motor_speed, int back_right_motor_speed, int front_right_motor_speed, int dribbler_speed);
+
+
+    int32_t readFromBuf(uint8_t *buf, int len);
+    void writeToBuf(uint8_t *buf, int n, int len);
+
     // Select between driver and controller gpio
     Gpio spi_demux_select_0;
     Gpio spi_demux_select_1;
@@ -204,4 +211,14 @@ class MotorService
     // Previous wheel velocities
     WheelSpace_t prev_wheel_velocities;
     int ramp_rpm;
+
+    int spi_device_fd;
+    uint8_t all_motors_tx_buf[25] = {0};
+    uint8_t all_motors_rd_buf[25] = {0};
+
+    static constexpr const char* MOTOR_SPI_DEVICE = "/dev/motors";
+    static const int TOTAL_BUF_SIZE = 40;
+
+    static const uint8_t NUM_DRIVE_MOTORS              = 4;
+    static const int NUM_MOTORS = NUM_DRIVE_MOTORS+1; // drive motors + dribbler
 };
