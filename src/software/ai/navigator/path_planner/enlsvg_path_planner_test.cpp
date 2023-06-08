@@ -685,7 +685,7 @@ TEST_F(TestEnlsvgPathPlanner, test_going_around_defense_area)
 }
 
 // TODO (#2913): ENLSVG can not find a path from above defense area to below
-TEST_F(TestEnlsvgPathPlanner, DISABLED_test_going_from_above_enemy_defense_area_to_below)
+TEST_F(TestEnlsvgPathPlanner, test_going_from_above_enemy_defense_area_to_below)
 {
     World world = ::TestUtil::createBlankTestingWorld(TbotsProto::FieldType::DIV_B);
     const Field& field       = world.field();
@@ -699,6 +699,9 @@ TEST_F(TestEnlsvgPathPlanner, DISABLED_test_going_from_above_enemy_defense_area_
     std::vector<ObstaclePtr> obstacles =
         robot_navigation_obstacle_factory.createFromMotionConstraint(
             TbotsProto::MotionConstraint::INFLATED_ENEMY_DEFENSE_AREA, world);
+
+    LOG(VISUALIZE) << *createPointProto(start);
+    LOG(VISUALIZE) << *createPointProto(dest);
 
     EnlsvgPathPlanner planner =
         EnlsvgPathPlanner(navigable_area, obstacles, ROBOT_MAX_RADIUS_METERS);
