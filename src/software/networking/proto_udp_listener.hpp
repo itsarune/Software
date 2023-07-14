@@ -100,8 +100,9 @@ ProtoUdpListener<ReceiveProtoT>::ProtoUdpListener(
     bool multicast)
     : socket_(io_service), receive_callback(receive_callback)
 {
+    boost::asio::ip::address listen_address = boost::asio::ip::make_address(ip_address);
     boost::asio::ip::udp::endpoint listen_endpoint(
-        boost::asio::ip::make_address(ip_address), port);
+        listen_address, port);
     socket_.open(listen_endpoint.protocol());
     socket_.set_option(boost::asio::socket_base::reuse_address(true));
     try
@@ -118,11 +119,16 @@ ProtoUdpListener<ReceiveProtoT>::ProtoUdpListener(
                    << ip_address << ", port = " << port << ")" << std::endl;
     }
 
-    if (multicast)
+    // Join the multicast group.
+    if (multicast && listen_address.is_v6())
     {
-        // Join the multicast group.
         socket_.set_option(boost::asio::ip::multicast::join_group(
             boost::asio::ip::address::from_string(ip_address)));
+    }
+    else if (multicast && listen_address.is_v4())
+    {
+        socket_.set_option(boost::asio::ip::multicast::join_group(listen_address.to_v4(),
+                    boost::asio::ip::make_address("0.0.0.0").to_v4()));
     }
 
     startListen();
