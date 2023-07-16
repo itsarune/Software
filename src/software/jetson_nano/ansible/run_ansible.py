@@ -13,7 +13,7 @@ import subprocess
 # documentation can be found here: https://docs.ansible.com/ansible/latest/dev_guide/developing_api.html
 
 HOST_GROUP = "THUNDERBOTS_HOSTS"
-NANO_USER = "bruhbot"
+NANO_USER = "robot"
 ROBOT_IP_PREFIX = "192.168.0.20"
 MAX_NUM_ROBOTS = 8
 

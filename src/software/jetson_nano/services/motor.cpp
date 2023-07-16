@@ -141,6 +141,13 @@ MotorService::MotorService(const RobotConstants_t& robot_constants,
     // Make this instance available to the static functions above
     g_motor_service = this;
 
+    // Clear faults by resetting all the chips on the motor board
+    reset_gpio.setValue(GpioState::LOW);
+    usleep(MICROSECONDS_PER_MILLISECOND * 100);
+
+    reset_gpio.setValue(GpioState::HIGH);
+    usleep(MICROSECONDS_PER_MILLISECOND * 100);
+
     //setUpMotors();
 }
 
@@ -150,11 +157,18 @@ void MotorService::setUpMotors()
 {
     prev_wheel_velocities = {0.0, 0.0, 0.0, 0.0};
 
-    // Check for driver faults
-    for (uint8_t motor = 0; motor < NUM_DRIVE_MOTORS; motor++)
+    for (int i = 0;;)
     {
-        checkDriverFault(motor);
+        auto motor_velocities = readAll(TMC4671_CHIPINFO_DATA);
+        LOG(INFO) << "received " << motor_velocities[i];
     }
+
+
+    // Check for driver faults
+    //for (uint8_t motor = 0; motor < NUM_DRIVE_MOTORS; motor++)
+    //{
+    //    checkDriverFault(motor);
+    //}
 
     // Clear faults by resetting all the chips on the motor board
     reset_gpio.setValue(GpioState::LOW);
@@ -281,19 +295,12 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
 {
     TbotsProto::MotorStatus motor_status;
 
-    writeAll(TMC4671_PID_VELOCITY_LIMIT, 0, 0, 0, 0, 0);
-    auto motor_velocities = readAll(TMC4671_PID_VELOCITY_LIMIT);
+    writeAll(TMC4671_CHIPINFO_ADDR, 0x10000000, 0x20000000, 0x30000000, 0x40000000, 0x50000000);
+    auto motor_velocities = readAll(TMC4671_CHIPINFO_DATA);
     for (int i = 0; i < NUM_MOTORS; ++i)
     {
-        LOG(INFO) << "wrote 0 to " << i << ", reading back " << motor_velocities[i];
+        LOG(INFO) << "received " << motor_velocities[i];
     }
-    writeAll(TMC4671_PID_VELOCITY_LIMIT, 45000, 45000, 45000, 45000, 15000);
-    motor_velocities = readAll(TMC4671_PID_VELOCITY_LIMIT);
-    for (int i = 0; i < NUM_MOTORS; ++i)
-    {
-        LOG(INFO) << "wrote a non zero value to " << i << ", reading back " << motor_velocities[i];
-    }
-
 
 //    bool encoders_calibrated = (encoder_calibrated_[FRONT_LEFT_MOTOR_CHIP_SELECT] ||
 //                                encoder_calibrated_[FRONT_RIGHT_MOTOR_CHIP_SELECT] ||
