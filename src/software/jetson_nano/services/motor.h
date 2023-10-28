@@ -319,4 +319,6 @@ class MotorService
     // Motor names (indexed with chip select above)
     static constexpr const char* MOTOR_NAMES[] = {"front_left", "back_left", "back_right",
                                                   "front_right", "dribbler"};
+
+    static constexpr const char* ENCODER_CSV = "raw_wheel_actual_velocity.csv";
 };

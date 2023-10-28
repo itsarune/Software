@@ -213,6 +213,9 @@ void MotorService::setup()
         endEncoderCalibration(motor);
     }
 
+    LOG(CSV, ENCODER_CSV)
+        << "front_right_raw,front_right_actual,front_left_raw,front_left_actual,back_right_raw,back_right_actual,back_left_raw,back_left_actual\n";
+
     is_initialized_ = true;
 }
 
@@ -452,6 +455,12 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
     double back_left_velocity =
         static_cast<double>(tmc4671_getActualVelocity(BACK_LEFT_MOTOR_CHIP_SELECT)) *
         MECHANICAL_MPS_PER_ELECTRICAL_RPM;
+
+    LOG(CSV, ENCODER_CSV) << front_right_velocity << prev_wheel_velocities_[FRONT_RIGHT_WHEEL_SPACE_INDEX];
+    LOG(CSV, ENCODER_CSV) << front_left_velocity << prev_wheel_velocities_[FRONT_LEFT_WHEEL_SPACE_INDEX];
+    LOG(CSV, ENCODER_CSV) << back_right_velocity << prev_wheel_velocities_[BACK_RIGHT_WHEEL_SPACE_INDEX];
+    LOG(CSV, ENCODER_CSV) << back_left_velocity << prev_wheel_velocities_[BACK_LEFT_WHEEL_SPACE_INDEX];
+    LOG(CSV, ENCODER_CSV) << "\n";
 
     // Get the current dribbler rpm
     double dribbler_rpm =
