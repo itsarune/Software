@@ -456,6 +456,13 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
     // Get the current dribbler rpm
     double dribbler_rpm =
         static_cast<double>(tmc4671_getActualVelocity(DRIBBLER_MOTOR_CHIP_SELECT));
+    int dribbler_torque =
+        tmc4671_getActualTorque_mA(DRIBBLER_MOTOR_CHIP_SELECT, 1);
+    
+    LOG(PLOTJUGGLER) << *createPlotJugglerValue({
+            {"dribbler_rpm", dribbler_rpm},
+            {"dribble_torque", dribbler_torque}
+    });
 
     // Construct a MotorStatus object with the current velocities and dribbler rpm
     TbotsProto::MotorStatus motor_status =

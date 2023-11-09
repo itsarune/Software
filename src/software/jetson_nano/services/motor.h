@@ -9,6 +9,7 @@
 #include "shared/robot_constants.h"
 #include "software/jetson_nano/gpio.h"
 #include "software/physics/euclidean_to_wheel.h"
+#include "proto/message_translation/tbots_protobuf.h"
 
 class MotorService
 {
