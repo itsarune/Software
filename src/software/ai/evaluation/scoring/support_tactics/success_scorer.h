@@ -12,5 +12,6 @@ class SuccessScorer : public SupportTacticScorer
    public:
     explicit SuccessScorer() = default;
 
-    double score(const TypedSupportTacticCandidate<ReceiverTactic> &candidate) override;
+    double score(const TypedSupportTacticCandidate<ReceiverTactic> &candidate);
+    double score(const TypedSupportTacticCandidate<CherryPickerTactic> &candidate);
 };

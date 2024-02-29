@@ -1,10 +1,8 @@
 #pragma once
 
-#include <set>
-
 #include "software/ai/evaluation/scoring/candidate.h"
 #include "software/ai/evaluation/scoring/support_tactics/support_tactic_scorer.h"
-#include "software/ai/hl/stp/tactic/receiver/receiver_tactic.h"
+#include "software/ai/hl/stp/tactic/offense_support_tactics/receiver/receiver_tactic.h"
 
 /**
  * A SupportTacticCandidate makes a type of tactic eligible for scoring and

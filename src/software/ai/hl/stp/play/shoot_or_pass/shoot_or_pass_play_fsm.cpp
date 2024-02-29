@@ -109,7 +109,7 @@ void ShootOrPassPlayFSM::takePass(const Update& event)
 
     // if we make it here then we have committed to the pass
     attacker_tactic->updateControlParams(best_pass_and_score_so_far.pass, true);
-    receiver_tactic->updateControlParams(best_pass_and_score_so_far.pass);
+    receiver_tactic->updateControlParams();
     event.common.set_inter_play_communication_fun(
         InterPlayCommunication{.last_committed_pass = best_pass_and_score_so_far});
 

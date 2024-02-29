@@ -1,6 +1,11 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "overall_strategy",
+    hdrs = ["overall_strategy.h"],
+)
+
+cc_library(
     name = "pass_strategy",
     srcs = ["pass_strategy.cpp"],
     hdrs = ["pass_strategy.h"],
@@ -35,11 +40,12 @@ cc_library(
     hdrs = ["strategy_impl.h"],
     visibility = ["//visibility:private"],
     deps = [
+        ":overall_strategy",
         ":pass_strategy",
         "//proto:tbots_cc_proto",
         "//software/ai/evaluation:calc_best_shot",
         "//software/ai/evaluation:shot",
-        "//software/ai/hl/stp/tactic:offense_support_tactic",
+        "//software/ai/hl/stp/tactic/offense_support_tactics:offense_support_tactic",
         "//software/ai/passing:pass_with_rating",
         "//software/geom:pose",
         "//software/world:field",

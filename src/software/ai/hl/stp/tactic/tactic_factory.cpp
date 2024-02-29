@@ -153,7 +153,7 @@ std::shared_ptr<Tactic> createTactic(const TbotsProto::ReceiverTactic &tactic_pr
         pass = createPass(tactic_proto.pass());
     }
 
-    tactic->updateControlParams(pass, tactic_proto.disable_one_touch_shot());
+    tactic->updateControlParams();
     return tactic;
 }
 

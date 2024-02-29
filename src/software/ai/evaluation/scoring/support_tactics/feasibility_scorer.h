@@ -10,7 +10,11 @@
 class FeasibilityScorer : public SupportTacticScorer
 {
    public:
-    explicit FeasibilityScorer() = default;
+    explicit FeasibilityScorer(std::shared_ptr<Strategy> strategy);
 
+    double score(const TypedSupportTacticCandidate<CherryPickerTactic> &candidate) override;
     double score(const TypedSupportTacticCandidate<ReceiverTactic> &candidate) override;
+
+   private:
+    std::shared_ptr<Strategy> strategy_;
 };

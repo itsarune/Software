@@ -2,8 +2,9 @@
 
 #include "proto/parameters.pb.h"
 #include "software/ai/evaluation/shot.h"
+#include "software/ai/hl/stp/strategy/overall_strategy.h"
 #include "software/ai/hl/stp/strategy/pass_strategy.h"
-#include "software/ai/hl/stp/tactic/offense_support_tactic.h"
+#include "software/ai/hl/stp/tactic/offense_support_tactics/offense_support_tactic.h"
 #include "software/ai/passing/pass_with_rating.h"
 #include "software/geom/pose.h"
 #include "software/world/field.h"
@@ -16,6 +17,10 @@ class StrategyImpl
    public:
     StrategyImpl(const TbotsProto::AiConfig& ai_config,
                  const Field& field = Field::createSSLDivisionBField());
+
+    OverallStrategy getOverallStrategy() const;
+
+    std::size_t calcMinimumRequiredDefenders() const;
 
     /**
      * Get the best dribble pose for the given robot

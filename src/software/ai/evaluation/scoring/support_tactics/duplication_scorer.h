@@ -12,6 +12,7 @@ class DuplicationScorer : public SupportTacticScorer
    public:
     explicit DuplicationScorer();
 
+    double score(const TypedSupportTacticCandidate<CherryPickerTactic> &candidate);
     double score(const TypedSupportTacticCandidate<ReceiverTactic> &candidate) override;
 
     /**

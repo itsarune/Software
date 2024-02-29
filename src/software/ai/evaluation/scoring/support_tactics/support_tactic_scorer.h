@@ -1,6 +1,7 @@
 #pragma once
 
-#include "software/ai/hl/stp/tactic/receiver/receiver_tactic.h"
+#include "software/ai/hl/stp/tactic/offense_support_tactics/cherry_picker_tactic.h"
+#include "software/ai/hl/stp/tactic/offense_support_tactics/receiver/receiver_tactic.h"
 
 // We forward-declare TypedSupportTacticCandidate because if we include it, we induce a
 // circular dependency between support_tactic_candidate.h and support_tactic_scorer.hpp.
@@ -27,6 +28,8 @@ class SupportTacticScorer
      */
     virtual double score(
         const TypedSupportTacticCandidate<ReceiverTactic> &candidate) = 0;
+
+    virtual double score(const TypedSupportTacticCandidate<CherryPickerTactic> &candidate) = 0;
 
     /**
      * The javadoc comment for all `update` methods below can be read as:

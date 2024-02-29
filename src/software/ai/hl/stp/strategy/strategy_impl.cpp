@@ -8,6 +8,37 @@ StrategyImpl::StrategyImpl(const TbotsProto::AiConfig& ai_config, const Field& f
     updateAiConfig(ai_config);
 }
 
+OverallStrategy StrategyImpl::getOverallStrategy() const
+{
+    OverallStrategy overall_strategy = {};
+    overall_strategy.goalie = true;     
+    overall_strategy.attacker = false;
+
+    const World& world = world_.value();
+
+    std::size_t num_defenders = calcMinimumRequiredDefenders();
+    if (world.getTeamWithPossession() == TeamPossession::FRIENDLY_TEAM)
+    {
+        overall_strategy.attacker = true;
+
+        overall_strategy.defenders = std::max(0ul, std::min(num_defenders, world.friendlyTeam().numRobots()-2));
+        overall_strategy.support_offense = std::max(0ul, world.friendlyTeam().numRobots()-overall_strategy.defenders-2);
+
+        return overall_strategy;
+    }
+
+    overall_strategy.defenders = std::max(0ul, std::min(num_defenders, world.friendlyTeam().numRobots()-1));
+    overall_strategy.support_offense = std::max(0ul, world.friendlyTeam().numRobots()-overall_strategy.defenders-1);
+
+    return overall_strategy;
+}
+
+std::size_t StrategyImpl::calcMinimumRequiredDefenders() const
+{
+    // TODO: calculate the minimum required defenders based on an analysis of enemy threats
+    return 2;
+}
+
 Pose StrategyImpl::getBestDribblePose(const Robot& robot)
 {
     if (robot_to_best_dribble_location_.contains(robot.id()))

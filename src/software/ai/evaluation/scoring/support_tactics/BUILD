@@ -6,7 +6,8 @@ cc_library(
     deps = [
         ":support_tactic_scorer",
         "//software/ai/evaluation/scoring:candidate",
-        "//software/ai/hl/stp/tactic/receiver:receiver_tactic",
+        "//software/ai/hl/stp/tactic/offense_support_tactics:cherry_picker_tactic",
+        "//software/ai/hl/stp/tactic/offense_support_tactics/receiver:receiver_tactic",
     ],
 )
 
@@ -14,7 +15,8 @@ cc_library(
     name = "support_tactic_scorer",
     hdrs = ["support_tactic_scorer.h"],
     deps = [
-        "//software/ai/hl/stp/tactic/receiver:receiver_tactic",
+        "//software/ai/hl/stp/tactic/offense_support_tactics:cherry_picker_tactic",
+        "//software/ai/hl/stp/tactic/offense_support_tactics/receiver:receiver_tactic",
     ],
 )
 
