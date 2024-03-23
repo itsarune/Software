@@ -1,9 +1,14 @@
 #pragma once
 
+#include "software/jetson_nano/radio/sx1280_spidev.h"
+
 // Derived from Semtech's mbed library implementation: https://os.mbed.com/teams/Semtech/code/SX1280Lib/
 
 class Sx1280Hal
 {
+    public:
+        Sx1280Hal();
+
     // required functions
     // setSleep(RETAIN_None)
     // setMode(MODE_STDBY_XOSC)
@@ -19,4 +24,7 @@ class Sx1280Hal
     // LT.setTxParams(TXpower, RADIO_RAMP_04_US);
     // LT.setFS();
     // LT.clearIrqStatus(IRQ_RADIO_ALL);
+
+    private:
+        Sx1280Spidev radio_;
 };
