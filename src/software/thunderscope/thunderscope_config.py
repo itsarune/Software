@@ -235,6 +235,12 @@ def configure_base_fullsystem(
             anchor="Referee Info",
             position="above",
         ),
+        TScopeWidget(
+            name="Proto Streamer",
+            widget=setup_proto_streamer_widget(**{"proto_unix_io": full_system_proto_unix_io}),
+            anchor="Play Info",
+            position="above",
+        ),
     ] + extra_widgets
 
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "proto/message_translation/tbots_protobuf.h"
 #include "proto/parameters.pb.h"
 #include "proto/strategy.pb.h"
 #include "software/ai/evaluation/calc_best_shot.h"
@@ -56,6 +57,8 @@ class StrategyImpl
     void updateWorld(const WorldPtr& world_ptr);
 
     void commitPass(const PassWithRating& pass);
+
+    TbotsProto::StrategySummary getSummary() const;
 
    private:
     int calcNumIdealDefenders();
@@ -255,4 +258,26 @@ template <class PitchDivision, class ZoneEnum>
 void StrategyImpl<PitchDivision, ZoneEnum>::commitPass(const PassWithRating& pass)
 {
     committed_passes_.push_back(pass);
+}
+
+template <class PitchDivision, class ZoneEnum>
+TbotsProto::StrategySummary StrategyImpl<PitchDivision, ZoneEnum>:: getSummary() const
+{
+    TbotsProto::StrategySummary summary;
+
+    for (const auto& pass : committed_passes_)
+    {
+        TbotsProto::Pass pass_proto;
+
+        *(pass_proto.mutable_passer_point()) = *(createPointProto(pass.pass.passerPoint()));
+        *(pass_proto.mutable_receiver_point()) =  *(createPointProto(pass.pass.receiverPoint()));
+
+        pass_proto.set_pass_rating(pass.rating);
+        pass_proto.set_pass_speed_m_per_s(pass.pass.speed());
+
+
+        *(summary.add_committed_passes()) = pass_proto;
+    }
+
+    return summary;
 }

@@ -7,6 +7,7 @@ from proto.import_all_protos import *
 from software.thunderscope.common.fps_widget import FrameTimeWidget
 from software.thunderscope.common.frametime_counter import FrameTimeCounter
 from software.thunderscope.common.proto_plotter import ProtoPlotter
+from software.thunderscope.proto_streamer.proto_streamer_widget import ProtoStreamerWidget
 from software.thunderscope.proto_unix_io import ProtoUnixIO
 from proto.robot_log_msg_pb2 import RobotLog
 from extlibs.er_force_sim.src.protobuf.world_pb2 import *
@@ -223,6 +224,20 @@ def setup_log_widget(proto_unix_io: ProtoUnixIO) -> g3logWidget:
 
     return logs
 
+def setup_proto_streamer_widget(proto_unix_io: ProtoUnixIO) -> ProtoStreamerWidget:
+    """Setup the proto streamer widget
+
+    :param proto_unix_io: The proto unix io object
+    :returns: The proto streamer widget
+
+    """
+    # Create widget
+    proto_streamer_widget = ProtoStreamerWidget()
+
+    # Register observer
+    proto_unix_io.register_observer(StrategySummary, proto_streamer_widget.registered_buffers)
+
+    return proto_streamer_widget
 
 def setup_performance_plot(proto_unix_io: ProtoUnixIO) -> ProtoPlotter:
     """Setup the performance plot

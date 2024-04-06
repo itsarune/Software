@@ -58,6 +58,7 @@ message SimulationState
 {
     required bool is_playing = 1 [default = true];
 }
+
 message Pass
 {
     // The location of the passer
@@ -68,6 +69,9 @@ message Pass
 
     // The speed of the pass in meters/second
     required double pass_speed_m_per_s = 3;
+
+    // The rating of this Pass
+    optional double pass_rating = 4;
 }
 
 message EnemyThreat

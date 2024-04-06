@@ -36,6 +36,7 @@ cc_library(
     deps = [
         ":pass_strategy",
         "//proto:tbots_cc_proto",
+        "//proto/message_translation:tbots_protobuf",
         "//software/ai/evaluation:calc_best_shot",
         "//software/ai/evaluation:shot",
         "//software/ai/passing:pass_evaluation",

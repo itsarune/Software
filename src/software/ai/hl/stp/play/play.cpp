@@ -220,6 +220,9 @@ std::unique_ptr<TbotsProto::PrimitiveSet> Play::get(
     LOG(VISUALIZE) << obstacle_list;
     LOG(VISUALIZE) << path_visualization;
 
+    // Send Strategy summary
+    LOG(VISUALIZE) << (*strategy)->getSummary();
+
     primitives_to_run->mutable_time_sent()->set_epoch_timestamp_seconds(
         world_ptr->getMostRecentTimestamp().toSeconds());
     primitives_to_run->set_sequence_number(sequence_number++);

@@ -2,10 +2,25 @@ syntax = "proto3";
 
 package TbotsProto;
 
+import "proto/world.proto";
+
 message PossessionStrategy
 {
     int32 goalkeepers = 1;
     int32 defenders   = 2;
     int32 attackers   = 3;
     int32 supporters  = 4;
+};
+
+message ReceiverTacticSummary
+{
+    optional Pass pass = 1;
+    bool disable_one_touch_shot = 2;
+    optional float net_percentage_net_open = 3;
+    optional float angle_between_pass_and_shot = 4; 
+};
+
+message StrategySummary
+{
+    repeated Pass committed_passes = 1;
 };
