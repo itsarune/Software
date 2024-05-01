@@ -231,11 +231,14 @@ def setup_proto_streamer_widget(proto_unix_io: ProtoUnixIO) -> ProtoStreamerWidg
     :returns: The proto streamer widget
 
     """
+    args = [StrategySummary]
+
     # Create widget
-    proto_streamer_widget = ProtoStreamerWidget()
+    proto_streamer_widget = ProtoStreamerWidget(proto_types=args)
 
     # Register observer
-    proto_unix_io.register_observer(StrategySummary, proto_streamer_widget.registered_buffers)
+    for arg in args:
+        proto_unix_io.register_observer(arg, proto_streamer_widget.registered_buffers[arg])
 
     return proto_streamer_widget
 

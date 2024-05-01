@@ -1,8 +1,11 @@
+from software.thunderscope.thread_safe_buffer import ThreadSafeBuffer
+
+import queue
 import pyqtgraph.console as pg_console
 from pyqtgraph.Qt.QtWidgets import *
 
 class ProtoStreamerWidget(QWidget):
-    def __init__(self, buffer_size=10, *args):
+    def __init__(self, proto_types, buffer_size=10):
         QWidget.__init__(self)
 
         self.console_widget = pg_console.ConsoleWidget()
@@ -25,18 +28,23 @@ class ProtoStreamerWidget(QWidget):
         # when writing to ReplWidget
         self.console_widget.repl._lastCommandRow = 0
 
-        self.registered_buffers = [ThreadSafeBuffer(buffer_size=buffer_size, protobuf_type=arg) for arg in args]
+        self.registered_buffers = dict()
+        for arg in proto_types:
+            self.registered_buffers[arg] = ThreadSafeBuffer(buffer_size=buffer_size, protobuf_type=arg)
+
+        self.layout.addWidget(self.console_widget)
+        self.setLayout(self.layout)
 
     def refresh(self):
         proto = None
-        for buffer in self.registered_buffers:
-            try:
-                proto = buffer.queue.get_nowait()
-                if proto is not None:
-                    break
-            except queue.Empty as empty:
-                continue
+        for buffer in self.registered_buffers.values():
+            proto = buffer.get(block=False, return_cached=False)
+            if proto is not None and proto.IsInitialized():
+                print(buffer.queue.qsize())
+                break
 
         if proto is not None:
-            log_str = f"{proto.name}: {proto.SerializeToString()}\n"
-            self.console_widget.write(log_str)
+            proto_str = f"{type(proto)}"
+            for proto_pieces in str(proto).split("\n"):
+                proto_str += f"\n\t{proto_pieces}"
+            self.console_widget.repl.write(proto_str)

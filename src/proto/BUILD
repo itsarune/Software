@@ -54,6 +54,7 @@ py_proto_library(
         "play.proto",
         "primitive.proto",
         "robot_status_msg.proto",
+        "strategy.proto",
         "tactic.proto",
         "tbots_software_msgs.proto",
         "tbots_timestamp_msg.proto",
