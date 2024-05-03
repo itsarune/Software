@@ -40,11 +40,14 @@ class ProtoStreamerWidget(QWidget):
         for buffer in self.registered_buffers.values():
             proto = buffer.get(block=False, return_cached=False)
             if proto is not None and proto.IsInitialized():
-                print(buffer.queue.qsize())
                 break
 
         if proto is not None:
-            proto_str = f"{type(proto)}"
-            for proto_pieces in str(proto).split("\n"):
-                proto_str += f"\n\t{proto_pieces}"
-            self.console_widget.repl.write(proto_str)
+            proto_str = type(proto).__name__ + ":"
+            split_proto = str(proto).split("\n")
+            if len(split_proto) > 1 and split_proto[0] != "":
+                for proto_pieces in split_proto:
+                    proto_str += f"\n\t{proto_pieces}"
+                proto_str += "\n"
+
+                self.console_widget.repl.write(proto_str)
