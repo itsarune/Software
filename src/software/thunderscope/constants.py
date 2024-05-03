@@ -6,6 +6,7 @@ from proto.robot_log_msg_pb2 import LogLevel
 import textwrap
 
 SIM_TICK_RATE_MS = 16
+DEBUG_PROTOS = [StrategySummary]
 
 
 class ProtoUnixIOTypes(Enum):

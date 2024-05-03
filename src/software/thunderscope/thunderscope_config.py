@@ -1,6 +1,6 @@
 from software.thunderscope.common.frametime_counter import FrameTimeCounter
 from software.thunderscope.widget_setup_functions import *
-from software.thunderscope.constants import TabNames, ProtoUnixIOTypes
+from software.thunderscope.constants import DEBUG_PROTOS, TabNames, ProtoUnixIOTypes
 from software.thunderscope.proto_unix_io import ProtoUnixIO
 from typing import Sequence, Dict
 from software.thunderscope.thunderscope_types import (
@@ -237,10 +237,12 @@ def configure_base_fullsystem(
         ),
         TScopeWidget(
             name="Proto Streamer",
-            widget=setup_proto_streamer_widget(**{"proto_unix_io": full_system_proto_unix_io}),
-            anchor="Play Info",
+            widget=setup_proto_streamer_widget(**{"proto_unix_io": full_system_proto_unix_io,
+                                                  "debug_protos": DEBUG_PROTOS}),
+            anchor="Parameters",
             position="above",
-        ),
+            stretch=WidgetStretchData(x=3),
+        ) if len(DEBUG_PROTOS) > 0 else None,
     ] + extra_widgets
 
 

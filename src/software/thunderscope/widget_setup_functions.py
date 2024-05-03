@@ -224,20 +224,18 @@ def setup_log_widget(proto_unix_io: ProtoUnixIO) -> g3logWidget:
 
     return logs
 
-def setup_proto_streamer_widget(proto_unix_io: ProtoUnixIO) -> ProtoStreamerWidget:
+def setup_proto_streamer_widget(proto_unix_io: ProtoUnixIO, debug_protos) -> ProtoStreamerWidget:
     """Setup the proto streamer widget
 
     :param proto_unix_io: The proto unix io object
     :returns: The proto streamer widget
 
     """
-    args = [StrategySummary]
-
     # Create widget
-    proto_streamer_widget = ProtoStreamerWidget(proto_types=args)
+    proto_streamer_widget = ProtoStreamerWidget(proto_types=debug_protos)
 
     # Register observer
-    for arg in args:
+    for arg in debug_protos:
         proto_unix_io.register_observer(arg, proto_streamer_widget.registered_buffers[arg])
 
     return proto_streamer_widget
