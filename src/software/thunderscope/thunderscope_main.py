@@ -28,6 +28,7 @@ from software.thunderscope.binary_context_managers.full_system import FullSystem
 from software.thunderscope.binary_context_managers.simulator import Simulator
 from software.thunderscope.binary_context_managers.game_controller import Gamecontroller
 from software.thunderscope.binary_context_managers.tigers_autoref import TigersAutoref
+import multiprocessing
 
 
 NUM_ROBOTS = DIV_B_NUM_ROBOTS
@@ -38,6 +39,7 @@ NUM_ROBOTS = DIV_B_NUM_ROBOTS
 
 if __name__ == "__main__":
 
+    multiprocessing.set_start_method("fork")
     logging.getLogger().setLevel(logging.INFO)
 
     # Setup parser

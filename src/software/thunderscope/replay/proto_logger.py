@@ -1,4 +1,7 @@
 from __future__ import annotations
+import ctypes
+from multiprocessing import Process
+import multiprocessing
 import time
 import threading
 import queue
@@ -70,9 +73,10 @@ class ProtoLogger:
             pass
 
         self.buffer = queue.Queue(PROTOBUF_BUFFER_SIZE)
+        self.proto_logger_buffer = multiprocessing.Queue(PROTOBUF_BUFFER_SIZE)
         self.time_provider = time_provider if time_provider else time.time
         self.start_time = self.time_provider()
-        self.stop_logging = False
+        self.stop_logging = multiprocessing.Value(ctypes.c_bool, False)
 
     def __enter__(self) -> ProtoLogger:
         """Starts the logger.
@@ -81,8 +85,10 @@ class ProtoLogger:
         save a _lot_ of space.
 
         """
-        self.thread = threading.Thread(target=self.__log_protobufs, daemon=True)
+        self.thread = threading.Thread(target=self.__forward_protobufs, daemon=True)
+        self.process = Process(target=self.__log_protobufs, daemon=True, args=(self.proto_logger_buffer, self.stop_logging, self.log_folder))
         self.thread.start()
+        self.process.start()
         return self
 
     def __exit__(self, type, value, traceback) -> None:
@@ -93,10 +99,27 @@ class ProtoLogger:
         :param traceback: The traceback of the exception.
 
         """
-        self.stop_logging = True
+        self.stop_logging.value = True
         self.thread.join()
+        self.process.join()
 
-    def __log_protobufs(self) -> None:
+    def __forward_protobufs(self) -> None:
+        """Forwards all protos from the buffer to the logging process."""
+        while self.stop_logging.value is False:
+
+            # Consume the buffer and log the protobuf
+            # We provide a timeout here to not block forever if we don't receive anything
+            try:
+                proto = self.buffer.get(
+                    block=True, timeout=ProtoLogger.BLOCK_TIMEOUT
+                )
+                current_time = self.time_provider() - self.start_time
+                self.proto_logger_buffer.put(ProtoLogger.create_log_entry(proto, current_time))
+            except queue.Empty:
+                continue
+
+
+    def __log_protobufs(self, q: multiprocessing.Queue, stop_logging: multiprocessing.Value, log_folder: str) -> None:
         """Logs all protos in the queue. 
 
         Stores it in the format: where !#! is the delimiter.
@@ -107,34 +130,30 @@ class ProtoLogger:
         replay_index = -1
 
         try:
-            while not self.stop_logging:
-
+            while not stop_logging.value:
                 replay_index += 1
 
                 with gzip.open(
-                    self.log_folder + f"{replay_index}.{REPLAY_FILE_EXTENSION}", "wb"
-                ) as self.log_file:
+                    log_folder + f"{replay_index}.{REPLAY_FILE_EXTENSION}", "wb"
+                ) as log_file:
 
                     # Allocates 1MB of disk for impending replay
-                    os.ftruncate(self.log_file.fileno(), REPLAY_MAX_CHUNK_SIZE_BYTES)
+                    os.ftruncate(log_file.fileno(), REPLAY_MAX_CHUNK_SIZE_BYTES)
 
-                    while self.stop_logging is False:
-
+                    while stop_logging.value is False:
                         # Consume the buffer and log the protobuf
                         # We provide a timeout here to not block forever if we don't receive anything
                         try:
-                            proto = self.buffer.get(
-                                block=True, timeout=ProtoLogger.BLOCK_TIMEOUT
+                            log_entry = q.get(
+                                block=True, timeout=0.1
                             )
                         except queue.Empty:
                             continue
-                        current_time = self.time_provider() - self.start_time
-                        log_entry = ProtoLogger.create_log_entry(proto, current_time)
 
-                        self.log_file.write(bytes(log_entry, encoding="utf-8"))
+                        log_file.write(bytes(log_entry, encoding="utf-8"))
 
                         # Stop writing to this chunk if we've reached the max size
-                        size = os.fstat(self.log_file.fileno()).st_size
+                        size = os.fstat(log_file.fileno()).st_size
                         if size > REPLAY_MAX_CHUNK_SIZE_BYTES:
                             break
 
