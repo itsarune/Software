@@ -580,6 +580,18 @@ message SensorFusionConfig
         (bounds).min_double_value = 0.0,
         (bounds).max_double_value = 1.0
     ];
+
+    required int32 num_crashes_before_robot_faulty_detection = 15 [
+        default = 3,
+        (bounds.min_int_value) = 0,
+        (bounds.max_int_value) = 10
+    ];
+
+    required int32 fault_detection_time_threshold_s = 16 [
+        default = 60,
+        (bounds.min_int_value) = 0,
+        (bounds.max_int_value) = 300
+    ]
 }
 
 message EnemyBallPlacementPlayConfig

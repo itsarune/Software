@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "proto/robot_crash_msg.proto";
 import "proto/robot_status_msg.proto";
 import "proto/tbots_timestamp_msg.proto";
 import "proto/ssl_gc_referee_message.proto";
@@ -10,6 +11,7 @@ message SensorProto
     SSLProto.Referee ssl_referee_msg                  = 1;
     SSLProto.SSL_WrapperPacket ssl_vision_msg         = 2;
     repeated TbotsProto.RobotStatus robot_status_msgs = 3;
+    TbotsProto.RobotCrash robot_crash_msg             = 5;
     // this is only used for replay at the moment
     TbotsProto.Timestamp backend_received_time = 4;
 }

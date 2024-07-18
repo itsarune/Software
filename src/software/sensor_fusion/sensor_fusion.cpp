@@ -62,6 +62,11 @@ void SensorFusion::processSensorProto(const SensorProto &sensor_msg)
         updateWorld(sensor_msg.ssl_referee_msg());
     }
 
+    if (sensor_msg.has_robot_crash_msg())
+    {
+        trackRobotCrash(sensor_msg.robot_crash_msg(), sensor_msg.backend_received_time());
+    }
+
     updateWorld(sensor_msg.robot_status_msgs());
 
     friendly_team.assignGoalie(friendly_goalie_id);
@@ -322,6 +327,14 @@ Team SensorFusion::createFriendlyTeam(const std::vector<RobotDetection> &robot_d
 {
     Team new_friendly_team =
         friendly_team_filter.getFilteredData(friendly_team, robot_detections);
+    for (size_t i = 0; i < robot_injured_bitmap.size(); i++)
+    {
+        if (robot_injured_bitmap[i] && !new_friendly_team.getRobotById(i).has_value())
+        {
+            robot_injured_bitmap[i] = false;
+            last_crash_timestamps[i].clear();
+        }
+    }
     return new_friendly_team;
 }
 
@@ -475,6 +488,35 @@ bool SensorFusion::checkForVisionReset(double t_capture)
     }
 
     return false;
+}
+
+void SensorFusion::trackRobotCrash(const TbotsProto::RobotCrash &robot_crash_msg, const Timestamp& crash_timestamp)
+{
+    // 1. First: remove expired robot crashes
+    RobotId robot_id = robot_crash_msg.robot_id();
+
+    while (!last_crash_timestamps[robot_id].empty())
+    {
+        Timestamp earliest_crash_timestamp = last_crash_timestamps[robot_id].front();
+        if ((crash_timestamp - earliest_crash_timestamp).toSeconds() >
+            sensor_fusion_config.robot_crash_timeout())
+        {
+            last_crash_timestamps[robot_id].pop_front();
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    // 2. Second: update number of crashes
+    last_crash_timestamp[robot_id].push_back(crash_timestamp);
+
+    // 3. Third: check if the number of crashes exceeds the threshold
+    if (last_crash_timestamps[robot_id].size() >= sensor_fusion_config.robot_crash_count_threshold())
+    {
+        faulty_robots.push_back(robot_id);
+    }
 }
 
 void SensorFusion::resetWorldComponents()

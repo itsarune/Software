@@ -31,3 +31,11 @@ void Backend::receiveSensorProto(SensorProto sensor_msg)
 {
     Subject<SensorProto>::sendValueToObservers(sensor_msg);
 }
+
+void Backend::receiveRobotCrash(TbotsProto::RobotCrash msg)
+{
+    SensorProto sensor_msg;
+    *(sensor_msg.mutable_robot_crash_msg())       = msg;
+    *(sensor_msg.mutable_backend_received_time()) = *createCurrentTimestamp();
+    Subject<SensorProto>::sendValueToObservers(sensor_msg);
+}

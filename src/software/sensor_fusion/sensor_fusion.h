@@ -62,6 +62,8 @@ class SensorFusion
     static constexpr double DISTANCE_THRESHOLD_FOR_BREAKBEAM_FAULT_DETECTION = 0.5;
 
    private:
+    void trackRobotCrash(const TbotsProto::RobotCrash &robot_crash, const Timestamp& crash_timestamp);
+
     /**
      * Updates relevant components of world based on a new data
      *
@@ -197,4 +199,7 @@ class SensorFusion
 
     // The timestamp, in seconds, of the most recently received vision packet
     double last_t_capture;
+
+    std::array<std::list<Timestamp>, MAX_ROBOT_IDS_PER_SIDE> last_crash_timestamps;
+    std::array<bool, MAX_ROBOT_IDS_PER_SIDE> robot_injured_bitmap;
 };
