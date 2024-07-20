@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list>
 #include <google/protobuf/repeated_field.h>
 
 #include "proto/message_translation/ssl_detection.h"

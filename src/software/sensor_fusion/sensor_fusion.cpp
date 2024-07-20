@@ -1,5 +1,6 @@
 #include "software/sensor_fusion/sensor_fusion.h"
 
+#include "sensor_fusion.h"
 #include "software/geom/algorithms/distance.h"
 #include "software/logger/logger.h"
 
@@ -327,6 +328,7 @@ Team SensorFusion::createFriendlyTeam(const std::vector<RobotDetection> &robot_d
 {
     Team new_friendly_team =
         friendly_team_filter.getFilteredData(friendly_team, robot_detections);
+
     for (size_t i = 0; i < robot_injured_bitmap.size(); i++)
     {
         if (robot_injured_bitmap[i] && !new_friendly_team.getRobotById(i).has_value())
@@ -335,6 +337,15 @@ Team SensorFusion::createFriendlyTeam(const std::vector<RobotDetection> &robot_d
             last_crash_timestamps[i].clear();
         }
     }
+
+    for (const auto &robot : new_friendly_team.getAllRobots())
+    {
+        if (shouldAutoSubstitute(robot) && (new_friendly_team.numInjuredRobots() < sensor_fusion_config.max_faulted_robots_at_once()))
+        {
+            new_friendly_team.addInjuredRobot(robot);
+        }
+    }
+
     return new_friendly_team;
 }
 
@@ -517,6 +528,37 @@ void SensorFusion::trackRobotCrash(const TbotsProto::RobotCrash &robot_crash_msg
     {
         faulty_robots.push_back(robot_id);
     }
+}
+
+bool SensorFusion::shouldAutoSubstitute(const Robot& robot)
+{
+    if (!ball)
+    {
+        return false;
+    }
+
+    if (!field)
+    {
+        return false;
+    }
+
+    if (!sensor_fusion_config.enable_auto_substitution())
+    {
+        return false;
+    }
+
+    Point robot_substitution_position = Point(0, field.value().yLength() / 2);
+    if (robot.position().y() < 0)
+    {
+        robot_substitution_position = Point(0, -field.value().yLength() / 2);
+    }
+
+    if (robot_injured_bitmap[robot.id()] && ((robot_substitution_position - ball.value().position()).length() >= 0.5))
+    {
+        return true;
+    }
+
+    return false;
 }
 
 void SensorFusion::resetWorldComponents()

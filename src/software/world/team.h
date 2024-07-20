@@ -247,6 +247,10 @@ class Team
      */
     Timestamp getMostRecentTimestamp() const;
 
+    void addInjuredRobot(const RobotId& robot_id);
+
+    size_t numInjuredRobots() const;
+
    private:
     /**
      * Updates the last update timestamp

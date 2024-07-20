@@ -183,7 +183,14 @@ std::optional<unsigned int> Team::getGoalieId() const
 
 const std::vector<Robot>& Team::getAllRobots() const
 {
-    return team_robots_;
+    std::vector<Robot> all_working_robots;
+    std::copy_if(team_robots_.begin(), team_robots_.end(), std::back_inserter(all_working_robots),
+                 [&](const Robot& robot) {
+                     return std::find(faulted_robots_.begin(), faulted_robots_.end(),
+                                      robot.id()) == faulted_robots_.end();
+                 });
+
+    return all_working_robots;
 }
 
 std::vector<Robot> Team::getAllRobotsExceptGoalie() const
@@ -203,7 +210,8 @@ std::vector<Robot> Team::getAllRobotsExcept(
     const std::vector<Robot>& robots_to_ignore) const
 {
     std::vector<Robot> all_robots;
-    std::copy_if(team_robots_.begin(), team_robots_.end(), std::back_inserter(all_robots),
+    std::vector<Robot> team_robots = getAllRobots();
+    std::copy_if(team_robots.begin(), team_robots.end(), std::back_inserter(all_robots),
                  [&](const Robot& robot) {
                      return std::find(robots_to_ignore.begin(), robots_to_ignore.end(),
                                       robot) == robots_to_ignore.end();

@@ -212,6 +212,13 @@ std::unique_ptr<TbotsProto::PrimitiveSet> Play::get(
         }
     }
 
+    int offset = 0;
+    for (const RobotId& faulty_robot_id : world_ptr_->friendlyTeam().getFaultRobotIds()) {
+        auto& move_tactic = std::make_shared<MoveTactic>();
+        move_tactic->updateControlParams(Point(0, -offset*ROBOT_MAX_RADIUS_METRES*2),
+                Angle(), 0);
+    }
+
     tactic_robot_id_assignment = current_tactic_robot_id_assignment;
 
     // TODO (#3104): Remove duplicated obstacles from obstacle_list

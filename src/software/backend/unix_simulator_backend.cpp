@@ -49,7 +49,7 @@ UnixSimulatorBackend::UnixSimulatorBackend(
         runtime_dir + ROBOT_LOG_PATH, [](TbotsProto::RobotLog& v) {}, proto_logger));
 
     robot_crash_listener.reset(new ThreadedProtoUnixListener<TbotsProto::RobotCrash>(
-        runtime_dir + ROBOT_CRASH_PATH, [](TbotsProto::RobotCrash& v) { receiveRobotCrash(msg) }, proto_logger));
+        runtime_dir + ROBOT_CRASH_PATH, [](TbotsProto::RobotCrash& msg) { receiveRobotCrash(msg) }, proto_logger));
 
     // Protobuf Outputs
     world_output.reset(new ThreadedProtoUnixSender<TbotsProto::World>(
