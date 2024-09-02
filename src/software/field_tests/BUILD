@@ -13,8 +13,8 @@ py_library(
     deps = [
         "//proto:import_all_protos",
         "//software/logger:py_logger",
-        "//software/networking:threaded_unix_listener_py",
-        "//software/networking:threaded_unix_sender_py",
+        "//software/networking/unix:threaded_unix_listener_py",
+        "//software/networking/unix:threaded_unix_sender_py",
         "//software/simulated_tests:tbots_test_runner",
         "//software/simulated_tests:validation",
         "//software/thunderscope",
@@ -24,7 +24,6 @@ py_library(
         "//software/thunderscope/binary_context_managers:full_system",
         "//software/thunderscope/binary_context_managers:game_controller",
         "//software/thunderscope/binary_context_managers:simulator",
-        "//software/thunderscope/replay:proto_logger",
     ],
 )
 
@@ -38,8 +37,7 @@ py_test(
         "exclusive",
     ],
     deps = [
-        "//software/field_tests:field_test_fixture",
-        "//software/simulated_tests:simulated_test_fixture",
+        "//software:conftest",
         "//software/simulated_tests:tbots_test_runner",
         "//software/simulated_tests:validation",
         requirement("pytest"),
@@ -56,9 +54,20 @@ py_test(
         "exclusive",
     ],
     deps = [
-        "//software/field_tests:field_test_fixture",
-        "//software/simulated_tests:simulated_test_fixture",
+        "//software:conftest",
         "//software/simulated_tests:tbots_test_runner",
+        "//software/simulated_tests:validation",
+        requirement("pytest"),
+    ],
+)
+
+py_test(
+    name = "passing_field_test",
+    srcs = [
+        "passing_field_test.py",
+    ],
+    deps = [
+        "//software:conftest",
         "//software/simulated_tests:validation",
         requirement("pytest"),
     ],

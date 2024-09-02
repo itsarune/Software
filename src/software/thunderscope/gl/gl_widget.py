@@ -6,42 +6,61 @@ from pyqtgraph.opengl import *
 
 import functools
 import numpy as np
+from typing import Optional
 from software.thunderscope.common.frametime_counter import FrameTimeCounter
 
 from software.thunderscope.constants import *
 
+from software.thunderscope.proto_unix_io import ProtoUnixIO
 from software.thunderscope.gl.layers.gl_layer import GLLayer
 from software.thunderscope.gl.layers.gl_measure_layer import GLMeasureLayer
 from software.thunderscope.gl.widgets.gl_field_toolbar import GLFieldToolbar
 from software.thunderscope.replay.proto_player import ProtoPlayer
 from software.thunderscope.replay.replay_controls import ReplayControls
 from software.thunderscope.gl.helpers.extended_gl_view_widget import *
+from software.thunderscope.gl.widgets.gl_gamecontroller_toolbar import (
+    GLGamecontrollerToolbar,
+)
+from software.thunderscope.thread_safe_buffer import ThreadSafeBuffer
+from proto.world_pb2 import SimulationState
 
 
 class GLWidget(QWidget):
-    """Widget that handles GLLayers to produce a 3D visualization of the field/world 
+    """Widget that handles GLLayers to produce a 3D visualization of the field/world
     and our AI. GLWidget can also provide replay controls.
     """
 
     def __init__(
         self,
-        player: ProtoPlayer = None,
+        proto_unix_io: ProtoUnixIO,
+        friendly_color_yellow: bool,
+        frame_swap_counter: Optional[FrameTimeCounter] = None,
+        player: Optional[ProtoPlayer] = None,
         sandbox_mode: bool = False,
-        bufferswap_counter: FrameTimeCounter = None,
     ) -> None:
         """Initialize the GLWidget
 
+        :param proto_unix_io: The ProtoUnixIO to send protos to
+        :param friendly_color_yellow: Whether the friendly team is yellow (true) or blue (false)
+        :param frame_swap_counter: A FrameTimeCounter to track the time between frame swaps
         :param player: The replay player to optionally display media controls for
-        :param sandbox_mode: if sandbox mode should be enabled
-        :param bufferswap_counter: a counter that is used to display fps in thunderscope
+        :param sandbox_mode: Whether sandbox mode should be enabled
         """
         super().__init__()
 
-        self.gl_view_widget = ExtendedGLViewWidget(
-            bufferswap_counter=bufferswap_counter
-        )
+        self.gl_view_widget = ExtendedGLViewWidget()
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
         self.gl_view_widget.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+
+        # Adding a callback for the purpose of tracking frametime/FPS
+        self.frame_swap_counter = (
+            frame_swap_counter if frame_swap_counter else FrameTimeCounter()
+        )
+        self.gl_view_widget.frameSwapped.connect(
+            lambda: self.frame_swap_counter.add_one_datapoint()
+        )
+
+        self.simulation_state_buffer = ThreadSafeBuffer(5, SimulationState)
 
         # Connect event handlers
         self.gl_view_widget.mouse_in_scene_pressed_signal.connect(
@@ -57,25 +76,36 @@ class GLWidget(QWidget):
             self.mouse_in_scene_moved
         )
 
-        # Setup toolbar
-        self.measure_mode_enabled = False
-        self.measure_layer = None
-        self.layers_menu = QMenu()
-        self.layers_menu_actions = {}
-        self.toolbar = GLFieldToolbar(
-            on_camera_view_change=self.set_camera_view,
-            on_measure_mode=self.toggle_measure_mode,
-            layers_menu=self.layers_menu,
-            sandbox_mode=sandbox_mode,
-        )
-
         # Setup layout
         self.layout = QVBoxLayout()
         self.layout.setSpacing(0)
         self.layout.setContentsMargins(2, 2, 2, 2)
         self.setLayout(self.layout)
-        self.layout.addWidget(self.toolbar)
         self.layout.addWidget(self.gl_view_widget)
+
+        # Setup toolbar
+        self.measure_mode_enabled = False
+        self.measure_layer = None
+        self.layers_menu = QMenu()
+        self.toolbars_menu = QMenu()
+        self.layers_menu_actions = {}
+        self.simulation_control_toolbar = GLFieldToolbar(
+            parent=self.gl_view_widget,
+            on_camera_view_change=self.set_camera_view,
+            on_measure_mode=self.toggle_measure_mode,
+            layers_menu=self.layers_menu,
+            toolbars_menu=self.toolbars_menu,
+            sandbox_mode=sandbox_mode,
+        )
+
+        # Setup gamecontroller toolbar
+        self.gamecontroller_toolbar = GLGamecontrollerToolbar(
+            parent=self.gl_view_widget,
+            proto_unix_io=proto_unix_io,
+            friendly_color_yellow=friendly_color_yellow,
+        )
+
+        self.__add_toolbar_toggle(self.gamecontroller_toolbar, "Gamecontroller")
 
         # Setup replay controls if player is provided and the log has some size
         self.player = player
@@ -93,11 +123,14 @@ class GLWidget(QWidget):
 
         self.set_camera_view(CameraView.LANDSCAPE_HIGH_ANGLE)
 
+    def get_sim_control_toolbar(self):
+        """Returns the simulation control toolbar"""
+        return self.simulation_control_toolbar
+
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
         """Detect when a key has been pressed
-        
+
         :param event: The event
-        
         """
         key_pressed = event.key()
 
@@ -117,9 +150,8 @@ class GLWidget(QWidget):
 
     def keyReleaseEvent(self, event: QtGui.QKeyEvent) -> None:
         """Detect when a key has been released
-        
+
         :param event: The event
-        
         """
         # Propagate keypress event to all layers
         for layer in self.layers:
@@ -127,9 +159,8 @@ class GLWidget(QWidget):
 
     def mouse_in_scene_pressed(self, event: MouseInSceneEvent) -> None:
         """Propagate mouse_in_scene_pressed event to all layers
-        
+
         :param event: The event
-        
         """
         if self.measure_mode_enabled:
             # Only GLMeasureLayer should receive event to avoid layer
@@ -141,9 +172,8 @@ class GLWidget(QWidget):
 
     def mouse_in_scene_dragged(self, event: MouseInSceneEvent) -> None:
         """Propagate mouse_in_scene_dragged event to all layers
-        
+
         :param event: The event
-        
         """
         if self.measure_mode_enabled:
             # Only GLMeasureLayer should receive event to avoid layer
@@ -155,9 +185,8 @@ class GLWidget(QWidget):
 
     def mouse_in_scene_released(self, event: MouseInSceneEvent) -> None:
         """Propagate mouse_in_scene_released event to all layers
-        
+
         :param event: The event
-        
         """
         if self.measure_mode_enabled:
             # Only GLMeasureLayer should receive event to avoid layer
@@ -169,9 +198,8 @@ class GLWidget(QWidget):
 
     def mouse_in_scene_moved(self, event: MouseInSceneEvent) -> None:
         """Propagate mouse_in_scene_moved event to all layers
-        
+
         :param event: The event
-        
         """
         if self.measure_mode_enabled:
             # Only GLMeasureLayer should receive event to avoid layer
@@ -183,21 +211,16 @@ class GLWidget(QWidget):
 
     def add_layer(self, layer: GLLayer, visible: bool = True) -> None:
         """Add a layer to this GLWidget
-        
-        :param layer: The GLLayer 
-        :param visible: Whether the layer is visible on startup
 
+        :param layer: The GLLayer
+        :param visible: Whether the layer is visible on startup
         """
         self.layers.append(layer)
 
         # Add the layer to the Layer menu
-        # Not using a checkable QAction in order to prevent menu from closing
-        # when an action is pressed
-        layer_checkbox = QCheckBox(layer.name, self.layers_menu)
-        layer_checkbox.setStyleSheet("QCheckBox { padding: 0px 8px; }")
-        layer_checkbox.setChecked(visible)
-        layer_action = QWidgetAction(self.layers_menu)
-        layer_action.setDefaultWidget(layer_checkbox)
+        (layer_checkbox, layer_action) = self.__setup_menu_checkbox(
+            layer.name, self.layers_menu, visible
+        )
         self.layers_menu_actions[layer.name] = layer_action
         self.layers_menu.addAction(layer_action)
 
@@ -218,9 +241,8 @@ class GLWidget(QWidget):
 
     def remove_layer(self, layer: GLLayer) -> None:
         """Remove a layer from this GLWidget
-        
-        :param layer: The GLLayer to remove
 
+        :param layer: The GLLayer to remove
         """
         self.layers.remove(layer)
 
@@ -235,7 +257,6 @@ class GLWidget(QWidget):
 
     def refresh(self) -> None:
         """Trigger an update on all the layers"""
-
         if self.player:
             self.replay_controls.refresh()
 
@@ -244,26 +265,29 @@ class GLWidget(QWidget):
         if self.isVisible() == False:
             return
 
-        if self.toolbar:
-            self.toolbar.refresh()
+        if self.simulation_control_toolbar:
+            self.simulation_control_toolbar.refresh()
+            self.gamecontroller_toolbar.refresh()
 
-        for layer in self.layers:
-            while layer:
-                if layer.visible():
-                    layer.refresh_graphics()
-                layer = layer.related_layer
+        simulation_state = self.simulation_state_buffer.get(block=False)
+        # Don't refresh the layers if the simulation is paused
+        if simulation_state.is_playing:
+            for layer in self.layers:
+                while layer:
+                    if layer.visible():
+                        layer.refresh_graphics()
+                    layer = layer.related_layer
 
     def set_camera_view(self, camera_view: CameraView) -> None:
         """Set the camera position to a preset camera view
 
         :param camera_view: the preset camera view
-
         """
         self.gl_view_widget.reset()
         if camera_view == CameraView.ORTHOGRAPHIC:
             self.gl_view_widget.setCameraPosition(
                 pos=pg.Vector(0, 0, 0),
-                distance=self.calc_orthographic_distance(),
+                distance=self.__calc_orthographic_distance(),
                 elevation=90,
                 azimuth=-90,
             )
@@ -283,7 +307,6 @@ class GLWidget(QWidget):
 
     def toggle_measure_mode(self) -> None:
         """Toggles measure mode in the 3D visualizer"""
-
         self.measure_mode_enabled = not self.measure_mode_enabled
 
         # Enable/disable detect_mouse_movement_in_scene in ExtendedGLViewWidget
@@ -300,9 +323,46 @@ class GLWidget(QWidget):
         else:
             self.remove_layer(self.measure_layer)
 
-    def calc_orthographic_distance(self) -> float:
-        """Calculates the distance of the camera above the field so that the field occupies the entire viewport"""
+    def __add_toolbar_toggle(self, toolbar: QWidget, name: str) -> None:
+        """Adds a button to the toolbar menu to toggle the given toolbar
 
+        :param toolbar: the toolbar to add the toggle button for
+        :param name: the display name of the toolbar
+        """
+        # Add a menu item for the Gamecontroller toolbar
+        (toolbar_checkbox, toolbar_action) = self.__setup_menu_checkbox(
+            name, self.toolbars_menu
+        )
+        self.toolbars_menu.addAction(toolbar_action)
+
+        # Connect visibility of the toolbar to the menu item
+        toolbar_checkbox.stateChanged.connect(
+            lambda: toolbar.setVisible(toolbar_checkbox.isChecked())
+        )
+
+    def __setup_menu_checkbox(
+        self, name: str, parent: QWidget, checked: bool = True
+    ) -> tuple[QCheckBox, QWidgetAction]:
+        """Sets up a clickable menu checkbox with the given name
+        attached to the given parent
+
+        :param name: the name displayed on the checkbox
+        :param parent: the checkbox's parent
+        :param checked: whether the checkbox is checked or not
+        :return: the checkbox and associated action
+        """
+        # Not using a checkable QAction in order to prevent menu from closing
+        # when an action is pressed
+        layer_checkbox = QCheckBox(name, parent)
+        layer_checkbox.setStyleSheet("QCheckBox { padding: 0px 8px; }")
+        layer_checkbox.setChecked(checked)
+        layer_action = QWidgetAction(parent)
+        layer_action.setDefaultWidget(layer_checkbox)
+
+        return (layer_checkbox, layer_action)
+
+    def __calc_orthographic_distance(self) -> float:
+        """Calculates the distance of the camera above the field so that the field occupies the entire viewport"""
         field = DEFAULT_EMPTY_FIELD_WORLD.field
         buffer_size = 0.5
         distance = np.tan(np.deg2rad(90 - ORTHOGRAPHIC_FOV_DEGREES / 2))
