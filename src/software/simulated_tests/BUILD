@@ -112,11 +112,8 @@ py_library(
     srcs = [
         "avoid_collisions.py",
         "ball_enters_region.py",
-<<<<<<< HEAD
-        "ball_kicked.py",
-=======
         "ball_is_off_ground.py",
->>>>>>> 41ffa47ea4c71122d6931e2c3ecd6074e08a0838
+        "ball_kicked.py",
         "ball_moves_forward.py",
         "ball_moves_from_rest.py",
         "ball_moves_in_direction.py",
@@ -126,12 +123,9 @@ py_library(
         "friendly_has_ball_possession.py",
         "friendly_receives_ball_slow.py",
         "friendly_team_scored.py",
-<<<<<<< HEAD
         "kicker_double_touch.py",
-=======
         "or_validation.py",
         "robot_enters_placement_region.py",
->>>>>>> 41ffa47ea4c71122d6931e2c3ecd6074e08a0838
         "robot_enters_region.py",
         "robot_enters_region_and_stops.py",
         "robot_speed_threshold.py",
