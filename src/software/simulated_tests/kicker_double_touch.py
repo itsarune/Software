@@ -59,12 +59,20 @@ class KickerDoubleTouch(Validation):
 
         """
         # assigns closest robot to ball as kicker if not already assigned
-        kicker_position = world.ball.position()
-        closest_robot = world.friendly_team.getNearestRobot(world.ball.position())
+        ball_position = tbots_cpp.createPoint(world.ball.current_state.global_position)
+        kicker_position = ball_position
         if self.kicker_robot:
-            kicker_position = self.kicker_robot.position()
-        elif closest_robot:
-            kicker_position = closest_robot.position()
+            kicker_position = self.kicker_robot.position
+        elif len(world.friendly_team.team_robots) > 0:
+            kicker_position = tbots_cpp.createPoint(world.friendly_team.team_robots[0].current_state.global_position)
+            min_distance = (tbots_cpp.createPoint(kicker_position) - ball_position).length()
+            for robot in world.friendly_team.team_robots:
+                robot_position = tbots_cpp.createPoint(robot.current_state.global_position)
+                distance_to_ball = (robot_position - ball_position).length()
+                if distance_to_ball < min_distance:
+                    kicker_position = robot_position
+                    min_distance = (robot_position - ball_position).length()
+
 
         return create_validation_geometry(
             [
