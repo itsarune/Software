@@ -175,20 +175,17 @@ new_git_repository(
     shallow_since = "1694679508 +0000",
 )
 
-# nanopb: lightweight protobuf library used on the STM32. The build file in the
-# repo does not build the proto compiler (protoc) as a target, and is really complicated
-# to set it up as a protobuf plugin due to lack of bazel support. So we use the archive
-# which has both the headers and compiled protoc w/ the c support baked in.
-
-http_archive(
+# nanopb: lightweight protobuf library used on the ESP32.
+git_repository(
     name = "nanopb",
-    build_file = "@//extlibs:nanopb.BUILD",
-    sha256 = "e98dd6403ab8c5b271d32a6bc025e7e596bb181c7bc7e0492c5daa21fc44c940",
-    strip_prefix = "nanopb-0.3.9.4-linux-x86",
-    urls = [
-        "https://github.com/UBC-Thunderbots/Software-External-Dependencies/raw/main/nanopb-0.3.9.4-linux-x86.tar.gz",
-    ],
+    commit = "2730f3e5f445816108b62f9220ed8bcf3ce2b65f",
+    remote = "https://github.com/nanopb/nanopb.git",
+    shallow_since = "1726749705 +0300",
 )
+
+load("@nanopb//extra/bazel:python_deps.bzl", "nanopb_python_deps")
+
+nanopb_python_deps()
 
 new_git_repository(
     name = "LTC4151",
