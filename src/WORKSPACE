@@ -214,6 +214,24 @@ git_repository(
     shallow_since = "1571237073 -0500",
 )
 
+HERMETIC_CC_TOOLCHAIN_VERSION = "v3.1.1"
+
+http_archive(
+    name = "hermetic_cc_toolchain",
+    sha256 = "907745bf91555f77e8234c0b953371e6cac5ba715d1cf12ff641496dd1bce9d1",
+    urls = [
+        "https://mirror.bazel.build/github.com/uber/hermetic_cc_toolchain/releases/download/{0}/hermetic_cc_toolchain-{0}.tar.gz".format(HERMETIC_CC_TOOLCHAIN_VERSION),
+        "https://github.com/uber/hermetic_cc_toolchain/releases/download/{0}/hermetic_cc_toolchain-{0}.tar.gz".format(HERMETIC_CC_TOOLCHAIN_VERSION),
+    ],
+)
+
+load("@hermetic_cc_toolchain//toolchain:defs.bzl", zig_toolchains = "toolchains")
+
+# Plain zig_toolchains() will pick reasonable defaults. See
+# toolchain/defs.bzl:toolchains on how to change the Zig SDK version and
+# download URL.
+zig_toolchains()
+
 new_local_repository(
     name = "linux_k8_gcc",
     build_file = "@//extlibs:linux_k8_gcc.BUILD",
@@ -394,7 +412,11 @@ new_git_repository(
 )
 
 register_toolchains(
-    "//cc_toolchain:cc_toolchain_for_k8_jetson_nano_cross_compile",
-    "//cc_toolchain:cc_toolchain_for_k8",
-    "//cc_toolchain:cc_toolchain_for_aarch64",
+    "@zig_sdk//toolchain:linux_amd64_gnu.2.31"
 )
+
+#register_toolchains(
+#    "//cc_toolchain:cc_toolchain_for_k8_jetson_nano_cross_compile",
+#    "//cc_toolchain:cc_toolchain_for_k8",
+#    "//cc_toolchain:cc_toolchain_for_aarch64",
+#)
