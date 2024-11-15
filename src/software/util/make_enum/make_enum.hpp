@@ -64,7 +64,7 @@
         /* This index lookup relies on the assumption that the enum does not manually */   \
         /* specify any values. If it did, the underlying integer of the given value */     \
         /* may be out of range of the vector of strings */                                 \
-        os << reflective_enum::valueNames<name>().at(static_cast<int>(value));             \
+        os << reflective_enum::valueNames<name>().at(static_cast<std::size_t>(value));             \
         return os;                                                                         \
     }
 

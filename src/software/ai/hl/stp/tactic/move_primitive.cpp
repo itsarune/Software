@@ -114,7 +114,7 @@ MovePrimitive::generatePrimitiveProtoMessage(
     {
         LOG(WARNING) << "Could not find trajectory path for robot " << robot.id()
                      << " to move to " << destination;
-        return std::make_pair(std::nullopt, std::move(createStopPrimitiveProto()));
+        return std::make_pair(std::nullopt, createStopPrimitiveProto());
     }
 
     estimated_cost = traj_path->getTotalTime();

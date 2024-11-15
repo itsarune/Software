@@ -63,8 +63,8 @@ void DefensePlayFSM::defendAgainstThreats(const Update& event)
 
     // Reset tactics if the number of crease defenders or pass defenders
     // we intend to assign has changed
-    setUpCreaseDefenders(static_cast<unsigned int>(crease_defender_assignments.size()));
-    setUpPassDefenders(static_cast<unsigned int>(pass_defender_assignments.size()));
+    setUpCreaseDefenders(static_cast<int>(crease_defender_assignments.size()));
+    setUpPassDefenders(static_cast<int>(pass_defender_assignments.size()));
     setAlignment(event, crease_defender_assignments, TbotsProto::BallStealMode::STEAL);
     updatePassDefenderControlParams(pass_defender_assignments,
                                     TbotsProto::BallStealMode::STEAL);

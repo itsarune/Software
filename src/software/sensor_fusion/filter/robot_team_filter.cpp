@@ -13,7 +13,7 @@ Team RobotTeamFilter::getFilteredData(
     // Add filters for any robot we haven't seen before
     for (auto detection : new_robot_detections)
     {
-        if (robot_filters.find(detection.id) == robot_filters.end())
+        if (robot_filters.find(static_cast<int>(detection.id)) == robot_filters.end())
         {
             robot_filters.insert(
                 {detection.id,

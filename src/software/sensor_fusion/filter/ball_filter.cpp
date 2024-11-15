@@ -191,7 +191,7 @@ std::optional<size_t> BallFilter::getAdjustedBufferSize(
                                           buffer_size_velocity_magnitude_diff);
     int buffer_size =
         max_buffer_size -
-        static_cast<unsigned int>(std::floor(linear_scaling_factor * buffer_size_diff));
+        static_cast<int>(std::floor(linear_scaling_factor * buffer_size_diff));
 
     return static_cast<size_t>(buffer_size);
 }
