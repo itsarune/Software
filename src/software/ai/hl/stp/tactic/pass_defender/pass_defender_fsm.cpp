@@ -51,7 +51,7 @@ void PassDefenderFSM::blockPass(const Update& event)
         TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE, TbotsProto::DribblerMode::OFF,
         TbotsProto::BallCollisionType::ALLOW,
-        AutoChipOrKick{AutoChipOrKickMode::OFF, 0}));
+        AutoChipOrKick{AutoChipOrKickMode::OFF, {0}}));
 }
 
 void PassDefenderFSM::interceptBall(const Update& event)
@@ -80,7 +80,7 @@ void PassDefenderFSM::interceptBall(const Update& event)
             TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
             TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE,
             TbotsProto::DribblerMode::MAX_FORCE, TbotsProto::BallCollisionType::ALLOW,
-            AutoChipOrKick{AutoChipOrKickMode::OFF, 0}));
+            AutoChipOrKick{AutoChipOrKickMode::OFF, {0}}));
         return;
     }
 
@@ -104,7 +104,7 @@ void PassDefenderFSM::interceptBall(const Update& event)
         TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE,
         TbotsProto::DribblerMode::MAX_FORCE, TbotsProto::BallCollisionType::ALLOW,
-        AutoChipOrKick{AutoChipOrKickMode::OFF, 0}));
+        AutoChipOrKick{AutoChipOrKickMode::OFF, {0}}));
 }
 
 bool PassDefenderFSM::ballNearbyWithoutThreat(const Update& event)

@@ -72,7 +72,7 @@ std::unique_ptr<TbotsProto::PrimitiveSet> AssignedTacticsPlay::get(
                 {robot.id(), *primitive_proto});
             tactic->setLastExecutionRobot(robot.id());
 
-            primitives[robot.id()]->getVisualizationProtos(obstacle_list,
+            primitives[static_cast<std::size_t>(robot.id())]->getVisualizationProtos(obstacle_list,
                                                            path_visualization);
         }
     }

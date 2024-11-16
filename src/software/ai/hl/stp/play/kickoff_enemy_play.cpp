@@ -98,7 +98,7 @@ void KickoffEnemyPlay::getNextTactics(TacticCoroutine::push_type &yield,
         PriorityTacticVector result = {{}};
 
         // keeps track of the next defense position to assign
-        int defense_position_index = 0;
+        std::size_t defense_position_index = 0;
         for (unsigned i = 0; i < defense_positions.size() - 1; ++i)
         {
             if (i < 2 && i < enemy_threats.size())

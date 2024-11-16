@@ -148,9 +148,9 @@ static const double DEFAULT_SIMULATOR_TICK_RATE_MILLISECONDS_PER_TICK =
     DEFAULT_SIMULATOR_TICK_RATE_SECONDS_PER_TICK * 1000;
 
 // The total number of robot ids on one team
-static const unsigned int MAX_ROBOT_IDS_PER_SIDE = 8;
+static const int MAX_ROBOT_IDS_PER_SIDE = 8;
 // The total number of possible robot ids between two teams
-static const unsigned int MAX_ROBOT_IDS = MAX_ROBOT_IDS_PER_SIDE * 2;
+static const int MAX_ROBOT_IDS = MAX_ROBOT_IDS_PER_SIDE * 2;
 
 // How many robots are allowed in each division
 static const unsigned int DIV_A_NUM_ROBOTS = 11;

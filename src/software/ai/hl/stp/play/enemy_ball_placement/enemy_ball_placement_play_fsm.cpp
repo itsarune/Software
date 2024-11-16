@@ -94,16 +94,16 @@ void EnemyBallPlacementPlayFSM::avoid(const Update& event)
                 destination = p2;
             }
             // Move to destination point while aligning to the ball
-            avoid_interference_tactics[idx]->updateControlParams(
+            avoid_interference_tactics[static_cast<std::size_t>(idx)]->updateControlParams(
                 destination, (ball_pos - robot.position()).orientation());
         }
         else
         {
             // Stay in place while aligning to the ball
-            avoid_interference_tactics[idx]->updateControlParams(
+            avoid_interference_tactics[static_cast<std::size_t>(idx)]->updateControlParams(
                 robot.position(), (ball_pos - robot.position()).orientation());
         }
-        tactics_to_run[0].emplace_back(avoid_interference_tactics[idx]);
+        tactics_to_run[0].emplace_back(avoid_interference_tactics[static_cast<std::size_t>(idx)]);
         idx++;
     }
 

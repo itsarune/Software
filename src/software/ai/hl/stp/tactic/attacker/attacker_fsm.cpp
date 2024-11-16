@@ -14,7 +14,7 @@ void AttackerFSM::pivotKick(const Update& event,
         .kick_origin       = ball_position,
         .kick_direction    = (chip_target - ball_position).orientation(),
         .auto_chip_or_kick = AutoChipOrKick{AutoChipOrKickMode::AUTOCHIP,
-                                            (chip_target - ball_position).length()}};
+            {(chip_target - ball_position).length()}}};
 
     if (event.control_params.shot)
     {
@@ -25,7 +25,7 @@ void AttackerFSM::pivotKick(const Update& event,
                 (event.control_params.shot->getPointToShootAt() - ball_position)
                     .orientation(),
             .auto_chip_or_kick = AutoChipOrKick{AutoChipOrKickMode::AUTOKICK,
-                                                BALL_MAX_SPEED_METERS_PER_SECOND}};
+                {BALL_MAX_SPEED_METERS_PER_SECOND}}};
     }
     else if (event.control_params.pass_committed)
     {
@@ -35,7 +35,7 @@ void AttackerFSM::pivotKick(const Update& event,
             .kick_direction = event.control_params.best_pass_so_far->passerOrientation(),
             .auto_chip_or_kick =
                 AutoChipOrKick{AutoChipOrKickMode::AUTOKICK,
-                               event.control_params.best_pass_so_far->speed()}};
+                    {event.control_params.best_pass_so_far->speed()}}};
     }
     processEvent(PivotKickFSM::Update(control_params, event.common));
 }

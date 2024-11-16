@@ -73,7 +73,7 @@ void ShadowEnemyFSM::blockPass(const Update &event)
         TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE, TbotsProto::DribblerMode::OFF,
         TbotsProto::BallCollisionType::AVOID,
-        AutoChipOrKick{AutoChipOrKickMode::OFF, 0}));
+        AutoChipOrKick{AutoChipOrKickMode::OFF, {0}}));
 }
 
 void ShadowEnemyFSM::blockShot(const Update &event,
@@ -104,7 +104,7 @@ void ShadowEnemyFSM::blockShot(const Update &event,
         .final_orientation       = face_ball_orientation,
         .dribbler_mode           = TbotsProto::DribblerMode::OFF,
         .ball_collision_type     = TbotsProto::BallCollisionType::AVOID,
-        .auto_chip_or_kick       = AutoChipOrKick{AutoChipOrKickMode::OFF, 0},
+        .auto_chip_or_kick       = AutoChipOrKick{AutoChipOrKickMode::OFF, {0}},
         .max_allowed_speed_mode  = TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
         .obstacle_avoidance_mode = TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE};
 
@@ -122,5 +122,5 @@ void ShadowEnemyFSM::stealAndChip(const Update &event)
         TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE,
         TbotsProto::DribblerMode::MAX_FORCE, TbotsProto::BallCollisionType::ALLOW,
-        AutoChipOrKick{AutoChipOrKickMode::AUTOCHIP, YEET_CHIP_DISTANCE_METERS}));
+        AutoChipOrKick{AutoChipOrKickMode::AUTOCHIP, {YEET_CHIP_DISTANCE_METERS}}));
 }

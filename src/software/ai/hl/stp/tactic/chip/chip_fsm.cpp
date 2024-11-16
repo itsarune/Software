@@ -26,7 +26,7 @@ void ChipFSM::updateChip(const Update &event)
         TbotsProto::ObstacleAvoidanceMode::SAFE, TbotsProto::DribblerMode::OFF,
         TbotsProto::BallCollisionType::ALLOW,
         AutoChipOrKick{AutoChipOrKickMode::AUTOCHIP,
-                       event.control_params.chip_distance_meters}));
+        {event.control_params.chip_distance_meters}}));
 }
 
 bool ChipFSM::ballChicked(const Update &event)

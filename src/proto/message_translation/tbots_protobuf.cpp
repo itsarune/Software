@@ -47,7 +47,7 @@ std::unique_ptr<TbotsProto::Team> createTeam(const Team& team)
     auto goalie_id = team.getGoalieId();
     if (goalie_id.has_value())
     {
-        team_msg->set_goalie_id(goalie_id.value());
+        team_msg->set_goalie_id(static_cast<unsigned int>(goalie_id.value()));
     }
 
     return team_msg;
@@ -57,7 +57,7 @@ std::unique_ptr<TbotsProto::Robot> createRobot(const Robot& robot)
 {
     // create msg
     auto robot_msg = std::make_unique<TbotsProto::Robot>();
-    robot_msg->set_id(robot.id());
+    robot_msg->set_id(static_cast<unsigned int>(robot.id()));
     *(robot_msg->mutable_current_state()) = *createRobotStateProto(robot);
     *(robot_msg->mutable_timestamp())     = *createTimestamp(robot.timestamp());
 
@@ -404,8 +404,8 @@ std::unique_ptr<TbotsProto::CostVisualization> createCostVisualization(
     const std::vector<double>& costs, int num_rows, int num_cols)
 {
     auto cost_visualization_msg = std::make_unique<TbotsProto::CostVisualization>();
-    cost_visualization_msg->set_num_rows(num_rows);
-    cost_visualization_msg->set_num_cols(num_cols);
+    cost_visualization_msg->set_num_rows(static_cast<unsigned int>(num_rows));
+    cost_visualization_msg->set_num_cols(static_cast<unsigned int>(num_cols));
 
     for (const auto& cost : costs)
     {

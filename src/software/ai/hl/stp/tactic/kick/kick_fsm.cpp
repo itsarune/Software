@@ -15,7 +15,7 @@ void KickFSM::updateKick(const Update &event)
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE, TbotsProto::DribblerMode::OFF,
         TbotsProto::BallCollisionType::ALLOW,
         AutoChipOrKick{AutoChipOrKickMode::AUTOKICK,
-                       event.control_params.kick_speed_meters_per_second}));
+            {event.control_params.kick_speed_meters_per_second}}));
 }
 
 void KickFSM::updateGetBehindBall(

@@ -10,10 +10,10 @@ void PenaltyKickEnemyPlayFSM::setupPosition(const Update &event)
     PriorityTacticVector tactics_to_run = {{}};
 
     // Adjust number of tactics based on the number of robots available
-    unsigned int num_tactics = event.common.num_tactics;
-    if (num_tactics != move_tactics.size())
+    int num_tactics = event.common.num_tactics;
+    if (static_cast<std::size_t>(num_tactics) != move_tactics.size())
     {
-        move_tactics = std::vector<std::shared_ptr<MoveTactic>>(num_tactics);
+        move_tactics = std::vector<std::shared_ptr<MoveTactic>>(static_cast<std::size_t>(num_tactics));
         std::generate(move_tactics.begin(), move_tactics.end(),
                       []() { return std::make_shared<MoveTactic>(); });
     }

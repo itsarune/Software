@@ -186,7 +186,7 @@ void GoalieFSM::panic(const Update &event)
         event.common.robot, goalie_pos, goalie_orientation, max_allowed_speed_mode,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE, TbotsProto::DribblerMode::OFF,
         TbotsProto::BallCollisionType::ALLOW,
-        AutoChipOrKick{AutoChipOrKickMode::AUTOCHIP, YEET_CHIP_DISTANCE_METERS}));
+        AutoChipOrKick{AutoChipOrKickMode::AUTOCHIP, {YEET_CHIP_DISTANCE_METERS}}));
 }
 
 void GoalieFSM::updatePivotKick(
@@ -208,7 +208,7 @@ void GoalieFSM::updatePivotKick(
         .kick_origin    = chip_origin,
         .kick_direction = chip_vector.orientation(),
         .auto_chip_or_kick =
-            AutoChipOrKick{AutoChipOrKickMode::AUTOCHIP, chip_vector.length()},
+            AutoChipOrKick{AutoChipOrKickMode::AUTOCHIP, {chip_vector.length()}},
     };
 
     // update the pivotkick fsm
@@ -227,7 +227,7 @@ void GoalieFSM::positionToBlock(const Update &event)
         event.common.robot, goalie_pos, goalie_orientation, max_allowed_speed_mode,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE, TbotsProto::DribblerMode::OFF,
         TbotsProto::BallCollisionType::ALLOW,
-        AutoChipOrKick{AutoChipOrKickMode::AUTOCHIP, YEET_CHIP_DISTANCE_METERS}));
+        AutoChipOrKick{AutoChipOrKickMode::AUTOCHIP, {YEET_CHIP_DISTANCE_METERS}}));
 }
 
 bool GoalieFSM::ballInInflatedDefenseArea(const Update &event)
@@ -251,7 +251,7 @@ void GoalieFSM::moveToGoalLine(const Update &event)
         Angle::zero(), max_allowed_speed_mode,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE, TbotsProto::DribblerMode::OFF,
         TbotsProto::BallCollisionType::AVOID,
-        AutoChipOrKick{AutoChipOrKickMode::OFF, 0.0}));
+        AutoChipOrKick{AutoChipOrKickMode::OFF, {0.0}}));
 }
 
 bool GoalieFSM::retrieveDone(const Update &event)

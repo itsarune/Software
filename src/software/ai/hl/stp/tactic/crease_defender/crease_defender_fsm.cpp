@@ -111,7 +111,7 @@ void CreaseDefenderFSM::blockThreat(
         ball_collision_type = TbotsProto::BallCollisionType::AVOID;
     }
 
-    AutoChipOrKick auto_chip_or_kick{AutoChipOrKickMode::OFF, 0};
+    AutoChipOrKick auto_chip_or_kick{AutoChipOrKickMode::OFF, {0}};
     auto goal_post_offset_vector =
         Vector(0, crease_defender_config.goal_post_offset_chipping());
     auto goal_line_segment =
@@ -138,7 +138,7 @@ void CreaseDefenderFSM::blockThreat(
     {
         // Autochip only if the robot is not facing the net, there is an enemy in front,
         // and robot is close to net
-        auto_chip_or_kick = AutoChipOrKick{AutoChipOrKickMode::AUTOCHIP, chip_distance};
+        auto_chip_or_kick = AutoChipOrKick{AutoChipOrKickMode::AUTOCHIP, {chip_distance}};
     }
 
     MoveFSM::ControlParams control_params{

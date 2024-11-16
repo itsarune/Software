@@ -133,7 +133,7 @@ void DribbleFSM::getPossession(const Update &event)
         TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE,
         TbotsProto::DribblerMode::MAX_FORCE, TbotsProto::BallCollisionType::ALLOW,
-        AutoChipOrKick{AutoChipOrKickMode::OFF, 0}));
+        AutoChipOrKick{AutoChipOrKickMode::OFF, {0}}));
 }
 
 void DribbleFSM::dribble(const Update &event)
@@ -149,7 +149,7 @@ void DribbleFSM::dribble(const Update &event)
         TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE,
         TbotsProto::DribblerMode::MAX_FORCE, TbotsProto::BallCollisionType::ALLOW,
-        AutoChipOrKick{AutoChipOrKickMode::OFF, 0}));
+        AutoChipOrKick{AutoChipOrKickMode::OFF, {0}}));
 }
 
 void DribbleFSM::loseBall(const Update &event)
@@ -166,7 +166,7 @@ void DribbleFSM::loseBall(const Update &event)
         TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE, TbotsProto::DribblerMode::OFF,
         TbotsProto::BallCollisionType::AVOID,
-        AutoChipOrKick{AutoChipOrKickMode::AUTOKICK, 0.5}));
+        AutoChipOrKick{AutoChipOrKickMode::AUTOKICK, {0.5}}));
 }
 
 void DribbleFSM::startDribble(const Update &event)

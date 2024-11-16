@@ -212,16 +212,16 @@ std::shared_ptr<Tactic> createTactic(const TbotsProto::HaltTactic &tactic_proto,
 AutoChipOrKick createAutoChipOrKick(
     const TbotsProto::AutoChipOrKick &auto_chip_or_kick_proto)
 {
-    AutoChipOrKick auto_chip_or_kick = {AutoChipOrKickMode::OFF, 0};
+    AutoChipOrKick auto_chip_or_kick = {AutoChipOrKickMode::OFF, {0}};
     if (auto_chip_or_kick_proto.has_autochip_distance_meters())
     {
         auto_chip_or_kick = {AutoChipOrKickMode::AUTOCHIP,
-                             auto_chip_or_kick_proto.autochip_distance_meters()};
+            {auto_chip_or_kick_proto.autochip_distance_meters()}};
     }
     if (auto_chip_or_kick_proto.has_autokick_speed_m_per_s())
     {
         auto_chip_or_kick = {AutoChipOrKickMode::AUTOKICK,
-                             auto_chip_or_kick_proto.autokick_speed_m_per_s()};
+            {auto_chip_or_kick_proto.autokick_speed_m_per_s()}};
     }
     return auto_chip_or_kick;
 }

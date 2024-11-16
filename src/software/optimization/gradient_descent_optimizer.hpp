@@ -81,7 +81,7 @@ class GradientDescentOptimizer
      *         found
      */
     ParamArray maximize(std::function<double(ParamArray)> objective_function,
-                        ParamArray initial_value, unsigned int num_iters);
+                        ParamArray initial_value, int num_iters);
 
     /**
      * Attempts to minimize the given objective function
@@ -97,7 +97,7 @@ class GradientDescentOptimizer
      *         found
      */
     ParamArray minimize(std::function<double(ParamArray)> objective_function,
-                        ParamArray initial_value, unsigned int num_iters);
+                        ParamArray initial_value, int num_iters);
 
 
    private:
@@ -119,7 +119,7 @@ class GradientDescentOptimizer
      */
     ParamArray followGradient(
         std::function<double(ParamArray)> objective_function, ParamArray initial_value,
-        unsigned int num_iters,
+        int num_iters,
         std::function<double(double, double)> gradient_movement_func);
 
     /**
@@ -174,7 +174,7 @@ GradientDescentOptimizer<NUM_PARAMS>::GradientDescentOptimizer(
 template <size_t NUM_PARAMS>
 std::array<double, NUM_PARAMS> GradientDescentOptimizer<NUM_PARAMS>::maximize(
     std::function<double(std::array<double, NUM_PARAMS>)> objective_function,
-    std::array<double, NUM_PARAMS> initial_value, unsigned int num_iters)
+    std::array<double, NUM_PARAMS> initial_value, int num_iters)
 {
     return followGradient(
         objective_function, initial_value, num_iters,
@@ -184,7 +184,7 @@ std::array<double, NUM_PARAMS> GradientDescentOptimizer<NUM_PARAMS>::maximize(
 template <size_t NUM_PARAMS>
 std::array<double, NUM_PARAMS> GradientDescentOptimizer<NUM_PARAMS>::minimize(
     std::function<double(std::array<double, NUM_PARAMS>)> objective_function,
-    std::array<double, NUM_PARAMS> initial_value, unsigned int num_iters)
+    std::array<double, NUM_PARAMS> initial_value, int num_iters)
 {
     return followGradient(
         objective_function, initial_value, num_iters,
@@ -194,7 +194,7 @@ std::array<double, NUM_PARAMS> GradientDescentOptimizer<NUM_PARAMS>::minimize(
 template <size_t NUM_PARAMS>
 std::array<double, NUM_PARAMS> GradientDescentOptimizer<NUM_PARAMS>::followGradient(
     std::function<double(std::array<double, NUM_PARAMS>)> objective_function,
-    std::array<double, NUM_PARAMS> initial_value, unsigned int num_iters,
+    std::array<double, NUM_PARAMS> initial_value, int num_iters,
     std::function<double(double, double)> gradient_movement_func)
 {
     // Implementation of the "Adam" algorithm. See Javadoc class comment for this
@@ -207,7 +207,7 @@ std::array<double, NUM_PARAMS> GradientDescentOptimizer<NUM_PARAMS>::followGradi
     ParamArray past_gradient_averages         = {0};
     ParamArray past_squared_gradient_averages = {0};
 
-    for (unsigned iter = 0; iter < num_iters; iter++)
+    for (int iter = 0; iter < num_iters; iter++)
     {
         ParamArray gradient = approximateGradient(params, objective_function);
 

@@ -7,7 +7,7 @@ CreaseDefensePlayFSM ::CreaseDefensePlayFSM(TbotsProto::AiConfig ai_config)
 
 void CreaseDefensePlayFSM::defendDefenseArea(const Update& event)
 {
-    unsigned int num_defenders = event.common.num_tactics;
+    int num_defenders = event.common.num_tactics;
     if (num_defenders > 3)
     {
         LOG(WARNING) << "CreaseDefensePlay can only handle up to 3 crease defenders"

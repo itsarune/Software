@@ -170,8 +170,8 @@ class SensorFusion
 
     std::optional<RobotId> friendly_robot_id_with_ball_in_dribbler;
 
-    unsigned int friendly_goalie_id;
-    unsigned int enemy_goalie_id;
+    RobotId friendly_goalie_id;
+    RobotId enemy_goalie_id;
     bool defending_positive_side;
     int ball_in_dribbler_timeout;
 

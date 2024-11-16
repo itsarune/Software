@@ -14,7 +14,7 @@
  */
 typedef struct FilteredRobotData_t
 {
-    unsigned int id;
+    int id;
     Point position;
     Vector velocity;
     Angle orientation;

@@ -23,7 +23,7 @@ void BallPlacementPlayFSM::kickOffWall(const Update &event)
     Point ball_pos            = event.common.world_ptr->ball().position();
     Rectangle field_lines     = event.common.world_ptr->field().fieldLines();
     AutoChipOrKick auto_chick = {AutoChipOrKickMode::AUTOKICK,
-                                 WALL_KICKOFF_VELOCITY_M_PER_S};
+        {WALL_KICKOFF_VELOCITY_M_PER_S}};
 
     Angle kick_angle = calculateWallKickoffAngle(ball_pos, field_lines);
     pivot_kick_tactic->updateControlParams(ball_pos, kick_angle, auto_chick);
@@ -57,7 +57,7 @@ void BallPlacementPlayFSM::alignPlacement(const Update &event)
 
         align_placement_tactic->updateControlParams(
             setup_point, setup_angle, TbotsProto::DribblerMode::OFF,
-            TbotsProto::BallCollisionType::AVOID, {AutoChipOrKickMode::OFF, 0},
+            TbotsProto::BallCollisionType::AVOID, {AutoChipOrKickMode::OFF, {0}},
             TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
             TbotsProto::ObstacleAvoidanceMode::SAFE);
 
@@ -144,7 +144,7 @@ void BallPlacementPlayFSM::retreat(const Update &event)
         // setup ball placement tactic for ball placing robot
         retreat_tactic->updateControlParams(
             retreat_position, final_orientation, TbotsProto::DribblerMode::OFF,
-            TbotsProto::BallCollisionType::AVOID, {AutoChipOrKickMode::OFF, 0},
+            TbotsProto::BallCollisionType::AVOID, {AutoChipOrKickMode::OFF, {0}},
             TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
             TbotsProto::ObstacleAvoidanceMode::SAFE);
         tactics_to_run[0].emplace_back(retreat_tactic);
@@ -281,9 +281,9 @@ void BallPlacementPlayFSM::setupMoveTactics(const Update &event)
         return;
     }
 
-    move_tactics = std::vector<std::shared_ptr<PlaceBallMoveTactic>>(num_move_tactics);
+    move_tactics = std::vector<std::shared_ptr<PlaceBallMoveTactic>>(static_cast<std::size_t>(num_move_tactics));
     std::generate(move_tactics.begin(), move_tactics.end(),
-                  [this]() { return std::make_shared<PlaceBallMoveTactic>(); });
+                  []() { return std::make_shared<PlaceBallMoveTactic>(); });
 
     // non goalie and non ball placing robots line up along a line just outside the
     // friendly defense area to wait for ball placement to finish

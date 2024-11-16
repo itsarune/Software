@@ -18,7 +18,7 @@ void GetBehindBallFSM::updateMove(const Update& event)
         TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE, TbotsProto::DribblerMode::OFF,
         TbotsProto::BallCollisionType::AVOID,
-        AutoChipOrKick{AutoChipOrKickMode::OFF, 0}));
+        AutoChipOrKick{AutoChipOrKickMode::OFF, {0}}));
 }
 
 bool GetBehindBallFSM::behindBall(const Update& event)

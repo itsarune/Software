@@ -98,7 +98,7 @@ std::optional<Robot> RobotFilter::getFilteredData(
     }
 }
 
-unsigned int RobotFilter::getRobotId() const
+RobotId RobotFilter::getRobotId() const
 {
     return this->current_robot_state.id();
 }

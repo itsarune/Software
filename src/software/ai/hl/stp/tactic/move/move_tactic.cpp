@@ -10,7 +10,7 @@ MoveTactic::MoveTactic()
           .final_orientation       = Angle::zero(),
           .dribbler_mode           = TbotsProto::DribblerMode::OFF,
           .ball_collision_type     = TbotsProto::BallCollisionType::AVOID,
-          .auto_chip_or_kick       = {AutoChipOrKickMode::OFF, 0},
+          .auto_chip_or_kick       = {AutoChipOrKickMode::OFF, {0}},
           .max_allowed_speed_mode  = TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
           .obstacle_avoidance_mode = TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE}
 {
@@ -46,7 +46,7 @@ void MoveTactic::updateControlParams(
     control_params.final_orientation       = final_orientation;
     control_params.dribbler_mode           = TbotsProto::DribblerMode::OFF;
     control_params.ball_collision_type     = TbotsProto::BallCollisionType::AVOID;
-    control_params.auto_chip_or_kick       = {AutoChipOrKickMode::OFF, 0};
+    control_params.auto_chip_or_kick       = {AutoChipOrKickMode::OFF, {0}};
     control_params.max_allowed_speed_mode  = max_allowed_speed_mode;
     control_params.obstacle_avoidance_mode = obstacle_avoidance_mode;
 }

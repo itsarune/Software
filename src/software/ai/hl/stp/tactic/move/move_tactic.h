@@ -33,7 +33,7 @@ class MoveTactic : public Tactic
         TbotsProto::DribblerMode dribbler_mode = TbotsProto::DribblerMode::OFF,
         TbotsProto::BallCollisionType ball_collision_type =
             TbotsProto::BallCollisionType::AVOID,
-        AutoChipOrKick auto_chip_or_kick = {AutoChipOrKickMode::OFF, 0},
+        AutoChipOrKick auto_chip_or_kick = {AutoChipOrKickMode::OFF, {0}},
         TbotsProto::MaxAllowedSpeedMode max_allowed_speed_mode =
             TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
         TbotsProto::ObstacleAvoidanceMode obstacle_avoidance_mode =
