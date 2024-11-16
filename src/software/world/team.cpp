@@ -44,7 +44,7 @@ Team::Team(const TbotsProto::Team& team_proto,
 void Team::updateRobots(const std::vector<Robot>& new_robots)
 {
     // Update the robots, checking that there are no duplicate IDs in the given data
-    std::set<unsigned int> robot_ids;
+    std::set<RobotId> robot_ids;
     for (const auto& robot : new_robots)
     {
         // The second value of the pair that is returned indicates whether or not the
@@ -104,7 +104,7 @@ void Team::removeExpiredRobots(const Timestamp& timestamp)
     }
 }
 
-void Team::removeRobotWithId(unsigned int robot_id)
+void Team::removeRobotWithId(RobotId robot_id)
 {
     auto it = std::find_if(team_robots_.begin(), team_robots_.end(),
                            [&](const Robot& r) { return r.id() == robot_id; });
@@ -115,7 +115,7 @@ void Team::removeRobotWithId(unsigned int robot_id)
     }
 }
 
-void Team::assignGoalie(unsigned int new_goalie_id)
+void Team::assignGoalie(RobotId new_goalie_id)
 {
     goalie_id_ = new_goalie_id;
 }
@@ -153,7 +153,7 @@ void Team::setUnavailableRobotCapabilities(
     }
 }
 
-std::optional<Robot> Team::getRobotById(const unsigned int id) const
+std::optional<Robot> Team::getRobotById(const RobotId id) const
 {
     for (const Robot& robot : team_robots_)
     {
@@ -176,7 +176,7 @@ std::optional<Robot> Team::goalie() const
     return std::nullopt;
 }
 
-std::optional<unsigned int> Team::getGoalieId() const
+std::optional<RobotId> Team::getGoalieId() const
 {
     return goalie_id_;
 }

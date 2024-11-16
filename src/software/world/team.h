@@ -83,7 +83,7 @@ class Team
      *
      * @param robot_id The id of the robot to remove
      */
-    void removeRobotWithId(unsigned int robot_id);
+    void removeRobotWithId(RobotId robot_id);
 
     /**
      * Assigns the goalie id for this team
@@ -145,7 +145,7 @@ class Team
      * @return the Robot on the team with the given id if it exists, otherwise
      * std::nullopt
      */
-    std::optional<Robot> getRobotById(const unsigned int id) const;
+    std::optional<Robot> getRobotById(const RobotId id) const;
 
     /**
      * Returns the goalie robot for this team, if one is specified. Otherwise
@@ -163,7 +163,7 @@ class Team
      * @return The ID of the goalie robot for this team if one is specified, otherwise
      * returns std::nullopt
      */
-    std::optional<unsigned int> getGoalieId() const;
+    std::optional<RobotId> getGoalieId() const;
 
     /**
      * Returns a vector of all the robots on this team.
@@ -259,7 +259,7 @@ class Team
     std::vector<Robot> team_robots_;
 
     // The robot id of the goalie for this team
-    std::optional<unsigned int> goalie_id_;
+    std::optional<RobotId> goalie_id_;
 
     // The duration for which a Robot must not have been updated for before
     // being removed from this team.

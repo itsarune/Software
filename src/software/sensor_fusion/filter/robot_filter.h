@@ -54,7 +54,7 @@ class RobotFilter
      *
      * @return the id of the Robot that this filter is filtering for
      */
-    unsigned int getRobotId() const;
+    RobotId getRobotId() const;
 
    private:
     Robot current_robot_state;

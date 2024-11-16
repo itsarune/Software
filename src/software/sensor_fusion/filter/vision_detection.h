@@ -12,7 +12,7 @@
  */
 struct RobotDetection
 {
-    unsigned int id;
+    int id;
     Point position;
     Angle orientation;
     double confidence;

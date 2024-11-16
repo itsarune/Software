@@ -34,7 +34,7 @@ std::unique_ptr<SSLProto::SSL_DetectionRobot> createSSLDetectionRobot(
     // Give all detections "perfect" confidence since we have no means of reasonably
     // esimating confidence
     detection_robot->set_confidence(1.0);
-    detection_robot->set_robot_id(robot.id);
+    detection_robot->set_robot_id(static_cast<unsigned int>(robot.id));
     auto x_position_mm =
         static_cast<float>(robot.robot_state.position().x() * MILLIMETERS_PER_METER);
     auto y_position_mm =
@@ -134,7 +134,7 @@ std::vector<RobotDetection> createTeamDetection(
         for (const auto& ssl_robot_detection : ssl_robots)
         {
             RobotDetection robot_detection{
-                .id          = ssl_robot_detection.robot_id(),
+                .id          = static_cast<int>(ssl_robot_detection.robot_id()),
                 .position    = Point(ssl_robot_detection.x() * METERS_PER_MILLIMETER,
                                   ssl_robot_detection.y() * METERS_PER_MILLIMETER),
                 .orientation = Angle::fromRadians(ssl_robot_detection.orientation()),

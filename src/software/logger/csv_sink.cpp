@@ -1,7 +1,6 @@
 #include "software/logger/csv_sink.h"
 
-#warning __cplusplus
-#if __cplusplus > 201703L
+#if __cplusplus >= 201703L
 #include <filesystem>
 #else
 #include <experimental/filesystem>

@@ -10,7 +10,7 @@
 #include "software/geom/vector.h"
 #include "software/world/team_types.h"
 
-using RobotId = unsigned int;
+using RobotId = int;
 
 /**
  * This class represents the physical state of a robot
@@ -101,7 +101,7 @@ class RobotState
  */
 struct RobotStateWithId
 {
-    unsigned int id;
+    RobotId id;
     RobotState robot_state;
 
     bool operator==(const RobotStateWithId &other) const
