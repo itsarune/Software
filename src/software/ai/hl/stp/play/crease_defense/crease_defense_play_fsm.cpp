@@ -15,7 +15,7 @@ void CreaseDefensePlayFSM::defendDefenseArea(const Update& event)
         num_defenders = 3;
     }
 
-    if (num_defenders != crease_defenders.size())
+    if (num_defenders != static_cast<int>(crease_defenders.size()))
     {
         setUpDefenders(num_defenders);
     }
@@ -35,9 +35,9 @@ void CreaseDefensePlayFSM::defendDefenseArea(const Update& event)
     event.common.set_tactics(tactics_to_return);
 }
 
-void CreaseDefensePlayFSM::setUpDefenders(unsigned int num_defenders)
+void CreaseDefensePlayFSM::setUpDefenders(int num_defenders)
 {
-    crease_defenders = std::vector<std::shared_ptr<CreaseDefenderTactic>>(num_defenders);
+    crease_defenders = std::vector<std::shared_ptr<CreaseDefenderTactic>>(static_cast<std::size_t>(num_defenders));
     std::generate(crease_defenders.begin(), crease_defenders.end(),
                   [this]() { return std::make_shared<CreaseDefenderTactic>(ai_config); });
 }

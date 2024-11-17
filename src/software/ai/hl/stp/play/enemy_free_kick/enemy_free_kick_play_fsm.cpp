@@ -20,7 +20,7 @@ void EnemyFreeKickPlayFSM::blockEnemyKicker(const Update& event)
     setTactics(event, event.common.num_tactics);
 }
 
-void EnemyFreeKickPlayFSM::setTactics(const Update& event, unsigned int num_tactics)
+void EnemyFreeKickPlayFSM::setTactics(const Update& event, int num_tactics)
 {
     if (num_tactics <= 0)
     {
@@ -70,12 +70,11 @@ void EnemyFreeKickPlayFSM::setTactics(const Update& event, unsigned int num_tact
     std::vector<DefenderAssignment> crease_defender_assignments;
     std::vector<DefenderAssignment> pass_defender_assignments;
     std::queue<DefenderAssignment> assignments_skipped;
-    for (int i = 0; i < num_defenders; i++)
+    for (std::size_t i = 0; i < num_defenders; i++)
     {
         DefenderAssignment defender_assignment;
-        int assignment_index_with_skipped =
-            static_cast<int>(i + assignments_skipped.size());
-        int assignment_index_last_assignment = static_cast<int>(assignments.size()) - 1;
+        std::size_t assignment_index_with_skipped = i + asssignments_skipped.size();
+        std::size_t assignment_index_last_assignment = assignments.size();
 
         if (assignment_index_with_skipped < assignment_index_last_assignment)
         {
@@ -90,7 +89,7 @@ void EnemyFreeKickPlayFSM::setTactics(const Update& event, unsigned int num_tact
             {
                 assignments_skipped.push(defender_assignment);
                 assignment_index_with_skipped =
-                    static_cast<int>(i + assignments_skipped.size());
+                    i + assignments_skipped.size();
                 defender_assignment = assignments.at(assignment_index_with_skipped);
             }
         }
@@ -146,8 +145,8 @@ void EnemyFreeKickPlayFSM::setTactics(const Update& event, unsigned int num_tact
 
     // Reset tactics if the number of crease defenders or pass defenders
     // we intend to assign has changed
-    setUpCreaseDefenders(static_cast<unsigned int>(crease_defender_assignments.size()));
-    setUpPassDefenders(static_cast<unsigned int>(pass_defender_assignments.size()));
+    setUpCreaseDefenders(static_cast<int>(crease_defender_assignments.size()));
+    setUpPassDefenders(static_cast<int>(pass_defender_assignments.size()));
     setAlignment(event, crease_defender_assignments, TbotsProto::BallStealMode::IGNORE);
     updatePassDefenderControlParams(pass_defender_assignments,
                                     TbotsProto::BallStealMode::IGNORE);

@@ -27,7 +27,7 @@ void DefensePlayFSM::defendAgainstThreats(const Update& event)
     // of tactics available to set
     std::vector<DefenderAssignment> crease_defender_assignments;
     std::vector<DefenderAssignment> pass_defender_assignments;
-    for (unsigned int i = 0; i < event.common.num_tactics; i++)
+    for (std::size_t i = 0; i < event.common.num_tactics; i++)
     {
         DefenderAssignment defender_assignment;
         if (i < assignments.size())
@@ -63,8 +63,8 @@ void DefensePlayFSM::defendAgainstThreats(const Update& event)
 
     // Reset tactics if the number of crease defenders or pass defenders
     // we intend to assign has changed
-    setUpCreaseDefenders(static_cast<unsigned int>(crease_defender_assignments.size()));
-    setUpPassDefenders(static_cast<unsigned int>(pass_defender_assignments.size()));
+    setUpCreaseDefenders(static_cast<int>(crease_defender_assignments.size()));
+    setUpPassDefenders(static_cast<int>(pass_defender_assignments.size()));
     setAlignment(event, crease_defender_assignments, TbotsProto::BallStealMode::STEAL);
     updatePassDefenderControlParams(pass_defender_assignments,
                                     TbotsProto::BallStealMode::STEAL);

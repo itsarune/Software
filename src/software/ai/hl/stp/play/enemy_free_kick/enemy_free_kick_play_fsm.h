@@ -35,7 +35,7 @@ struct EnemyFreeKickPlayFSM : public DefensePlayFSMBase
      * @param event the FSM event
      * @param num_tactics the number of tactics available to assign
      */
-    void setTactics(const Update &event, unsigned int num_tactics);
+    void setTactics(const Update &event, int num_tactics);
 
     auto operator()()
     {

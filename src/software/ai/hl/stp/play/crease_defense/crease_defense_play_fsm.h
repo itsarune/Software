@@ -39,7 +39,7 @@ struct CreaseDefensePlayFSM
      *
      * @param num_defenders The number of defenders
      */
-    void setUpDefenders(unsigned int num_defenders);
+    void setUpDefenders(int num_defenders);
 
     auto operator()()
     {

@@ -87,8 +87,7 @@ std::unique_ptr<TbotsProto::PrimitiveSet> Play::get(
     const SetInterPlayCommunicationCallback &set_inter_play_communication_fun)
 {
     PriorityTacticVector priority_tactics;
-    unsigned int num_tactics =
-        static_cast<unsigned int>(world_ptr->friendlyTeam().numRobots());
+    int num_tactics = static_cast<int>(world_ptr->friendlyTeam().numRobots());
     if (requires_goalie && world_ptr->friendlyTeam().goalie())
     {
         num_tactics--;
@@ -145,7 +144,7 @@ std::unique_ptr<TbotsProto::PrimitiveSet> Play::get(
             }
 
             primitives_to_run->mutable_robot_primitives()->insert(
-                {goalie_robot_id, *primitive_proto});
+                {static_cast<unsigned int>(goalie_robot_id), *primitive_proto});
             goalie_tactic->setLastExecutionRobot(goalie_robot_id);
 
             primitives[goalie_robot_id]->getVisualizationProtos(obstacle_list,
@@ -383,7 +382,7 @@ Play::assignTactics(const WorldPtr &world_ptr, TacticVector tactic_vector,
                 }
 
                 primitives_to_run->mutable_robot_primitives()->insert(
-                    {robot_id, *primitive_proto});
+                    {static_cast<unsigned int>(robot_id), *primitive_proto});
                 remaining_robots.erase(
                     std::remove_if(remaining_robots.begin(), remaining_robots.end(),
                                    [robots_to_assign, row](const Robot &robot) {

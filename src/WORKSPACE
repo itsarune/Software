@@ -412,7 +412,7 @@ new_git_repository(
 )
 
 register_toolchains(
-    "@zig_sdk//toolchain:linux_amd64_gnu.2.31"
+    "@zig_sdk//toolchain:linux_amd64_gnu.2.27"
 )
 
 #register_toolchains(

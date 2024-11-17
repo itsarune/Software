@@ -23,16 +23,16 @@ ShootOrPassPlayFSM::ShootOrPassPlayFSM(const TbotsProto::AiConfig& ai_config)
 }
 
 void ShootOrPassPlayFSM::updateOffensivePositioningTactics(
-    const WorldPtr world, unsigned int num_tactics,
+    const WorldPtr world, int num_tactics,
     const std::vector<Point>& existing_receiver_positions,
     const std::optional<Point>& pass_origin_override)
 {
     // These two tactics will set robots to roam around the field, trying to put
     // themselves into a good position to receive a pass
-    if (num_tactics != offensive_positioning_tactics.size())
+    if (num_tactics != static_cast<int>(offensive_positioning_tactics.size()))
     {
         offensive_positioning_tactics =
-            std::vector<std::shared_ptr<MoveTactic>>(num_tactics);
+            std::vector<std::shared_ptr<MoveTactic>>(static_cast<std::size_t>(num_tactics));
         std::generate(offensive_positioning_tactics.begin(),
                       offensive_positioning_tactics.end(),
                       []() { return std::make_shared<MoveTactic>(); });

@@ -49,7 +49,7 @@ class ReceiverPositionGenerator
      * positions that the receivers could use.
      */
     std::vector<Point> getBestReceivingPositions(
-        const World &world, unsigned int num_positions,
+        const World &world, int num_positions,
         const std::vector<Point> &existing_receiver_positions = {},
         const std::optional<Point> &pass_origin_override      = std::nullopt);
 
@@ -128,7 +128,7 @@ ReceiverPositionGenerator<ZoneEnum>::ReceiverPositionGenerator(
 
 template <class ZoneEnum>
 std::vector<Point> ReceiverPositionGenerator<ZoneEnum>::getBestReceivingPositions(
-    const World &world, unsigned int num_positions,
+    const World &world, int num_positions,
     const std::vector<Point> &existing_receiver_positions,
     const std::optional<Point> &pass_origin_override)
 {
