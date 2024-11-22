@@ -27,7 +27,7 @@ void DefensePlayFSM::defendAgainstThreats(const Update& event)
     // of tactics available to set
     std::vector<DefenderAssignment> crease_defender_assignments;
     std::vector<DefenderAssignment> pass_defender_assignments;
-    for (std::size_t i = 0; i < event.common.num_tactics; i++)
+    for (std::size_t i = 0; i < static_cast<std::size_t>(event.common.num_tactics); i++)
     {
         DefenderAssignment defender_assignment;
         if (i < assignments.size())

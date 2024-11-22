@@ -147,8 +147,8 @@ std::vector<Point> ReceiverPositionGenerator<ZoneEnum>::getBestReceivingPosition
                      << world.friendlyTeam().numRobots() -
                             existing_receiver_positions.size()
                      << " receiver positions instead";
-        num_positions = static_cast<unsigned int>(world.friendlyTeam().numRobots() -
-                                                  existing_receiver_positions.size());
+        num_positions = world.friendlyTeam().numRobots() -
+                                                  existing_receiver_positions.size();
     }
 
     // Add the previous best sampled receiving positions with their updated rating

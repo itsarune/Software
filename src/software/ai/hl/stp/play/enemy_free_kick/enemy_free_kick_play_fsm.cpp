@@ -70,10 +70,10 @@ void EnemyFreeKickPlayFSM::setTactics(const Update& event, int num_tactics)
     std::vector<DefenderAssignment> crease_defender_assignments;
     std::vector<DefenderAssignment> pass_defender_assignments;
     std::queue<DefenderAssignment> assignments_skipped;
-    for (std::size_t i = 0; i < num_defenders; i++)
+    for (std::size_t i = 0; i < static_cast<std::size_t>(num_defenders); i++)
     {
         DefenderAssignment defender_assignment;
-        std::size_t assignment_index_with_skipped = i + asssignments_skipped.size();
+        std::size_t assignment_index_with_skipped = i + assignments_skipped.size();
         std::size_t assignment_index_last_assignment = assignments.size();
 
         if (assignment_index_with_skipped < assignment_index_last_assignment)

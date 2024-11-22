@@ -32,7 +32,7 @@ void Ai::overridePlay(std::unique_ptr<Play> play)
 void Ai::overridePlayFromProto(TbotsProto::Play play_proto)
 {
     current_override_play_proto = play_proto;
-    overridePlay(std::move(createPlay(play_proto, ai_config_)));
+    overridePlay(createPlay(play_proto, ai_config_));
 }
 
 void Ai::updateAiConfig(TbotsProto::AiConfig& ai_config)
@@ -119,7 +119,7 @@ TbotsProto::PlayInfo Ai::getPlayInfo() const
         TbotsProto::PlayInfo_Tactic tactic_msg;
         tactic_msg.set_tactic_name(objectTypeName(*tactic));
         tactic_msg.set_tactic_fsm_state(tactic->getFSMState());
-        (*info.mutable_robot_tactic_assignment())[robot_id] = tactic_msg;
+        (*info.mutable_robot_tactic_assignment())[static_cast<unsigned>(robot_id)] = tactic_msg;
     }
 
     return info;
