@@ -42,16 +42,17 @@ bool FreeKickPlayFSM::setupDone(const Update &event)
 }
 
 void FreeKickPlayFSM::updateReceiverPositioningTactics(
-    const WorldPtr world, unsigned int num_tactics,
+    const WorldPtr world, int num_tactics,
     const std::vector<Point> &existing_receiver_positions,
     const std::optional<Point> &pass_origin_override)
 {
     // These two tactics will set robots to roam around the field, trying to put
     // themselves into a good position to receive a pass
-    if (num_tactics != receiver_positioning_tactics.size())
+    std::size_t tactics_size = static_cast<std::size_t>(num_tactics);
+    if (tactics_size != receiver_positioning_tactics.size())
     {
         receiver_positioning_tactics =
-            std::vector<std::shared_ptr<MoveTactic>>(num_tactics);
+            std::vector<std::shared_ptr<MoveTactic>>(static_cast<std::size_t>(tactics_size));
         std::generate(receiver_positioning_tactics.begin(),
                       receiver_positioning_tactics.end(),
                       []() { return std::make_shared<MoveTactic>(); });

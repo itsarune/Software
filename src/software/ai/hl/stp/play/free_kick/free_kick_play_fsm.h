@@ -74,7 +74,7 @@ struct FreeKickPlayFSM
      * overridden to
      */
     void updateReceiverPositioningTactics(
-        const WorldPtr world, unsigned int num_tactics,
+        const WorldPtr world, int num_tactics,
         const std::vector<Point>& existing_receiver_positions = {},
         const std::optional<Point>& pass_origin_override      = std::nullopt);
 

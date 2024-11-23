@@ -85,7 +85,7 @@ class ReceiverPositionGenerator
      */
     std::vector<ZoneEnum> getTopZones(
         const std::map<ZoneEnum, PassWithRating> &best_receiving_positions,
-        unsigned int num_positions, const Point &pass_origin,
+        int num_positions, const Point &pass_origin,
         const std::vector<Point> &existing_receiver_positions);
 
     /**
@@ -139,16 +139,15 @@ std::vector<Point> ReceiverPositionGenerator<ZoneEnum>::getBestReceivingPosition
     const auto &receiver_config = passing_config_.receiver_position_generator_config();
 
     // Verify that the number of receiver positions requested is valid
-    if (num_positions >
-        (world.friendlyTeam().numRobots() - existing_receiver_positions.size()))
+    int diff_requested_robots_and_existing_positions =
+        static_cast<int>(world.friendlyTeam().numRobots() - existing_receiver_positions.size());
+    if (num_positions > diff_requested_robots_and_existing_positions)
     {
         LOG(WARNING) << "Not enough friendly robots to assign " << num_positions
                      << " receiver positions. Assigning "
-                     << world.friendlyTeam().numRobots() -
-                            existing_receiver_positions.size()
+                     << diff_requested_robots_and_existing_positions
                      << " receiver positions instead";
-        num_positions = world.friendlyTeam().numRobots() -
-                                                  existing_receiver_positions.size();
+        num_positions = diff_requested_robots_and_existing_positions;
     }
 
     // Add the previous best sampled receiving positions with their updated rating
@@ -270,7 +269,7 @@ void ReceiverPositionGenerator<ZoneEnum>::updateBestReceiverPositions(
 template <class ZoneEnum>
 std::vector<ZoneEnum> ReceiverPositionGenerator<ZoneEnum>::getTopZones(
     const std::map<ZoneEnum, PassWithRating> &best_receiving_positions,
-    unsigned int num_positions, const Point &pass_origin,
+    int num_positions, const Point &pass_origin,
     const std::vector<Point> &existing_receiver_positions)
 {
     std::vector<ZoneEnum> top_zones;
@@ -289,8 +288,7 @@ std::vector<ZoneEnum> ReceiverPositionGenerator<ZoneEnum>::getTopZones(
         Angle::fromDegrees(passing_config_.receiver_position_generator_config()
                                .min_angle_between_receivers_deg());
 
-    for (unsigned int i = 0; i < all_zones.size() && top_zones.size() < num_positions;
-         i++)
+    for (unsigned int i = 0; i < all_zones.size() && top_zones.size() < static_cast<std::size_t>(num_positions); i++)
     {
         Angle curr_pass_angle =
             best_receiving_positions.find(all_zones[i])->second.pass.passerOrientation();
@@ -323,13 +321,13 @@ std::vector<ZoneEnum> ReceiverPositionGenerator<ZoneEnum>::getTopZones(
     }
 
     // If we did not find enough receiver positions, add the remaining top zones
-    if (top_zones.size() < num_positions)
+    if (top_zones.size() < static_cast<std::size_t>(num_positions))
     {
         LOG(WARNING)
             << "Not enough receiver positions were found. Expected to find "
             << num_positions << " receiver positions, but only found " << top_zones.size()
             << ". Consider reducing 'min_angle_between_receivers_deg' in the dynamic parameters";
-        for (unsigned int i = 0; i < all_zones.size() && top_zones.size() < num_positions;
+        for (unsigned int i = 0; i < all_zones.size() && top_zones.size() < static_cast<std::size_t>(num_positions);
              i++)
         {
             if (std::find(top_zones.begin(), top_zones.end(), all_zones[i]) ==

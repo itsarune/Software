@@ -15,10 +15,10 @@ bool OffensePlayFSM::enemyHasPossession(const Update& event)
 
 void OffensePlayFSM::setupOffensiveStrategy(const Update& event)
 {
-    unsigned int num_shoot_or_pass, num_defenders;
+    int num_shoot_or_pass, num_defenders;
     auto num_enemy_robots = event.common.world_ptr->enemyTeam().numRobots();
 
-    if (event.common.num_tactics > num_enemy_robots)
+    if (static_cast<std::size_t>(event.common.num_tactics) > num_enemy_robots)
     {
         // Always reduce number of defenders if we have more bots on the field than
         // the enemy team, so that we take advantage of the scoring opportunity

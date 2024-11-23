@@ -37,7 +37,7 @@ void ThreadedAi::overrideTactics(
     // override to stop primitive
     for (auto& assigned_tactic : assigned_tactic_play_control_params.assigned_tactics())
     {
-        tactic_assignment_map[assigned_tactic.first] =
+        tactic_assignment_map[static_cast<int>(assigned_tactic.first)] =
             createTactic(assigned_tactic.second, ai_config);
     }
 
