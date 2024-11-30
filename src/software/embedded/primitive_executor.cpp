@@ -25,7 +25,7 @@ PrimitiveExecutor::PrimitiveExecutor(const Duration time_step,
 void PrimitiveExecutor::updatePrimitiveSet(
     const TbotsProto::PrimitiveSet &primitive_set_msg)
 {
-    auto primitive_set_msg_iter = primitive_set_msg.robot_primitives().find(robot_id_);
+    auto primitive_set_msg_iter = primitive_set_msg.robot_primitives().find(static_cast<unsigned int>(robot_id_));
     if (primitive_set_msg_iter != primitive_set_msg.robot_primitives().end())
     {
         current_primitive_ = primitive_set_msg_iter->second;

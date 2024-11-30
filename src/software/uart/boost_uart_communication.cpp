@@ -4,7 +4,7 @@
 #include <boost/asio.hpp>
 #include <iostream>
 
-BoostUartCommunication::BoostUartCommunication(int baud_rate,
+BoostUartCommunication::BoostUartCommunication(unsigned int baud_rate,
                                                std::string device_serial_port)
     : io_service_()
 {
@@ -33,10 +33,10 @@ bool BoostUartCommunication::flushSerialPort(FlushType flush_type)
     return (ret_val == 0);
 }
 
-void BoostUartCommunication::openPort(IoService& ioService, int baud_rate,
+void BoostUartCommunication::openPort(IoService& ioService, unsigned int baud_rate,
                                       std::string device_serial_port)
 {
-    int uart_character_size_bits = 8;
+    unsigned int uart_character_size_bits = 8;
     serial_port = SerialPortPtr(std::make_shared<boost::asio::serial_port>(
         boost::asio::serial_port(ioService, device_serial_port)));
 

@@ -7,7 +7,7 @@
 #include "shared/constants.h"
 #include "software/logger/custom_logging_levels.h"
 
-NetworkSink::NetworkSink(unsigned int channel, const std::string& interface, int robot_id,
+NetworkSink::NetworkSink(int channel, const std::string& interface, int robot_id,
                          bool enable_log_merging)
     : robot_id(robot_id), log_merger(LogMerger(enable_log_merging))
 {
@@ -33,7 +33,7 @@ void NetworkSink::sendOneLogToNetwork(const g3::LogMessage& log)
     if (TbotsProto::LogLevel_Parse(log.level(), &log_level_proto))
     {
         log_msg_proto->set_log_msg(log.message());
-        log_msg_proto->set_robot_id(robot_id);
+        log_msg_proto->set_robot_id(static_cast<unsigned int>(robot_id));
         log_msg_proto->set_log_level(log_level_proto);
         log_msg_proto->set_file_name(log.file());
         log_msg_proto->set_line_number(static_cast<uint32_t>(std::stoul(log.line())));

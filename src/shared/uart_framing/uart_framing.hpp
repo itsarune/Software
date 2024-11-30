@@ -30,7 +30,7 @@ namespace
     {
         uint8_t x;
         uint16_t crc = 0xFFFF;
-        int i        = 0;
+        std::size_t i        = 0;
 
         while (length--)
         {
@@ -91,7 +91,7 @@ namespace
         {
             if (byte == START_END_FLAG_BYTE)
             {
-                encoded.insert(encoded.begin() + overhead_location, overhead);
+                encoded.insert(encoded.begin() + static_cast<int>(overhead_location), overhead);
                 overhead_location = encoded.size();
                 overhead          = 0x01;
             }

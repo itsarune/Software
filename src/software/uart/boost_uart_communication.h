@@ -24,7 +24,7 @@ class BoostUartCommunication : public UartCommunication
      * @param device_serial_port the serial port that we want to communicate with
      * @throws boost::exception if port could not be opened
      */
-    BoostUartCommunication(int baud_rate, std::string device_serial_port);
+    BoostUartCommunication(unsigned int baud_rate, std::string device_serial_port);
 
     BoostUartCommunication(const BoostUartCommunication &) = delete;
 
@@ -77,7 +77,7 @@ class BoostUartCommunication : public UartCommunication
      * @param baud_rate the desired baud rate of the connection
      * @param device_serial_port the serial port that we want to communicate with
      */
-    void openPort(IoService &io_service, int baud_rate, std::string device_serial_port);
+    void openPort(IoService &io_service, unsigned int baud_rate, std::string device_serial_port);
 
     /**
      * closes serial port

@@ -26,7 +26,7 @@ class NetworkSink
      * @param robot_id id of the robot sending the logs
      * @param enable_log_merging Whether to merge repeated log message or not
      */
-    NetworkSink(unsigned int channel, const std::string& interface, int robot_id,
+    NetworkSink(int channel, const std::string& interface, int robot_id,
                 bool enable_log_merging);
     /**
      * This function is called on every call to LOG(). It sends a RobotLog proto on the

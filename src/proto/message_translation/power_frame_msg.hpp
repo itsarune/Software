@@ -42,7 +42,7 @@ template <typename T>
 std::vector<uint8_t> serializeToVector(const T& data)
 {
     const pb_field_t* fields;
-    int size;
+    std::size_t size;
     if (std::is_same<T, TbotsProto_PowerFrame>::value)
     {
         fields = TbotsProto_PowerFrame_fields;
@@ -124,7 +124,7 @@ TbotsProto_PowerStatus inline createNanoPbPowerStatus(
 
 TbotsProto_PowerPulseControl inline createNanoPbPowerPulseControl(
     const TbotsProto::PowerControl& power_control, double kick_coeff, int kick_constant,
-    int chip_pulse_width)
+    unsigned int chip_pulse_width)
 {
     TbotsProto_PowerPulseControl nanopb_control =
         TbotsProto_PowerPulseControl_init_default;
