@@ -100,13 +100,13 @@ namespace
                 encoded.emplace_back(byte);
                 if (++overhead == 0xFF)
                 {
-                    encoded.insert(encoded.begin() + overhead_location, overhead);
+                    encoded.insert(encoded.begin() + static_cast<int>(overhead_location), overhead);
                     overhead_location = encoded.size();
                     overhead          = 0x01;
                 }
             }
         }
-        encoded.insert(encoded.begin() + overhead_location, overhead);
+        encoded.insert(encoded.begin() + static_cast<int>(overhead_location), overhead);
         encoded.emplace_back(START_END_FLAG_BYTE);
 
         return encoded;
