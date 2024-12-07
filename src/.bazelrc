@@ -10,7 +10,7 @@ test --test_output=all
 build --crosstool_top=//cc_toolchain:toolchain
 
 # Add warnings to Thunderbots code only
-# -Wno-defaulted-function-deleted: Added to supress warnings from cpp_redis
+# -Wno-defaulted-function-deleted: Added to supress warnings from cpp_redis which we've included in our codebase
 build --per_file_copt=//proto/.*,//proto/message_translation/.*,//proto/primitive/.*,//software/.*,//shared/.*@-Wall,-Wextra,-Wconversion,-Wno-unused-parameter,-Wno-deprecated,-Werror,-Wno-deprecated-declarations,-Wno-defaulted-function-deleted
 
 # Warn variable length arrays only when compiling cpp
