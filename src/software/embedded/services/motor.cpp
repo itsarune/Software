@@ -163,10 +163,10 @@ void MotorService::setup()
 
     // Clear faults by resetting all the chips on the motor board
     reset_gpio_->setValue(GpioState::LOW);
-    usleep(MICROSECONDS_PER_MILLISECOND * 100);
+    usleep(static_cast<unsigned int>(MICROSECONDS_PER_MILLISECOND * 100));
 
     reset_gpio_->setValue(GpioState::HIGH);
-    usleep(MICROSECONDS_PER_MILLISECOND * 100);
+    usleep(static_cast<unsigned int>(MICROSECONDS_PER_MILLISECOND * 100));
 
     for (uint8_t motor = 0; motor < NUM_MOTORS; ++motor)
     {
@@ -219,7 +219,7 @@ MotorService::MotorFaultIndicator MotorService::checkDriverFault(uint8_t motor)
     bool drive_enabled = true;
     std::unordered_set<TbotsProto::MotorFault> motor_faults;
 
-    int gstat = tmc6100_readInt(motor, TMC6100_GSTAT);
+    unsigned int gstat = tmc6100_readInt(motor, TMC6100_GSTAT);
     std::bitset<32> gstat_bitset(gstat);
 
     if (gstat_bitset.any())
