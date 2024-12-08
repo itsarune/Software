@@ -171,7 +171,7 @@ void MotorService::setup()
     for (uint8_t motor = 0; motor < NUM_MOTORS; ++motor)
     {
         LOG(INFO) << "Clearing RESET for " << MOTOR_NAMES[motor];
-        tmc6100_writeInt(motor, TMC6100_GSTAT, 0x00000001);
+        tmc6100_writeInt(motor, TMC6100_GSTAT, static_cast<int32_t>(0x00000001));
         cached_motor_faults_[motor] = MotorFaultIndicator();
         encoder_calibrated_[motor]  = false;
     }
@@ -1002,24 +1002,24 @@ void MotorService::endEncoderCalibration(uint8_t motor)
 void MotorService::runOpenLoopCalibrationRoutine(uint8_t motor, size_t num_samples)
 {
     // Some limits
-    tmc4671_writeInt(motor, TMC4671_PID_TORQUE_FLUX_LIMITS, 0x000003E8);
-    tmc4671_writeInt(motor, TMC4671_PID_TORQUE_P_TORQUE_I, 0x01000100);
-    tmc4671_writeInt(motor, TMC4671_PID_FLUX_P_FLUX_I, 0x01000100);
+    tmc4671_writeInt(motor, TMC4671_PID_TORQUE_FLUX_LIMITS, static_cast<int32_t>(0x000003E8));
+    tmc4671_writeInt(motor, TMC4671_PID_TORQUE_P_TORQUE_I, static_cast<int32_t>(0x01000100));
+    tmc4671_writeInt(motor, TMC4671_PID_FLUX_P_FLUX_I, static_cast<int32_t>(0x01000100));
 
     // Open loop settings
-    tmc4671_writeInt(motor, TMC4671_OPENLOOP_MODE, 0x00000000);
-    tmc4671_writeInt(motor, TMC4671_OPENLOOP_ACCELERATION, 0x0000003C);
-    tmc4671_writeInt(motor, TMC4671_OPENLOOP_VELOCITY_TARGET, 0xFFFFFFFB);
+    tmc4671_writeInt(motor, TMC4671_OPENLOOP_MODE, static_cast<int32_t>(0x00000000));
+    tmc4671_writeInt(motor, TMC4671_OPENLOOP_ACCELERATION, static_cast<int32_t>(0x0000003C));
+    tmc4671_writeInt(motor, TMC4671_OPENLOOP_VELOCITY_TARGET, static_cast<int32_t>(0xFFFFFFFB));
 
     // Feedback selection
     tmc4671_writeInt(motor, TMC4671_PHI_E_SELECTION, TMC4671_PHI_E_OPEN_LOOP);
-    tmc4671_writeInt(motor, TMC4671_UQ_UD_EXT, 0x00000799);
+    tmc4671_writeInt(motor, TMC4671_UQ_UD_EXT, static_cast<int32_t>(0x00000799));
 
     // Switch to open loop velocity mode
-    tmc4671_writeInt(motor, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);
+    tmc4671_writeInt(motor, TMC4671_MODE_RAMP_MODE_MOTION, static_cast<int32_t>(0x00000008));
 
     // Rotate right
-    tmc4671_writeInt(motor, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x0000004A);
+    tmc4671_writeInt(motor, TMC4671_OPENLOOP_VELOCITY_TARGET, static_cast<int32_t>(0x0000004A));
 
     // Setup CSVs
     LOG(CSV, "encoder_calibration_" + std::to_string(motor) + ".csv")
@@ -1060,7 +1060,7 @@ void MotorService::runOpenLoopCalibrationRoutine(uint8_t motor, size_t num_sampl
     }
 
     // Stop open loop rotation
-    tmc4671_writeInt(motor, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x00000000);
+    tmc4671_writeInt(motor, TMC4671_OPENLOOP_VELOCITY_TARGET, static_cast<int32_t>(0x00000000));
 }
 
 void MotorService::startDriver(uint8_t motor)
@@ -1082,7 +1082,7 @@ void MotorService::startDriver(uint8_t motor)
 void MotorService::startController(uint8_t motor, bool dribbler)
 {
     // Read the chip ID to validate the SPI connection
-    tmc4671_writeInt(motor, TMC4671_CHIPINFO_ADDR, 0x000000000);
+    tmc4671_writeInt(motor, TMC4671_CHIPINFO_ADDR, static_cast<int32_t>(0x000000000));
     int chip_id = tmc4671_readInt(motor, TMC4671_CHIPINFO_DATA);
 
     CHECK(0x34363731 == chip_id) << "The TMC4671 of motor "
