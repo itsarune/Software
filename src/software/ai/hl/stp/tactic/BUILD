@@ -21,6 +21,7 @@ cc_library(
         "//software/ai/hl/stp/tactic/dribble:dribble_tactic",
         "//software/ai/hl/stp/tactic/get_behind_ball:get_behind_ball_tactic",
         "//software/ai/hl/stp/tactic/goalie:goalie_tactic",
+        "//software/ai/hl/stp/tactic/halt:halt_tactic",
         "//software/ai/hl/stp/tactic/kick:kick_tactic",
         "//software/ai/hl/stp/tactic/move:move_tactic",
         "//software/ai/hl/stp/tactic/pass_defender:pass_defender_tactic",
@@ -28,7 +29,6 @@ cc_library(
         "//software/ai/hl/stp/tactic/pivot_kick:pivot_kick_tactic",
         "//software/ai/hl/stp/tactic/receiver:receiver_tactic",
         "//software/ai/hl/stp/tactic/shadow_enemy:shadow_enemy_tactic",
-        "//software/ai/hl/stp/tactic/stop:stop_tactic",
     ],
 )
 
@@ -101,6 +101,7 @@ cc_library(
     deps = [
         "//proto:tbots_cc_proto",
         "//software/ai/navigator/obstacle:robot_navigation_obstacle_factory",
+        "//software/ai/navigator/trajectory:trajectory_path",
     ],
 )
 
@@ -115,6 +116,7 @@ cc_library(
         "//proto/message_translation:tbots_protobuf",
         "//proto/primitive:primitive_msg_factory",
         "//software/ai/navigator/trajectory:trajectory_planner",
+        "//software/geom/algorithms:end_in_obstacle_sample",
     ],
 )
 

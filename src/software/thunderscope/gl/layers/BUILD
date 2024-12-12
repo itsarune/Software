@@ -8,6 +8,7 @@ py_library(
     deps = [
         "//software/thunderscope:thread_safe_buffer",
         "//software/thunderscope/gl/helpers:extended_gl_view_widget",
+        "//software/thunderscope/gl/helpers:gl_patches",
         "//software/thunderscope/gl/helpers:observable_list",
         requirement("pyqtgraph"),
     ],
@@ -37,10 +38,33 @@ py_library(
 )
 
 py_library(
+    name = "gl_debug_shapes_layer",
+    srcs = ["gl_debug_shapes_layer.py"],
+    deps = [
+        ":gl_layer",
+        "//software/thunderscope/gl/graphics:gl_circle",
+        "//software/thunderscope/gl/graphics:gl_polygon",
+        "//software/thunderscope/gl/graphics:gl_stadium",
+        requirement("pyqtgraph"),
+    ],
+)
+
+py_library(
     name = "gl_passing_layer",
     srcs = ["gl_passing_layer.py"],
     deps = [
         ":gl_layer",
+        "//software/thunderscope/gl/graphics:gl_polygon",
+        requirement("pyqtgraph"),
+    ],
+)
+
+py_library(
+    name = "gl_attacker_layer",
+    srcs = ["gl_attacker_layer.py"],
+    deps = [
+        ":gl_layer",
+        "//software/thunderscope/gl/graphics:gl_circle",
         "//software/thunderscope/gl/graphics:gl_polygon",
         requirement("pyqtgraph"),
     ],

@@ -103,7 +103,6 @@ cc_library(
         "//proto/message_translation:tbots_protobuf",
         "//software/ai/navigator/obstacle",
         "//software/ai/navigator/trajectory:trajectory_path_with_cost",
-        "@aabbcc",
     ],
 )
 
@@ -145,7 +144,7 @@ py_test(
     tags = ["exclusive"],
     deps = [
         "//proto/message_translation:py_tbots_protobuf",
-        "//software/simulated_tests:simulated_test_fixture",
+        "//software:conftest",
         "//software/simulated_tests:validation",
         requirement("pytest"),
     ],
