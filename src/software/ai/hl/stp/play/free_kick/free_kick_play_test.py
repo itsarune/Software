@@ -241,6 +241,8 @@ def test_free_kick_play_both(simulated_test_runner, ball_initial_pos):
         test_timeout_s=15,
     )
 
+def test_free_kick_play_corners
+
 
 if __name__ == "__main__":
     # Run the test, -s disables all capturing at -vv increases verbosity
