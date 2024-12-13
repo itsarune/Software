@@ -12,6 +12,7 @@ class KickerDoubleTouch(Validation):
     """Checks if the robot kicking the ball touches the ball again before another robot touches it."""
 
     KICKOFF_DOUBLE_TOUCH_M = 0.05
+    VALIDATION_RADIUS_M = 0.5
 
     def __init__(self, threshold=0.1):
         """
@@ -75,29 +76,10 @@ class KickerDoubleTouch(Validation):
         :returns: ValidationGeometry containing geometry to visualize
 
         """
-        # assigns closest robot to ball as kicker if not already assigned
-        if self.kicker_robot is None:
-            ball_position = tbots_cpp.createPoint(world.ball.current_state.global_position)
-            dist = 1000
-            for robot in world.friendly_team.team_robots:
-                robot_position = tbots_cpp.Point(
-                    robot.current_state.global_position.x_meters,
-                    robot.current_state.global_position.y_meters,
-                )
-                if (ball_position - robot_position).length() < dist:
-                    dist = (ball_position - robot_position).length()
-                    self.kicker_robot = robot
-
         return create_validation_geometry(
             [
-                tbots_cpp.Circle(
-                    tbots_cpp.Point(
-                        self.kicker_robot.current_state.global_position.x_meters,
-                        self.kicker_robot.current_state.global_position.y_meters,
-                    ),
-                    0.5,
-                )
-            ]
+                tbots_cpp.Circle(self.kick_position, KickerDoubleTouch.VALIDATION_RADIUS_M),
+            ] if self.kick_position is not None else []
         )
 
     def __repr__(self):
@@ -105,8 +87,8 @@ class KickerDoubleTouch(Validation):
 
 
 (
-    KickerEventuallyNotDoubleTouch,
-    KickerEventuallyDoubleTouch,
+    _,
+    _,
     KickerAlwaysNotDoubleTouch,
-    KickerAlwaysDoubleTouch,
+    _,
 ) = create_validation_types(KickerDoubleTouch)

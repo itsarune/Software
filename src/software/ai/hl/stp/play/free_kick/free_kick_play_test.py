@@ -241,7 +241,78 @@ def test_free_kick_play_both(simulated_test_runner, ball_initial_pos):
         test_timeout_s=15,
     )
 
-def test_free_kick_play_corners
+@pytest.mark.parametrize(
+    "ball_initial_pos,blue_bots",
+    [
+        # enemy corner
+        (
+            tbots_cpp.Point(4.4, 2.9),
+            [
+               tbots_cpp.Point(-3, 2.5),
+               tbots_cpp.Point(0, 1.5),
+               tbots_cpp.Point(0, 0.5),
+               tbots_cpp.Point(0, -0.5),
+               tbots_cpp.Point(0, -1.5),
+               tbots_cpp.Point(4.6, 3.1),
+            ],
+        ),
+        # friendly corner
+        (
+            tbots_cpp.Point(-4.4, -2.9),
+            [
+                tbots_cpp.Point(-3, 2.5),
+                tbots_cpp.Point(-3, 1.5),
+                tbots_cpp.Point(-3, 0.5),
+                tbots_cpp.Point(-3, -0.5),
+                tbots_cpp.Point(-3, -1.5),
+                tbots_cpp.Point(-4.6, -3.1),
+            ],
+        ),
+    ],
+)
+def test_free_kick_play_corners(simulated_test_runner, ball_initial_pos, blue_bots):
+    simulated_test_runner.run_test(
+        setup=lambda test_setup_arg: free_kick_play_setup(
+            test_setup_arg["blue_bots"],
+            test_setup_arg["yellow_bots"],
+            test_setup_arg["ball_initial_pos"],
+            test_setup_arg["play_name"],
+            simulated_test_runner,
+        ),
+        params=[
+            {
+                "blue_bots": blue_bots,
+                "yellow_bots": [
+                    tbots_cpp.Point(1, 0),
+                    tbots_cpp.Point(1, 2.5),
+                    tbots_cpp.Point(1, -2.5),
+                    tbots_cpp.Field.createSSLDivisionBField().enemyGoalCenter(),
+                    tbots_cpp.Field.createSSLDivisionBField().enemyDefenseArea().negXNegYCorner(),
+                    tbots_cpp.Field.createSSLDivisionBField().enemyDefenseArea().negXPosYCorner(),
+                ],
+                "ball_initial_pos": ball_initial_pos,
+                "play_name": PlayName.FreeKickPlay,
+            }
+        ],
+        inv_always_validation_sequence_set=[
+            [
+                KickerAlwaysNotDoubleTouch(),
+            ]
+        ],
+        inv_eventually_validation_sequence_set=[
+            [
+                BallEventuallyKicked(),
+            ]
+        ],
+        ag_always_validation_sequence_set=[[]],
+        ag_eventually_validation_sequence_set=[
+            [
+                FriendlyEventuallyHasBallPossession(),
+                FriendlyTeamEventuallyScored(),
+            ]
+        ],
+        test_timeout_s=15,
+    )
 
 
 if __name__ == "__main__":
