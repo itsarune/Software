@@ -20,6 +20,7 @@ class KickerDoubleTouch(Validation):
         """
         self.kicker_robot_id = None
         self.kick_position = None
+        self.ball_position = None
         self.kick_completed = False
         self.threshold = threshold
 
@@ -36,9 +37,9 @@ class KickerDoubleTouch(Validation):
         if len(world.friendly_team.team_robots) == 0:
             return ValidationStatus.PASSING
 
-        ball_position = tbots_cpp.createPoint(world.ball.current_state.global_position)
+        self.ball_position = tbots_cpp.createPoint(world.ball.current_state.global_position)
         if self.kick_position is None:
-            self.kick_position = ball_position
+            self.kick_position = self.ball_position
 
         # Assign the kicker robot if it is not already assigned
         kicker_robot = None
@@ -46,25 +47,26 @@ class KickerDoubleTouch(Validation):
             kicker_robot = tbots_cpp.Robot(world.friendly_team.team_robots[0])
             for robot in world.friendly_team.team_robots:
                 current_kicker_position = kicker_robot.position()
-                robot_position = tbots_cpp.createPoint(kicker_robot.current_state.global_position)
-                if (ball_position - robot_position).length() < (ball_position - current_kicker_position).length():
-                    self.kicker_robot_id = robot.robot_id
+                robot_position = tbots_cpp.createPoint(robot.current_state.global_position)
+                if (self.ball_position - robot_position).length() < (self.ball_position - current_kicker_position).length():
+                    self.kicker_robot_id = robot.id
                     kicker_robot = tbots_cpp.Robot(robot)
         else:
             for robot in world.friendly_team.team_robots:
-                if robot.robot_id == self.kicker_robot_id:
+                if robot.id == self.kicker_robot_id:
                     kicker_robot = tbots_cpp.Robot(robot)
 
         # Check if another robot is closer to the ball than the kicker
-        ball_to_kicker_dist = (ball_position - self.kicker_robot.position()).length()
+        ball_to_kicker_dist = (self.ball_position - kicker_robot.position()).length()
         for robot in world.friendly_team.team_robots:
             robot_position = tbots_cpp.createPoint(robot.current_state.global_position)
-            if robot != self.kicker_robot and (ball_position - robot_position).length() < ball_to_kicker_dist:
+            if robot.id != self.kicker_robot_id and (self.ball_position - robot_position).length() < ball_to_kicker_dist:
                 self.kick_completed = True
                 return ValidationStatus.PASSING
 
         # Check if we have exceeded the double touch distance
-        if (ball_position - self.kick_position).length() > KickerDoubleTouch.KICKOFF_DOUBLE_TOUCH_M:
+        if (self.ball_position - self.kick_position).length() > KickerDoubleTouch.KICKOFF_DOUBLE_TOUCH_M\
+                and kicker_robot.isNearDribbler(self.ball_position):
             return ValidationStatus.FAILING
 
         return ValidationStatus.PASSING
@@ -83,7 +85,11 @@ class KickerDoubleTouch(Validation):
         )
 
     def __repr__(self):
-        return "Checking that the robot kicking the ball is not touching the ball consecutively"
+        if self.kick_position is not None and self.ball_position is not None:
+            return f"Checking if that the kicker robot doesn't double touch from {self.kick_position} "\
+                   f"Currently at {self.ball_position}"
+        else:
+            return "Checking if that the kicker robot doesn't double touch"
 
 
 (
