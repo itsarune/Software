@@ -38,12 +38,14 @@ class BallKicked(Validation):
             and self.kick_position
             and (ball_position - self.kick_position).length() > BALL_MOVED_M
         ):
+            print(f"Ball kicked by robot {self.kicker_robot}\n")
             return ValidationStatus.PASSING
         # main check loop
         for robot in world.friendly_team.team_robots:
             if tbots_cpp.Robot(robot).isNearDribbler(ball_position, self.threshold):
                 if self.kicker_robot is None:
                     self.kicker_robot = robot
+        print(f"Failing: Ball not kicked by any robot\n")
         return ValidationStatus.FAILING
 
     def get_validation_geometry(self, world) -> ValidationGeometry:
