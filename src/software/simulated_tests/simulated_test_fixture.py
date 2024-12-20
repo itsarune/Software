@@ -24,7 +24,7 @@ from software.logger.logger import create_logger
 logger = create_logger(__name__)
 
 LAUNCH_DELAY_S = 0.1
-WORLD_BUFFER_TIMEOUT = 0.5
+BUFFER_TIMEOUT_S = 0.5
 PROCESS_BUFFER_DELAY_S = 0.01
 TEST_START_DELAY_S = 0.01
 PAUSE_AFTER_FAIL_DELAY_S = 3
@@ -56,9 +56,9 @@ class SimulatedTestRunner(TbotsTestRunner):
             thunderscope,
             blue_full_system_proto_unix_io,
             yellow_full_system_proto_unix_io,
+            simulator_proto_unix_io,
             gamecontroller,
         )
-        self.simulator_proto_unix_io = simulator_proto_unix_io
 
     def set_worldState(self, worldstate: WorldState):
         """Sets the simulation worldstate
@@ -141,7 +141,7 @@ class SimulatedTestRunner(TbotsTestRunner):
             while True:
                 try:
                     world = self.world_buffer.get(
-                        block=True, timeout=WORLD_BUFFER_TIMEOUT, return_cached=False
+                        block=True, timeout=BUFFER_TIMEOUT_S, return_cached=False
                     )
 
                     # We block until the timeout for the new primitives from AI. if not found still,
@@ -149,7 +149,7 @@ class SimulatedTestRunner(TbotsTestRunner):
                     # Otherwise, if the AI misses the first SSL Wrapper packet and doesn't start
                     # the simulated test will continue to tick forward, causes syncing issues with the AI
                     self.primitive_set_buffer.get(
-                        block=True, timeout=WORLD_BUFFER_TIMEOUT, return_cached=False
+                        block=True, timeout=BUFFER_TIMEOUT_S, return_cached=False
                     )
 
                     break
@@ -168,11 +168,13 @@ class SimulatedTestRunner(TbotsTestRunner):
                         RobotStatus, robot_status
                     )
 
-            # get the time difference after we get the primitive (after any blocking that happened)
-            processing_time = time.time() - processing_start_time
 
             # if the time we have blocked is less than a tick, sleep for the remaining time (for Thunderscope only)
             if self.thunderscope and tick_duration_s > processing_time:
+                self.thunderscope_sync_buffer.get(block=True, timeout=BUFFER_TIMEOUT_S, return_cached=True)
+
+                # get the time difference after we get the primitive (after any blocking that happened)
+                processing_time = time.time() - processing_start_time
                 time.sleep(tick_duration_s - processing_time)
 
             # Validate

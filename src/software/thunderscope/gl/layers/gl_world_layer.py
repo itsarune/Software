@@ -45,6 +45,7 @@ class GLWorldLayer(GLLayer):
         name: str,
         simulator_io: ProtoUnixIO,
         friendly_colour_yellow: bool,
+        send_sync_messages: bool = False,
         buffer_size: int = 5,
     ) -> None:
         """Initialize the GLWorldLayer
@@ -52,6 +53,7 @@ class GLWorldLayer(GLLayer):
         :param name: The displayed name of the layer
         :param simulator_io: The simulator io communicate with the simulator
         :param friendly_colour_yellow: Is the friendly_colour_yellow?
+        :param send_sync_messages: True sends sync messages after processing a new world
         :param buffer_size: The buffer size, set higher for smoother plots.
                             Set lower for more realtime plots. Default is arbitrary
         """
@@ -60,6 +62,8 @@ class GLWorldLayer(GLLayer):
 
         self.simulator_io = simulator_io
         self.friendly_colour_yellow = friendly_colour_yellow
+
+        self.send_sync_messages = send_sync_messages
 
         self.world_buffer = ThreadSafeBuffer(buffer_size, World)
         self.primitive_set_buffer = ThreadSafeBuffer(buffer_size, PrimitiveSet)
@@ -310,7 +314,19 @@ class GLWorldLayer(GLLayer):
 
     def refresh_graphics(self) -> None:
         """Update graphics in this layer"""
-        self.cached_world = self.world_buffer.get(block=False, return_cached=True)
+        # Update internal simulation state
+        simulation_state = self.simulation_state_buffer.get(
+            block=False, return_cached=False
+        )
+        if simulation_state:
+            self.is_playing = simulation_state.is_playing
+            self.simulation_speed = simulation_state.simulation_speed
+
+        world = self.world_buffer.get(block=False, return_cached=True)
+        if world == self.cached_world:
+            return
+
+        self.cached_world = world
 
         # if not receiving worlds, just render an empty field
         if is_field_message_empty(self.cached_world.field):
@@ -344,14 +360,6 @@ class GLWorldLayer(GLLayer):
         self.__update_auto_chip_or_kick_graphics()
         self.__update_speed_line_graphics()
 
-        # Update internal simulation state
-        simulation_state = self.simulation_state_buffer.get(
-            block=False, return_cached=False
-        )
-        if simulation_state:
-            self.is_playing = simulation_state.is_playing
-            self.simulation_speed = simulation_state.simulation_speed
-
     def _update_robots_graphics(self) -> None:
         """Updates the GLGraphicsItems that display all robots (friendly and enemy team)"""
         friendly_colour = (
@@ -381,6 +389,8 @@ class GLWorldLayer(GLLayer):
             self.enemy_robot_name_graphics,
             {},
         )
+
+        self.simulator_proto_unix_io.send_proto(VisualizerSync, VisualizerSync())
 
     def __update_field_graphics(self, field: Field) -> None:
         """Update the GLGraphicsItems that display the field lines and markings

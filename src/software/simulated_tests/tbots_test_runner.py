@@ -16,6 +16,7 @@ class TbotsTestRunner:
         thunderscope,
         blue_full_system_proto_unix_io,
         yellow_full_system_proto_unix_io,
+        simulator_proto_unix_io,
         gamecontroller,
         is_yellow_friendly=False,
     ):
@@ -25,6 +26,7 @@ class TbotsTestRunner:
         :param thunderscope: The Thunderscope to use, None if not used
         :param blue_full_system_proto_unix_io: The blue full system proto unix io to use
         :param yellow_full_system_proto_unix_io: The yellow full system proto unix io to use
+        :param simulator_proto_unix_io: Proto Unix IO for communication with the simulator
         :param gamecontroller: The gamecontroller context managed instance
         :param: is_yellow_friendly: if yellow is the friendly team
         """
@@ -68,6 +70,10 @@ class TbotsTestRunner:
             self.blue_full_system_proto_unix_io.register_observer(
                 PrimitiveSet, self.primitive_set_buffer
             )
+
+        self.thunderscope_sync_buffer = ThreadSafeBuffer(VisualizerSync, 1)
+        self.simulator_proto_unix_io.register_observer(VisualizerSync, self.thunderscope_sync_buffer)
+
 
     def send_gamecontroller_command(
         self,
