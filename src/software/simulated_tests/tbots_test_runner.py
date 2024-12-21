@@ -71,8 +71,9 @@ class TbotsTestRunner:
                 PrimitiveSet, self.primitive_set_buffer
             )
 
-        self.thunderscope_sync_buffer = ThreadSafeBuffer(VisualizerSync, 1)
-        self.simulator_proto_unix_io.register_observer(VisualizerSync, self.thunderscope_sync_buffer)
+        self.simulator_proto_unix_io = simulator_proto_unix_io
+        self.thunderscope_sync_buffer = ThreadSafeBuffer(protobuf_type=VisualizerSync, buffer_size=1)
+        simulator_proto_unix_io.register_observer(VisualizerSync, self.thunderscope_sync_buffer)
 
 
     def send_gamecontroller_command(

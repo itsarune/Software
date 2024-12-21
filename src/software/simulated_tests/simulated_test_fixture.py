@@ -170,12 +170,14 @@ class SimulatedTestRunner(TbotsTestRunner):
 
 
             # if the time we have blocked is less than a tick, sleep for the remaining time (for Thunderscope only)
-            if self.thunderscope and tick_duration_s > processing_time:
+            if self.thunderscope:
                 self.thunderscope_sync_buffer.get(block=True, timeout=BUFFER_TIMEOUT_S, return_cached=True)
 
                 # get the time difference after we get the primitive (after any blocking that happened)
                 processing_time = time.time() - processing_start_time
-                time.sleep(tick_duration_s - processing_time)
+                sleep_time_s = tick_duration_s - processing_time
+                if sleep_time_s > 0:
+                    time.sleep(sleep_time_s)
 
             # Validate
             (

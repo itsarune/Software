@@ -390,7 +390,7 @@ class GLWorldLayer(GLLayer):
             {},
         )
 
-        self.simulator_proto_unix_io.send_proto(VisualizerSync, VisualizerSync())
+        self.simulator_io.send_proto(VisualizerSync, VisualizerSync())
 
     def __update_field_graphics(self, field: Field) -> None:
         """Update the GLGraphicsItems that display the field lines and markings

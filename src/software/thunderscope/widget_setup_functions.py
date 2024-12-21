@@ -52,6 +52,7 @@ def setup_gl_widget(
     sim_proto_unix_io: ProtoUnixIO,
     full_system_proto_unix_io: ProtoUnixIO,
     friendly_colour_yellow: bool,
+    send_sync_messages: bool,
     visualization_buffer_size: int,
     sandbox_mode: bool = False,
     replay: bool = False,
@@ -63,6 +64,7 @@ def setup_gl_widget(
     :param sim_proto_unix_io: The proto unix io object for the simulator
     :param full_system_proto_unix_io: The proto unix io object for the full system
     :param friendly_colour_yellow: Whether the friendly colour is yellow
+    :param send_sync_messages: Whether to send sync messages after updating the visualizer
     :param visualization_buffer_size: How many packets to buffer while rendering
     :param sandbox_mode: if sandbox mode should be enabled
     :param replay: Whether replay mode is currently enabled
@@ -115,6 +117,7 @@ def setup_gl_widget(
             "Vision",
             sim_proto_unix_io,
             friendly_colour_yellow,
+            send_sync_messages,
             visualization_buffer_size,
         )
     )
