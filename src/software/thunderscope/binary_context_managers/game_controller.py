@@ -9,6 +9,7 @@ from subprocess import Popen
 from typing import Any
 
 from proto.import_all_protos import *
+from software.logger.logger import create_logger
 from proto.ssl_gc_common_pb2 import Team as SslTeam
 from software.networking.ssl_proto_communication import *
 import software.python_bindings as tbots_cpp
@@ -17,6 +18,9 @@ from software.python_bindings import *
 from software.py_constants import *
 from software.thunderscope.binary_context_managers.util import *
 from software.thunderscope.thread_safe_buffer import ThreadSafeBuffer
+
+logger = create_logger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class Gamecontroller:
@@ -214,6 +218,8 @@ class Gamecontroller:
         change.new_command_change.CopyFrom(new_command)
         api_input.change.CopyFrom(change)
         ci_input.api_inputs.append(api_input)
+
+        logger.debug(f"[Gamecontroller] Sending command: {ci_input}")
 
         # Do this only if ball placement pos is specified
         if final_ball_placement_point:

@@ -234,6 +234,7 @@ class SimulatedTestRunner(TbotsTestRunner):
         self,
         always_validation_sequence_set,
         eventually_validation_sequence_set,
+        setup,
         test_timeout_s=3,
         tick_duration_s=0.0166,
         index=0,
@@ -244,6 +245,7 @@ class SimulatedTestRunner(TbotsTestRunner):
 
         :param always_validation_sequence_set: validation that should always be true
         :param eventually_validation_sequence_set: validation that should eventually be true
+        :param setup: function that sets up the state of the simulation before running the test
         :param test_timeout_s: how long the test should run before timing out
         :param tick_duration_s: length of a tick
         :param index: index of the current test. default is 0 (invariant test)
@@ -262,6 +264,8 @@ class SimulatedTestRunner(TbotsTestRunner):
         # TODO (#2858): Replace delay with an actual feedback from the simulator
         #  for when it has received the initial world state
         time.sleep(TEST_START_DELAY_S)
+
+        setup()
 
         # If thunderscope is enabled, run the test in a thread and show
         # thunderscope on this thread. The excepthook is setup to catch
@@ -326,11 +330,10 @@ class InvariantTestRunner(SimulatedTestRunner):
         """
         threading.excepthook = self.excepthook
 
-        setup(params[0])
-
         super().run_test(
             inv_always_validation_sequence_set,
             inv_eventually_validation_sequence_set,
+            setup=(lambda : setup(params[0])),
             **kwargs,
         )
 
@@ -370,12 +373,11 @@ class AggregateTestRunner(SimulatedTestRunner):
         # Catches Assertion Error thrown by failing test and increments counter
         # Calculates overall results and prints them
         for x in range(len(params)):
-            setup(params[x])
-
             try:
                 super().run_test(
                     ag_always_validation_sequence_set,
                     ag_eventually_validation_sequence_set,
+                    setup=(lambda : setup(params[x])),
                     **kwargs,
                 )
             except AssertionError:
