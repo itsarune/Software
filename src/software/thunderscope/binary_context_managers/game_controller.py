@@ -29,6 +29,7 @@ class Gamecontroller:
     CI_MODE_LAUNCH_DELAY_S = 0.3
     REFEREE_IP = "224.5.23.1"
     CI_MODE_OUTPUT_RECEIVE_BUFFER_SIZE = 9000
+    RETRY_DELAY_S = 0.1
 
     def __init__(
         self, suppress_logs: bool = False, use_conventional_port: bool = False
@@ -246,6 +247,10 @@ class Gamecontroller:
             ci_input.api_inputs.append(api_input)
 
         ci_output_list = self.send_ci_input(ci_input)
+        logger.debug(f"[Gamecontroller] Received response: {ci_output_list}")
+        while len(ci_output_list) == 0:
+            time.sleep(Gamecontroller.RETRY_DELAY_S)
+            ci_output_list = self.send_ci_input(ci_input)
 
         return ci_output_list
 

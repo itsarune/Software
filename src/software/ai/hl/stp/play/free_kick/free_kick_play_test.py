@@ -27,9 +27,6 @@ def free_kick_play_setup(
         gc_command=Command.Type.STOP, team=Team.UNKNOWN
     )
     simulated_test_runner.gamecontroller.send_gc_command(
-        gc_command=Command.Type.NORMAL_START, team=Team.BLUE
-    )
-    simulated_test_runner.gamecontroller.send_gc_command(
         gc_command=Command.Type.DIRECT, team=Team.BLUE
     )
 
