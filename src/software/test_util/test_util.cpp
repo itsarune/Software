@@ -28,7 +28,7 @@ namespace TestUtil
                                  const Timestamp &timestamp)
     {
         std::vector<Robot> robots;
-        unsigned int robot_id_index = 0;
+        RobotId robot_id_index = 0;
         for (const Point &robot_position : robot_positions)
         {
             Robot robot = Robot(robot_id_index, robot_position, Vector(), Angle::zero(),
@@ -106,7 +106,7 @@ namespace TestUtil
         {
             states.push_back(RobotStateWithId{
                 .id          = id,
-                .robot_state = RobotState(positions[id], Vector(0, 0), Angle::zero(),
+                .robot_state = RobotState(positions[static_cast<unsigned int>(id)], Vector(0, 0), Angle::zero(),
                                           AngularVelocity::zero())});
         }
         return states;
@@ -116,10 +116,10 @@ namespace TestUtil
         const std::vector<Point> &positions, const std::vector<Vector> &velocity)
     {
         std::vector<RobotStateWithId> states;
-        for (RobotId id = 0; id < static_cast<RobotId>(positions.size()); id++)
+        for (unsigned int id = 0; id < positions.size(); id++)
         {
             states.push_back(RobotStateWithId{
-                .id          = id,
+                .id          = static_cast<RobotId>(id),
                 .robot_state = RobotState(positions[id], velocity[id], Angle::zero(),
                                           AngularVelocity::zero())});
         }

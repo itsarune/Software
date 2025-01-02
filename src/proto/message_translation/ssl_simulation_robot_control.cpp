@@ -60,7 +60,6 @@ std::unique_ptr<SSLSimulationProto::RobotCommand> getRobotCommandFromDirectContr
     // Values for robot command
     std::optional<float> kick_speed;       // [m/s]
     std::optional<float> kick_angle;       // [degree]
-    std::optional<double> dribbler_speed;  // [rpm]
 
     switch (direct_control->power_control().chicker().chicker_command_case())
     {

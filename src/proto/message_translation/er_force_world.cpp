@@ -11,7 +11,7 @@ Ball createBall(world::SimBall sim_ball, Timestamp timestamp)
 
 Robot createRobot(world::SimRobot sim_robot, Timestamp timestamp)
 {
-    const RobotId id(sim_robot.id());
+    const RobotId id(static_cast<int>(sim_robot.id()));
     const Point position(sim_robot.p_x(), sim_robot.p_y());
     const Vector velocity(sim_robot.v_x(), sim_robot.v_y());
 

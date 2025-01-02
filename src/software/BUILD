@@ -77,6 +77,10 @@ pybind_extension(
 pybind_library(
     name = "python_bindings_lib",
     srcs = ["python_bindings.cpp"],
+    includes = select({
+        "//cc_toolchain:is_x86-64": ["@linux_k8_gcc//:includes"],
+        "//cc_toolchain:is_aarch64": ["@linux_aarch64_gcc//:includes"],
+    }),
     deps = [
         "//proto:ssl_cc_proto",
         "//proto:tbots_cc_proto",

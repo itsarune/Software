@@ -43,6 +43,20 @@ config_setting(
     values = {"cpu": "k8_jetson_nano_cross_compile"},
 )
 
+config_setting(
+    name = "is_x86-64",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+config_setting(
+    name = "is_aarch64",
+    constraint_values = [
+        "@platforms//cpu:aarch64",
+    ],
+)
+
 platform(
     name = "robot",
     constraint_values = [

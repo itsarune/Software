@@ -10,6 +10,8 @@ filegroup(
     srcs = glob([
         "usr/lib/gcc/x86_64-linux-gnu/10/include/**",
         "usr/lib/gcc/x86_64-linux-gnu/10/include",
+        "usr/include/**",
+        "usr/include/x86_64-linux-gnu/**",
     ]),
 )
 
