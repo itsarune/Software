@@ -26,17 +26,24 @@ Ai::Ai(const TbotsProto::AiConfig& ai_config)
 
 void Ai::overridePlay(std::unique_ptr<Play> play)
 {
+    if (play == nullptr)
+    {
+        LOG(INFO) << "Clearing play override!";
+    }
+
     override_play = std::move(play);
 }
 
 void Ai::overridePlayFromProto(TbotsProto::Play play_proto)
 {
+    LOG(INFO) << "Overriding play to " << play_proto.DebugString();
     current_override_play_proto = play_proto;
     overridePlay(std::move(createPlay(play_proto, ai_config_)));
 }
 
 void Ai::updateAiConfig(TbotsProto::AiConfig& ai_config)
 {
+    LOG(DEBUG) << "Updating AI config";
     ai_config_        = std::move(ai_config);
     ai_config_changed = true;
 }

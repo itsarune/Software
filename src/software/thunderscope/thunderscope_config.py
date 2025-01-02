@@ -120,6 +120,7 @@ def configure_base_fullsystem(
     extra_widgets: list[TScopeWidget] = [],
     frame_swap_counter: FrameTimeCounter = None,
     refresh_counter: FrameTimeCounter = None,
+    setup_proto_configuration_widget: bool = True,
 ) -> list:
     """Returns a list of widget data for a FullSystem tab
     along with any extra widgets passed in
@@ -137,9 +138,11 @@ def configure_base_fullsystem(
     :param frame_swap_counter: a FrameTimeCounter for the GLWidget to track
                                the time between frame swaps
     :param refresh_counter: a FrameTimeCounter for the refresh function
+    :param setup_proto_configuration_widget: if the parameter widget should be set up
     :return: list of widget data for FullSystem
     """
-    return [
+    scroll_area_anchor = "Parameters" if setup_proto_configuration_widget else "Error Log"
+    widgets = [
         TScopeWidget(
             name="Field",
             widget=setup_gl_widget(
@@ -156,76 +159,84 @@ def configure_base_fullsystem(
                 }
             ),
         ),
-        TScopeWidget(
-            name="Parameters",
-            widget=setup_parameter_widget(
-                **{
-                    "proto_unix_io": full_system_proto_unix_io,
-                    "friendly_colour_yellow": friendly_colour_yellow,
-                }
+        ]
+    if setup_proto_configuration_widget:
+        widgets += [
+             TScopeWidget(
+                name="Parameters",
+                widget=setup_parameter_widget(
+                    **{
+                        "proto_unix_io": full_system_proto_unix_io,
+                        "friendly_colour_yellow": friendly_colour_yellow,
+                    }
+                ),
+                anchor="Field",
+                position=WidgetPosition.LEFT,
+                has_refresh_func=False,
+                stretch=WidgetStretchData(x=5)
+            )
+        ]
+
+    widgets += [
+            TScopeWidget(
+                name="Error Log",
+                widget=setup_robot_error_log_view_widget(
+                    **{"proto_unix_io": full_system_proto_unix_io}
+                ),
+                anchor=scroll_area_anchor if setup_proto_configuration_widget else "Field",
+                position=WidgetPosition.ABOVE if setup_proto_configuration_widget else WidgetPosition.LEFT,
+                stretch=WidgetStretchData(x=5),
             ),
-            anchor="Field",
-            position=WidgetPosition.LEFT,
-            has_refresh_func=False,
-            stretch=WidgetStretchData(x=5),
-        ),
-        TScopeWidget(
-            name="Error Log",
-            widget=setup_robot_error_log_view_widget(
-                **{"proto_unix_io": full_system_proto_unix_io}
+            TScopeWidget(
+                name="Logs",
+                widget=setup_log_widget(**{"proto_unix_io": full_system_proto_unix_io}),
+                anchor=scroll_area_anchor,
+                position=WidgetPosition.ABOVE,
+                stretch=WidgetStretchData(x=5),
             ),
-            anchor="Parameters",
-            position=WidgetPosition.ABOVE,
-            stretch=WidgetStretchData(x=5),
-        ),
-        TScopeWidget(
-            name="Logs",
-            widget=setup_log_widget(**{"proto_unix_io": full_system_proto_unix_io}),
-            anchor="Parameters",
-            position=WidgetPosition.ABOVE,
-            stretch=WidgetStretchData(x=5),
-        ),
-        TScopeWidget(
-            name="Referee Info",
-            widget=setup_referee_info(**{"proto_unix_io": full_system_proto_unix_io}),
-            anchor="Field",
-            position=WidgetPosition.BOTTOM,
-            stretch=WidgetStretchData(y=4),
-        ),
-        TScopeWidget(
-            name="Performance",
-            widget=setup_performance_plot(
-                **{"proto_unix_io": full_system_proto_unix_io}
+            TScopeWidget(
+                name="Referee Info",
+                widget=setup_referee_info(**{"proto_unix_io": full_system_proto_unix_io}),
+                anchor="Field",
+                position=WidgetPosition.BOTTOM,
+                stretch=WidgetStretchData(y=4),
             ),
-            # this is because this widget specifically has to be added like so:
-            # dock.addWidget(widget.win) instead of dock.addWidget(widget)
-            # otherwise, it opens in a new window
-            # the setup functions returns the widget.win and the refresh function separately
-            in_window=True,
-            anchor="Referee Info",
-            position=WidgetPosition.BELOW,
-            stretch=WidgetStretchData(y=4),
-        ),
-        TScopeWidget(
-            name="FPS Widget",
-            widget=setup_fps_widget(
-                **{
-                    "frame_swap_counter": frame_swap_counter,
-                    "refresh_counter": refresh_counter,
-                }
+            TScopeWidget(
+                name="Performance",
+                widget=setup_performance_plot(
+                    **{"proto_unix_io": full_system_proto_unix_io}
+                ),
+                # this is because this widget specifically has to be added like so:
+                # dock.addWidget(widget.win) instead of dock.addWidget(widget)
+                # otherwise, it opens in a new window
+                # the setup functions returns the widget.win and the refresh function separately
+                in_window=True,
+                anchor="Referee Info",
+                position=WidgetPosition.BELOW,
+                stretch=WidgetStretchData(y=4),
             ),
-            anchor="Performance",
-            position=WidgetPosition.BELOW,
-            stretch=WidgetStretchData(y=4),
-        ),
-        TScopeWidget(
-            name="Play Info",
-            widget=setup_play_info(**{"proto_unix_io": full_system_proto_unix_io}),
-            anchor="Referee Info",
-            position=WidgetPosition.ABOVE,
-            stretch=WidgetStretchData(y=4),
-        ),
-    ] + extra_widgets
+            TScopeWidget(
+                name="FPS Widget",
+                widget=setup_fps_widget(
+                    **{
+                        "frame_swap_counter": frame_swap_counter,
+                        "refresh_counter": refresh_counter,
+                    }
+                ),
+                anchor="Performance",
+                position=WidgetPosition.BELOW,
+                stretch=WidgetStretchData(y=4),
+            ),
+            TScopeWidget(
+                name="Play Info",
+                widget=setup_play_info(**{"proto_unix_io": full_system_proto_unix_io}),
+                anchor="Referee Info",
+                position=WidgetPosition.ABOVE,
+                stretch=WidgetStretchData(y=4),
+            ),
+        ]
+
+    return widgets + extra_widgets
 
 
 def configure_base_diagnostics(
@@ -368,6 +379,7 @@ def configure_simulated_test_view(
                     send_sync_messages=True,
                     visualization_buffer_size=visualization_buffer_size,
                     extra_widgets=[],
+                    setup_proto_configuration_widget=False,
                 ),
             ),
             TScopeTab(
@@ -381,6 +393,7 @@ def configure_simulated_test_view(
                     send_sync_messages=True,
                     visualization_buffer_size=visualization_buffer_size,
                     extra_widgets=[],
+                    setup_proto_configuration_widget=False,
                 ),
             ),
         ],
