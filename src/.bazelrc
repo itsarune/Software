@@ -20,6 +20,8 @@ build --per_file_copt=.*\.cpp@-Wvla
 # defined CPU environments
 build --auto_cpu_environment_group=//cc_toolchain:cpus
 
+build --cxxopt=-std=c++20
+
 # Use a local directory as a remote cache. This shares artifacts when switching
 # between git branches or workspaces for the same project.
 # See https://docs.bazel.build/versions/master/remote-caching.html#disk-cache

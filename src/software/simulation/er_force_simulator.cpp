@@ -180,7 +180,7 @@ void ErForceSimulator::setRobots(const std::vector<RobotStateWithId>& robots,
     google::protobuf::Map<uint32_t, TbotsProto::RobotState> proto_robots;
     for (const auto& robot_state_with_id : robots)
     {
-        proto_robots[robot_state_with_id.id] =
+        proto_robots[static_cast<uint32_t>(robot_state_with_id.id)] =
             *createRobotStateProto(robot_state_with_id.robot_state);
     }
     setRobots(proto_robots, side);
@@ -307,10 +307,10 @@ void ErForceSimulator::setYellowRobotPrimitiveSet(
     const TbotsProto::World world_proto = *yellow_team_world_msg;
     for (auto& [robot_id, primitive] : primitive_set_msg.robot_primitives())
     {
-        if (robot_to_vel_pair_map.contains(robot_id))
+        if (robot_to_vel_pair_map.contains(static_cast<RobotId>(robot_id)))
         {
-            auto& [local_vel, angular_vel] = robot_to_vel_pair_map.at(robot_id);
-            setRobotPrimitive(robot_id, primitive_set_msg, yellow_primitive_executor_map,
+            auto& [local_vel, angular_vel] = robot_to_vel_pair_map.at(static_cast<RobotId>(robot_id));
+            setRobotPrimitive(static_cast<RobotId>(robot_id), primitive_set_msg, yellow_primitive_executor_map,
                               world_proto, local_vel, angular_vel);
         }
     }
@@ -329,10 +329,10 @@ void ErForceSimulator::setBlueRobotPrimitiveSet(
 
     for (auto& [robot_id, primitive] : primitive_set_msg.robot_primitives())
     {
-        if (robot_to_vel_pair_map.contains(robot_id))
+        if (robot_to_vel_pair_map.contains(static_cast<RobotId>(robot_id)))
         {
-            auto& [local_vel, angular_vel] = robot_to_vel_pair_map.at(robot_id);
-            setRobotPrimitive(robot_id, primitive_set_msg, blue_primitive_executor_map,
+            auto& [local_vel, angular_vel] = robot_to_vel_pair_map.at(static_cast<RobotId>(robot_id));
+            setRobotPrimitive(static_cast<RobotId>(robot_id), primitive_set_msg, blue_primitive_executor_map,
                               world_proto, local_vel, angular_vel);
         }
     }
@@ -340,7 +340,7 @@ void ErForceSimulator::setBlueRobotPrimitiveSet(
 
 void ErForceSimulator::setRobotPrimitive(
     RobotId id, const TbotsProto::PrimitiveSet& primitive_set_msg,
-    std::unordered_map<unsigned int, std::shared_ptr<PrimitiveExecutor>>&
+    std::unordered_map<RobotId, std::shared_ptr<PrimitiveExecutor>>&
         robot_primitive_executor_map,
     const TbotsProto::World& world_msg, const Vector& local_velocity,
     const AngularVelocity angular_velocity)
@@ -363,7 +363,7 @@ void ErForceSimulator::setRobotPrimitive(
 }
 
 SSLSimulationProto::RobotControl ErForceSimulator::updateSimulatorRobots(
-    std::unordered_map<unsigned int, std::shared_ptr<PrimitiveExecutor>>&
+    std::unordered_map<RobotId, std::shared_ptr<PrimitiveExecutor>>&
         robot_primitive_executor_map,
     const TbotsProto::World& world_msg, gameController::Team side)
 {
@@ -384,7 +384,7 @@ SSLSimulationProto::RobotControl ErForceSimulator::updateSimulatorRobots(
 
     for (auto& primitive_executor_with_id : robot_primitive_executor_map)
     {
-        unsigned int robot_id    = primitive_executor_with_id.first;
+        RobotId robot_id    = primitive_executor_with_id.first;
         auto& primitive_executor = primitive_executor_with_id.second;
         std::unique_ptr<TbotsProto::DirectControlPrimitive> direct_control;
 
@@ -501,7 +501,7 @@ std::vector<TbotsProto::RobotStatus> ErForceSimulator::getBlueRobotStatuses() co
 
     if (blue_robot_with_ball.has_value())
     {
-        robot_status.set_robot_id(blue_robot_with_ball.value());
+        robot_status.set_robot_id(static_cast<unsigned int>(blue_robot_with_ball.value()));
         power_status.set_breakbeam_tripped(true);
     }
     else
@@ -524,7 +524,7 @@ std::vector<TbotsProto::RobotStatus> ErForceSimulator::getYellowRobotStatuses() 
 
     if (yellow_robot_with_ball.has_value())
     {
-        robot_status.set_robot_id(yellow_robot_with_ball.value());
+        robot_status.set_robot_id(static_cast<unsigned int>(yellow_robot_with_ball.value()));
         power_status.set_breakbeam_tripped(true);
     }
     else
@@ -575,7 +575,7 @@ ErForceSimulator::getRobotIdToLocalVelocityMap(
             globalToLocalVelocity(Vector(sim_robot.v_x(), sim_robot.v_y()),
                                   Angle::fromRadians(sim_robot.angle()));
         const AngularVelocity angular_vel       = Angle::fromRadians(sim_robot.r_z());
-        robot_to_local_velocity[sim_robot.id()] = {local_vel, angular_vel};
+        robot_to_local_velocity[static_cast<RobotId>(sim_robot.id())] = {local_vel, angular_vel};
     }
     return robot_to_local_velocity;
 }

@@ -8,6 +8,5 @@ filegroup(
 cc_library(
     name = "headers",
     hdrs = [":header_files"],
-    deps = ["@system_headers//:headers"],
     includes = ["."],
 )

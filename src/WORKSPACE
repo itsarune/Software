@@ -220,11 +220,11 @@ git_repository(
     shallow_since = "1571237073 -0500",
 )
 
-HERMETIC_CC_TOOLCHAIN_VERSION = "v3.1.1"
+HERMETIC_CC_TOOLCHAIN_VERSION = "v2.0.0"
 
 http_archive(
     name = "hermetic_cc_toolchain",
-    sha256 = "907745bf91555f77e8234c0b953371e6cac5ba715d1cf12ff641496dd1bce9d1",
+    sha256 = "57f03a6c29793e8add7bd64186fc8066d23b5ffd06fe9cc6b0b8c499914d3a65",
     urls = [
         "https://mirror.bazel.build/github.com/uber/hermetic_cc_toolchain/releases/download/{0}/hermetic_cc_toolchain-{0}.tar.gz".format(HERMETIC_CC_TOOLCHAIN_VERSION),
         "https://github.com/uber/hermetic_cc_toolchain/releases/download/{0}/hermetic_cc_toolchain-{0}.tar.gz".format(HERMETIC_CC_TOOLCHAIN_VERSION),
@@ -416,7 +416,7 @@ register_toolchains(
 )
 
 new_local_repository(
-    name = "system_headers",
+    name = "system_headers_x86_64",
     build_file = "@//extlibs:system_headers.BUILD",
     path = "/usr/include",
 )

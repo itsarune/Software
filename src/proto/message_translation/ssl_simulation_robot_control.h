@@ -6,6 +6,7 @@
 #include "proto/ssl_simulation_robot_feedback.pb.h"
 #include "proto/tbots_software_msgs.pb.h"
 #include "shared/robot_constants.h"
+#include "software/world/robot_state.h"
 
 /**
  * Creates a RobotMoveCommand proto
@@ -32,7 +33,7 @@ std::unique_ptr<SSLSimulationProto::RobotMoveCommand> createRobotMoveCommand(
  * @return
  */
 std::unique_ptr<SSLSimulationProto::RobotCommand> getRobotCommandFromDirectControl(
-    unsigned int robot_id,
+    RobotId robot_id,
     std::unique_ptr<TbotsProto::DirectControlPrimitive> direct_control,
     RobotConstants_t& robot_constants);
 
@@ -48,7 +49,7 @@ std::unique_ptr<SSLSimulationProto::RobotCommand> getRobotCommandFromDirectContr
  * @return RobotCommand proto
  */
 std::unique_ptr<SSLSimulationProto::RobotCommand> createRobotCommand(
-    unsigned int robot_id,
+    RobotId robot_id,
     std::unique_ptr<SSLSimulationProto::RobotMoveCommand> move_command,
     std::optional<double> kick_speed, std::optional<double> kick_angle,
     std::optional<double> dribbler_speed);

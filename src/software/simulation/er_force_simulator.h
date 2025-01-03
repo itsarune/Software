@@ -156,7 +156,7 @@ class ErForceSimulator
      */
     static void setRobotPrimitive(
         RobotId id, const TbotsProto::PrimitiveSet& primitive_set_msg,
-        std::unordered_map<unsigned int, std::shared_ptr<PrimitiveExecutor>>&
+        std::unordered_map<RobotId, std::shared_ptr<PrimitiveExecutor>>&
             robot_primitive_executor_map,
         const TbotsProto::World& world_msg, const Vector& local_velocity,
         const AngularVelocity angular_velocity);
@@ -182,7 +182,7 @@ class ErForceSimulator
      * @return robot control
      */
     SSLSimulationProto::RobotControl updateSimulatorRobots(
-        std::unordered_map<unsigned int, std::shared_ptr<PrimitiveExecutor>>&
+        std::unordered_map<RobotId, std::shared_ptr<PrimitiveExecutor>>&
             robot_primitive_executor_map,
         const TbotsProto::World& world_msg, gameController::Team side);
 
@@ -205,9 +205,9 @@ class ErForceSimulator
         const double& time_to_ramp);
 
     // Map of Robot id to Primitive Executor
-    std::unordered_map<unsigned int, std::shared_ptr<PrimitiveExecutor>>
+    std::unordered_map<RobotId, std::shared_ptr<PrimitiveExecutor>>
         yellow_primitive_executor_map;
-    std::unordered_map<unsigned int, std::shared_ptr<PrimitiveExecutor>>
+    std::unordered_map<RobotId, std::shared_ptr<PrimitiveExecutor>>
         blue_primitive_executor_map;
     std::unique_ptr<TbotsProto::World> yellow_team_world_msg;
     std::unique_ptr<TbotsProto::World> blue_team_world_msg;

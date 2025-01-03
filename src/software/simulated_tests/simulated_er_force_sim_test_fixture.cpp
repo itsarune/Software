@@ -478,7 +478,7 @@ bool SimulatedErForceSimTestFixture::tickTest(
     /* compare world and simulator friendly robots */
     for (Robot world_robot : world_friendly_robots)
     {
-        int robot_index = 0;
+        std::size_t robot_index = 0;
         while (world_robot.id() != simulator_friendly_robots[robot_index++].id())
             ;
         Robot simulator_robot = simulator_friendly_robots[robot_index - 1];
@@ -500,7 +500,7 @@ bool SimulatedErForceSimTestFixture::tickTest(
     /* compare world and simulator enemy robots */
     for (Robot world_robot : world_enemy_robots)
     {
-        int robot_index = 0;
+        std::size_t robot_index = 0;
         while (world_robot.id() != simulator_enemy_robots[robot_index++].id())
             ;
         Robot simulator_robot = simulator_enemy_robots[robot_index - 1];

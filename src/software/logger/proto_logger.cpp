@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iomanip>
 #include <optional>
+#include <sstream>
 #include <vector>
 
 #include "base64.h"

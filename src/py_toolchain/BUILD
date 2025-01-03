@@ -63,9 +63,17 @@ toolchain(
     toolchain_type = "@rules_python//python/cc:toolchain_type",
 )
 
+cc_library(
+    name = "x86_headers",
+    deps = [
+        "@py_cc_host_toolchain//:headers",
+        "@system_headers_x86_64//:headers",
+    ]
+)
+
 py_cc_toolchain(
     name = "py_cc_host_toolchain",
-    headers = "@py_cc_host_toolchain//:headers",
+    headers = ":x86_headers",
     libs = ":empty",
     python_version = "3.12",
 )

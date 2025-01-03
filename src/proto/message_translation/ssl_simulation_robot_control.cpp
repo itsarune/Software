@@ -50,7 +50,7 @@ std::unique_ptr<SSLSimulationProto::RobotMoveCommand> createRobotMoveCommand(
 }
 
 std::unique_ptr<SSLSimulationProto::RobotCommand> getRobotCommandFromDirectControl(
-    unsigned int robot_id,
+    RobotId robot_id,
     std::unique_ptr<TbotsProto::DirectControlPrimitive> direct_control,
     RobotConstants_t& robot_constants)
 {
@@ -150,14 +150,14 @@ std::unique_ptr<SSLSimulationProto::RobotCommand> getRobotCommandFromDirectContr
 }
 
 std::unique_ptr<SSLSimulationProto::RobotCommand> createRobotCommand(
-    unsigned int robot_id,
+    RobotId robot_id,
     std::unique_ptr<SSLSimulationProto::RobotMoveCommand> move_command,
     std::optional<double> kick_speed, std::optional<double> kick_angle,
     std::optional<double> dribbler_speed)
 {
     auto robot_command = std::make_unique<SSLSimulationProto::RobotCommand>();
 
-    robot_command->set_id(robot_id);
+    robot_command->set_id(static_cast<unsigned int>(robot_id));
 
     if (kick_speed.has_value())
     {

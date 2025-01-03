@@ -43,6 +43,7 @@ class RobotNavigationObstacleFactoryMotionConstraintTest : public testing::Test
           friendly_team(Duration::fromMilliseconds(1000)),
           enemy_team(Duration::fromMilliseconds(1000)),
           world_ptr(std::make_shared<World>(field, ball, friendly_team, enemy_team)),
+          robot_navigation_obstacle_config(),
           robot_navigation_obstacle_factory(robot_navigation_obstacle_config)
     {
         robot_navigation_obstacle_config.set_robot_obstacle_inflation_factor(1.3);
@@ -81,8 +82,8 @@ class RobotNavigationObstacleFactoryMotionConstraintTest : public testing::Test
     Team friendly_team;
     Team enemy_team;
     std::shared_ptr<World> world_ptr;
-    RobotNavigationObstacleFactory robot_navigation_obstacle_factory;
     TbotsProto::RobotNavigationObstacleConfig robot_navigation_obstacle_config;
+    RobotNavigationObstacleFactory robot_navigation_obstacle_factory;
 };
 
 TEST_F(RobotNavigationObstacleFactoryTest, create_rectangle_obstacle)
