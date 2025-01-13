@@ -115,7 +115,6 @@ def configure_base_fullsystem(
     sandbox_mode: bool = False,
     replay: bool = False,
     replay_log: os.PathLike = None,
-    send_sync_messages: bool = False,
     visualization_buffer_size: int = 5,
     extra_widgets: list[TScopeWidget] = [],
     frame_swap_counter: FrameTimeCounter = None,
@@ -131,7 +130,6 @@ def configure_base_fullsystem(
     :param sandbox_mode: if sandbox mode should be enabled
     :param replay: True if in replay mode, False if not
     :param replay_log: the file path of the replay protos
-    :param send_sync_messages: if Thunderscope should send sync messages after processing a world
     :param visualization_buffer_size: The size of the visualization buffer.
             Increasing this will increase smoothness but will be less realtime.
     :param extra_widgets: a list of additional widget data to append
@@ -153,7 +151,6 @@ def configure_base_fullsystem(
                     "full_system_proto_unix_io": full_system_proto_unix_io,
                     "sim_proto_unix_io": sim_proto_unix_io,
                     "friendly_colour_yellow": friendly_colour_yellow,
-                    "send_sync_messages": send_sync_messages,
                     "visualization_buffer_size": visualization_buffer_size,
                     "frame_swap_counter": frame_swap_counter,
                 }
@@ -311,7 +308,6 @@ def configure_two_ai_gamecontroller_view(
                     full_system_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.BLUE],
                     sim_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.SIM],
                     friendly_colour_yellow=False,
-                    send_sync_messages=False,
                     visualization_buffer_size=visualization_buffer_size,
                     sandbox_mode=True,
                     extra_widgets=[],
@@ -328,7 +324,6 @@ def configure_two_ai_gamecontroller_view(
                     ],
                     sim_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.SIM],
                     friendly_colour_yellow=True,
-                    send_sync_messages=False,
                     visualization_buffer_size=visualization_buffer_size,
                     sandbox_mode=True,
                     extra_widgets=[],
@@ -376,7 +371,6 @@ def configure_simulated_test_view(
                     full_system_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.BLUE],
                     sim_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.SIM],
                     friendly_colour_yellow=False,
-                    send_sync_messages=True,
                     visualization_buffer_size=visualization_buffer_size,
                     extra_widgets=[],
                     setup_proto_configuration_widget=False,
@@ -390,7 +384,6 @@ def configure_simulated_test_view(
                     ],
                     sim_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.SIM],
                     friendly_colour_yellow=True,
-                    send_sync_messages=True,
                     visualization_buffer_size=visualization_buffer_size,
                     extra_widgets=[],
                     setup_proto_configuration_widget=False,
@@ -439,7 +432,6 @@ def configure_field_test_view(
                     ],
                     sim_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.SIM],
                     friendly_colour_yellow=True,
-                    send_sync_messages=False,
                     visualization_buffer_size=visualization_buffer_size,
                     extra_widgets=[],
                 ),
@@ -453,7 +445,6 @@ def configure_field_test_view(
                     full_system_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.BLUE],
                     sim_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.SIM],
                     friendly_colour_yellow=False,
-                    send_sync_messages=False,
                     visualization_buffer_size=visualization_buffer_size,
                     extra_widgets=[],
                 ),
@@ -496,7 +487,6 @@ def configure_replay_view(
                     friendly_colour_yellow=False,
                     replay=True,
                     replay_log=blue_replay_log,
-                    send_sync_messages=False,
                     visualization_buffer_size=visualization_buffer_size,
                     extra_widgets=[],
                     frame_swap_counter=FrameTimeCounter(),
@@ -520,7 +510,6 @@ def configure_replay_view(
                     friendly_colour_yellow=True,
                     replay=True,
                     replay_log=yellow_replay_log,
-                    send_sync_messages=False,
                     visualization_buffer_size=visualization_buffer_size,
                     extra_widgets=[],
                     frame_swap_counter=FrameTimeCounter(),
@@ -579,7 +568,6 @@ def configure_ai_or_diagnostics(
                     full_system_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.BLUE],
                     sim_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.SIM],
                     friendly_colour_yellow=False,
-                    send_sync_messages=False,
                     visualization_buffer_size=visualization_buffer_size,
                     extra_widgets=get_extra_widgets(
                         proto_unix_io_map[ProtoUnixIOTypes.BLUE]
@@ -601,7 +589,6 @@ def configure_ai_or_diagnostics(
                     ],
                     sim_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.SIM],
                     friendly_colour_yellow=True,
-                    send_sync_messages=False,
                     visualization_buffer_size=visualization_buffer_size,
                     extra_widgets=get_extra_widgets(
                         proto_unix_io_map[ProtoUnixIOTypes.YELLOW]

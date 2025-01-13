@@ -45,7 +45,6 @@ class GLWorldLayer(GLLayer):
         name: str,
         simulator_io: ProtoUnixIO,
         friendly_colour_yellow: bool,
-        send_sync_messages: bool = False,
         buffer_size: int = 5,
     ) -> None:
         """Initialize the GLWorldLayer
@@ -53,7 +52,6 @@ class GLWorldLayer(GLLayer):
         :param name: The displayed name of the layer
         :param simulator_io: The simulator io communicate with the simulator
         :param friendly_colour_yellow: Is the friendly_colour_yellow?
-        :param send_sync_messages: True sends sync messages after processing a new world
         :param buffer_size: The buffer size, set higher for smoother plots.
                             Set lower for more realtime plots. Default is arbitrary
         """
@@ -62,8 +60,6 @@ class GLWorldLayer(GLLayer):
 
         self.simulator_io = simulator_io
         self.friendly_colour_yellow = friendly_colour_yellow
-
-        self.send_sync_messages = send_sync_messages
 
         self.world_buffer = ThreadSafeBuffer(buffer_size, World)
         self.primitive_set_buffer = ThreadSafeBuffer(buffer_size, PrimitiveSet)
@@ -390,7 +386,6 @@ class GLWorldLayer(GLLayer):
             {},
         )
 
-        self.simulator_io.send_proto(VisualizerSync, VisualizerSync())
 
     def __update_field_graphics(self, field: Field) -> None:
         """Update the GLGraphicsItems that display the field lines and markings

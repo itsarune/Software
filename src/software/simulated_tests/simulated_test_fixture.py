@@ -168,16 +168,12 @@ class SimulatedTestRunner(TbotsTestRunner):
                         RobotStatus, robot_status
                     )
 
+            # get the time difference after we get the primitive (after any blocking that happened)
+            processing_time = time.time() - processing_start_time
 
             # if the time we have blocked is less than a tick, sleep for the remaining time (for Thunderscope only)
-            if self.thunderscope:
-                self.thunderscope_sync_buffer.get(block=True, timeout=BUFFER_TIMEOUT_S, return_cached=True)
-
-                # get the time difference after we get the primitive (after any blocking that happened)
-                processing_time = time.time() - processing_start_time
-                sleep_time_s = tick_duration_s - processing_time
-                if sleep_time_s > 0:
-                    time.sleep(sleep_time_s)
+            if self.thunderscope and tick_duration_s > processing_time:
+                time.sleep(tick_duration_s - processing_time)
 
             # Validate
             (
@@ -221,6 +217,9 @@ class SimulatedTestRunner(TbotsTestRunner):
                     return
                 except AssertionError as e:
                     eventually_validation_failure_msg = str(e)
+
+            # Offer Python a chance to run other threads (i.e. UI)
+            time.sleep(0)
 
         if not run_till_end:
             raise AssertionError(eventually_validation_failure_msg)

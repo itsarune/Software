@@ -60,8 +60,6 @@ message SimulationState
     required double simulation_speed = 2 [default = 1.0];
 }
 
-message VisualizerSync {}
-
 message Pass
 {
     // The location of the passer

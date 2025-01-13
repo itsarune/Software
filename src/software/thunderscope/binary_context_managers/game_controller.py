@@ -20,7 +20,6 @@ from software.thunderscope.binary_context_managers.util import *
 from software.thunderscope.thread_safe_buffer import ThreadSafeBuffer
 
 logger = create_logger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class Gamecontroller:
