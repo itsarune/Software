@@ -94,7 +94,7 @@ TEST_F(PenaltyKickPlayTest, DISABLED_test_penalty_kick_take)
     RobotId shooter_id                                                   = 1;
     std::vector<ValidationFunction> non_terminating_validation_functions = {
         ballInPlay,
-        [shooter_id](std::shared_ptr<World> world_ptr,
+        [](std::shared_ptr<World> world_ptr,
                      ValidationCoroutine::push_type& yield) {
             ballNeverMovesBackward(world_ptr, yield);
         },
