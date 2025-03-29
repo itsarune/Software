@@ -9,9 +9,11 @@
 #include "shared/constants.h"
 #include "shared/robot_constants.h"
 #include "software/embedded/constants/constants.h"
-#include "software/embedded/gpio.h"
-#include "software/embedded/gpio_char_dev.h"
-#include "software/embedded/gpio_sysfs.h"
+#include "software/embedded/gpio/gpio.h"
+#include "software/embedded/gpio/gpio_char_dev.h"
+#include "software/embedded/gpio/gpio_sysfs.h"
+#include "software/embedded/motor_controller/motor_controller.h"
+#include "software/embedded/motor_controller/motor_fault_indicator.h"
 #include "software/embedded/platform.h"
 #include "software/physics/euclidean_to_wheel.h"
 
@@ -112,34 +114,6 @@ class MotorService
      * Clears previous faults, configures the motor and checks encoder connections.
      */
     void setup();
-
-    /**
-     * Holds motor fault information for a particular motor and whether any fault has
-     * caused the motor to be disabled.
-     */
-    struct MotorFaultIndicator
-    {
-        bool drive_enabled;
-        std::unordered_set<TbotsProto::MotorFault> motor_faults;
-
-        /**
-         * Construct a default indicator of no faults and running motors.
-         */
-        MotorFaultIndicator() : drive_enabled(true), motor_faults() {}
-
-        /**
-         * Construct an indicator with faults and whether the motor is enabled.
-         *
-         * @param drive_enabled true if the motor is enabled, false if disabled due to a
-         * motor fault
-         * @param motor_faults  a set of faults associated with this motor
-         */
-        MotorFaultIndicator(bool drive_enabled,
-                            std::unordered_set<TbotsProto::MotorFault>& motor_faults)
-            : drive_enabled(drive_enabled), motor_faults(motor_faults)
-        {
-        }
-    };
 
     /**
      * Log the driver fault in a human readable log msg
@@ -325,6 +299,8 @@ class MotorService
                                               double back_right_velocity_mps,
                                               double dribbler_rpm);
 
+    std::unique_ptr<MotorController> setupMotorController();
+
     /**
      * Helper function to setup a GPIO pin. Selects the appropriate GPIO implementation
      * based on the host platform.
@@ -357,6 +333,9 @@ class MotorService
     static constexpr double MECHANICAL_MPS_PER_ELECTRICAL_RPM = 0.000111;
     static constexpr double ELECTRICAL_RPM_PER_MECHANICAL_MPS =
         1 / MECHANICAL_MPS_PER_ELECTRICAL_RPM;
+
+    // Controller for communicating with the motor board
+    std::unique_ptr<MotorController> motor_controller_;
 
     // to check if the motors have been calibrated
     bool is_initialized_ = false;
@@ -420,15 +399,6 @@ class MotorService
 
     static const int MOTOR_FAULT_TIME_THRESHOLD_S = 60;
     static const int MOTOR_FAULT_THRESHOLD_COUNT  = 3;
-
-    // SPI Trinamic Motor Driver Paths (indexed with chip select above)
-    static constexpr const char* SPI_PATHS[] = {"/dev/spidev0.0", "/dev/spidev0.1",
-                                                "/dev/spidev0.2", "/dev/spidev0.3",
-                                                "/dev/spidev0.4"};
-
-    // Motor names (indexed with chip select above)
-    static constexpr const char* MOTOR_NAMES[] = {"front_left", "back_left", "back_right",
-                                                  "front_right", "dribbler"};
 };
 
 template <typename T>

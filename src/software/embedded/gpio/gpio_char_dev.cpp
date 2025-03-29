@@ -1,8 +1,9 @@
-#include "software/embedded/gpio_char_dev.h"
+#include "software/embedded/gpio/gpio_char_dev.h"
+
+#include "software/logger/logger.h"
 
 #include <linux/gpio.h>
 
-#include "software/logger/logger.h"
 
 GpioCharDev::GpioCharDev(uint32_t gpio_number, GpioDirection direction,
                          GpioState initial_state, std::string char_dev_path)

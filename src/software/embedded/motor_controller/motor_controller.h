@@ -1,0 +1,15 @@
+#pragma once
+
+#include "software/embedded/motor_controller/motor_board.h"
+#include "software/embedded/motor_controller/motor_fault_indicator.h"
+#include "software/embedded/motor_controller/motor_index.h"
+
+class MotorController
+{
+    public:
+    virtual void reset() = 0;
+
+    virtual MotorFaultIndicator checkDriverFault(MotorIndex motor) = 0;
+
+    virtual double readThenWriteValue(const MotorIndex motor, const int value) = 0;
+};
