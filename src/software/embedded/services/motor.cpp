@@ -25,9 +25,6 @@
 #include "software/logger/logger.h"
 #include "software/util/scoped_timespec_timer/scoped_timespec_timer.h"
 
-// SPI Configs
-static const uint32_t TMC6100_SPI_SPEED = 1000000;  // 1 Mhz
-static const uint32_t TMC4671_SPI_SPEED = 1000000;  // 1 Mhz
 static const uint32_t NUM_RETRIES_SPI   = 3;
 static const uint32_t TMC_CMD_MSG_SIZE  = 5;
 

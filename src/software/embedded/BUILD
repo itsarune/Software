@@ -55,6 +55,15 @@ cc_library(
 )
 
 cc_library(
+    name = "spi_utils",
+    srcs = ["spi_utils.cpp"],
+    hdrs = ["spi_utils.h"],
+    deps = [
+        "//software/logger:logger",
+    ]
+)
+
+cc_library(
     name = "thunderloop",
     srcs = ["thunderloop.cpp"],
     hdrs = ["thunderloop.h"],

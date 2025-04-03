@@ -8,6 +8,9 @@ cc_library(
 cc_library(
     name = "motor_board",
     hdrs = ["motor_board.h"],
+    deps = [
+        "//software/util/make_enum:make_enum",
+    ]
 )
 
 cc_library(
@@ -25,6 +28,10 @@ cc_library(
         ":motor_board",
         ":motor_fault_indicator",
         ":motor_index",
+        "//software/embedded:spi_utils",
+        "//software/embedded/gpio:gpio",
+        "//software/logger:logger",
+        "@trinamic",
     ]
 )
 

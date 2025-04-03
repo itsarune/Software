@@ -212,18 +212,6 @@ class MotorService
     void writeToControllerOrDieTrying(uint8_t motor, uint8_t address, int32_t value);
     void writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int32_t value);
 
-    /**
-     * Trigger an SPI transfer over an open SPI connection
-     *
-     * @param fd The SPI File Descriptor to transfer data over
-     * @param tx The tx buffer, data to send out
-     * @param rx The rx buffer, will be updated with data from the full-duplex transfer
-     * @param len The length of the tx and rx buffer
-     * @param spi_speed The speed to run spi at
-     *
-     */
-    void spiTransfer(int fd, uint8_t const* tx, uint8_t const* rx, unsigned len,
-                     uint32_t spi_speed);
 
     /**
      * Performs two back to back SPI transactions, first a read and then a write.
@@ -340,29 +328,6 @@ class MotorService
     // to check if the motors have been calibrated
     bool is_initialized_ = false;
 
-    // Select between driver and controller gpio
-    std::unique_ptr<Gpio> spi_demux_select_0_;
-    std::unique_ptr<Gpio> spi_demux_select_1_;
-
-    // Enable driver gpio
-    std::unique_ptr<Gpio> driver_control_enable_gpio_;
-    std::unique_ptr<Gpio> reset_gpio_;
-
-    // Transfer Buffers for spiTransfer
-    uint8_t tx_[5] = {0};
-    uint8_t rx_[5] = {0};
-
-    // Transfer Buffers for readThenWriteSpiTransfer
-    uint8_t write_tx_[5] = {0};
-    uint8_t read_tx_[5]  = {0};
-    uint8_t read_rx_[5]  = {0};
-
-    // Transfer State
-    bool transfer_started_  = false;
-    bool currently_writing_ = false;
-    bool currently_reading_ = false;
-    uint8_t position_       = 0;
-
     // SPI File Descriptors
     std::unordered_map<int, int> file_descriptors_;
 
@@ -400,19 +365,3 @@ class MotorService
     static const int MOTOR_FAULT_TIME_THRESHOLD_S = 60;
     static const int MOTOR_FAULT_THRESHOLD_COUNT  = 3;
 };
-
-template <typename T>
-std::unique_ptr<Gpio> MotorService::setupGpio(const T& gpio_number,
-                                              GpioDirection direction,
-                                              GpioState initial_state)
-{
-    if constexpr (PLATFORM == Platform::JETSON_NANO)
-    {
-        return std::make_unique<GpioSysfs>(gpio_number, direction, initial_state);
-    }
-    else
-    {
-        return std::make_unique<GpioCharDev>(gpio_number, direction, initial_state,
-                                             "/dev/gpiochip4");
-    }
-}

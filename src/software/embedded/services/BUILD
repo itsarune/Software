@@ -51,7 +51,6 @@ cc_library(
         "//software/physics:euclidean_to_wheel",
         "//software/util/scoped_timespec_timer",
         "@eigen",
-        "@trinamic",
     ],
 )
 

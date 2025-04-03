@@ -1,5 +1,7 @@
 #include "software/embedded/motor_controller/tmc_motor_controller.h"
 
+#include "software/logger/logger.h"
+
 extern "C"
 {
 #include "external/trinamic/tmc/ic/TMC4671/TMC4671.h"
@@ -15,20 +17,28 @@ extern "C"
     //
     // The motor service exclusively calls the trinamic API which triggers these
     // functions. The motor service will set this variable in the constructor.
-    static TmcMotor* g_motor = NULL;
+    static TmcMotorController* g_motor = NULL;
 
     uint8_t tmc4671_readwriteByte(uint8_t motor, uint8_t data, uint8_t last_transfer)
     {
-        return g_motor_service->tmc4671ReadWriteByte(motor, data, last_transfer);
+        return g_motor->tmc4671ReadWriteByte(motor, data, last_transfer);
     }
 
     uint8_t tmc6100_readwriteByte(uint8_t motor, uint8_t data, uint8_t last_transfer)
     {
-        return g_motor_service->tmc6100ReadWriteByte(motor, data, last_transfer);
+        return g_motor->tmc6100ReadWriteByte(motor, data, last_transfer);
     }
 }
 
 TmcMotorController::TmcMotorController()
+    : spi_demux_select_0_(setupGpio(SPI_CS_DRIVER_TO_CONTROLLER_MUX_0_GPIO,
+                GpioDirection::OUTPUT, GpioState::LOW)),
+      spi_demux_select_1_(setupGpio(SPI_CS_DRIVER_TO_CONTROLLER_MUX_1_GPIO,
+                                    GpioDirection::OUTPUT, GpioState::LOW)),
+      driver_control_enable_gpio_(
+          setupGpio(DRIVER_CONTROL_ENABLE_GPIO, GpioDirection::OUTPUT, GpioState::HIGH)),
+      reset_gpio_(
+          setupGpio(MOTOR_DRIVER_RESET_GPIO, GpioDirection::OUTPUT, GpioState::HIGH))
 {
     openSpiFileDescriptor(front_left, FRONT_LEFT_MOTOR_CHIP_SELECT)
     openSpiFileDescriptor(front_right, FRONT_RIGHT_MOTOR_CHIP_SELECT)
@@ -37,7 +47,7 @@ TmcMotorController::TmcMotorController()
     openSpiFileDescriptor(dribbler, DRIBBLER_MOTOR_CHIP_SELECT)
 }
 
-void TmcMotor::setup()
+void TmcMotorController::setup()
 {   
     reset_gpio_->setValue(GpioState::LOW);
     usleep(MICROSECONDS_PER_MILLISECOND * 100);
@@ -80,7 +90,7 @@ void TmcMotor::setup()
     }
 }
 
-Motor::MotorFaultIndicator TmcMotor::checkDriverFault(uint8_t motor)
+Motor::MotorFaultIndicator TmcMotorController::checkDriverFault(uint8_t motor)
 {
     bool drive_enabled = true;
     std::unordered_set<TbotsProto::MotorFault> motor_faults;
@@ -198,7 +208,7 @@ Motor::MotorFaultIndicator TmcMotor::checkDriverFault(uint8_t motor)
     return MotorFaultIndicator(drive_enabled, motor_faults);
 }
 
-double TmcMotor::readThenWriteValue(const MotorIndex motor, const int value)
+double TmcMotorController::readThenWriteValue(const MotorIndex motor, const int value)
 {
     spi_demux_select_0_->setValue(GpioState::HIGH);
     spi_demux_select_1_->setValue(GpioState::LOW);
@@ -237,26 +247,26 @@ double TmcMotor::readThenWriteValue(const MotorIndex motor, const int value)
     return value;
 }
 
-void TmcMotorController::openSpiFileDescriptor(const std::string& motor_name, const uint8_t &chip_select)
+void TmcMotorController::openSpiFileDescriptor(const MotorIndex& motor_index)
 {
-    file_descriptors_[chip_select] = open(SPI_PATHS[chip_select], O_RDWR);
-    CHECK(file_descriptors_[chip_select] >= 0) << "can't open device: " << motor_name
+    file_descriptors_[motor_index] = open(SPI_PATHS[motor_index], O_RDWR);
+    CHECK(file_descriptors_[motor_index] >= 0) << "can't open device: " << std::string(motor_index)
                                                << "error: " << strerror(errno);
 
-    int ret = ioctl(file_descriptors_[chip_select], SPI_IOC_WR_MODE32, &SPI_MODE);
-    CHECK(ret != -1) << "can't set spi mode for: " << motor_name
+    int ret = ioctl(file_descriptors_[motor_index], SPI_IOC_WR_MODE32, &SPI_MODE);
+    CHECK(ret != -1) << "can't set spi mode for: " << std::string(motor_index)
                      << "error: " << strerror(errno);
 
-    ret = ioctl(file_descriptors_[chip_select], SPI_IOC_WR_BITS_PER_WORD, &SPI_BITS);
-    CHECK(ret != -1) << "can't set bits_per_word for: " << motor_name
+    ret = ioctl(file_descriptors_[motor_index], SPI_IOC_WR_BITS_PER_WORD, &SPI_BITS);
+    CHECK(ret != -1) << "can't set bits_per_word for: " << std::string(motor_index)
                      << "error: " << strerror(errno);
 
-    ret = ioctl(file_descriptors_[chip_select], SPI_IOC_WR_MAX_SPEED_HZ, &MAX_SPI_SPEED_HZ);
-    CHECK(ret != -1) << "can't set spi max speed hz for: " << motor_name
+    ret = ioctl(file_descriptors_[motor_index], SPI_IOC_WR_MAX_SPEED_HZ, &MAX_SPI_SPEED_HZ);
+    CHECK(ret != -1) << "can't set spi max speed hz for: " << std::string(motor_index)
                      << "error: " << strerror(errno);
 }
 
-void TmcMotor::setUpDriveMotor(uint8_t motor)
+void TmcMotorController::setUpDriveMotor(uint8_t motor)
 {
     startDriver(motor);
     checkDriverFault(motor);
@@ -265,7 +275,7 @@ void TmcMotor::setUpDriveMotor(uint8_t motor)
     tmc4671_setTargetVelocity(motor, 0);
 }
 
-uint8_t TmcMotor::tmc4671ReadWriteByte(uint8_t motor, uint8_t data,
+uint8_t TmcMotorController::tmc4671ReadWriteByte(uint8_t motor, uint8_t data,
                                            uint8_t last_transfer)
 {
     spi_demux_select_0_->setValue(GpioState::HIGH);
@@ -273,7 +283,7 @@ uint8_t TmcMotor::tmc4671ReadWriteByte(uint8_t motor, uint8_t data,
     return readWriteByte(motor, data, last_transfer, TMC4671_SPI_SPEED);
 }
 
-uint8_t TmcMotor::tmc6100ReadWriteByte(uint8_t motor, uint8_t data,
+uint8_t TmcMotorController::tmc6100ReadWriteByte(uint8_t motor, uint8_t data,
                                            uint8_t last_transfer)
 {
     spi_demux_select_0_->setValue(GpioState::LOW);
@@ -281,7 +291,7 @@ uint8_t TmcMotor::tmc6100ReadWriteByte(uint8_t motor, uint8_t data,
     return readWriteByte(motor, data, last_transfer, TMC6100_SPI_SPEED);
 }
 
-uint8_t TmcMotor::readWriteByte(uint8_t motor, uint8_t data, uint8_t last_transfer,
+uint8_t TmcMotorController::readWriteByte(uint8_t motor, uint8_t data, uint8_t last_transfer,
                                     uint32_t spi_speed)
 {
     uint8_t ret_byte = 0;
@@ -343,7 +353,7 @@ uint8_t TmcMotor::readWriteByte(uint8_t motor, uint8_t data, uint8_t last_transf
     return ret_byte;
 }
 
-void MotorService::writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int32_t value)
+void TmcMotorController::writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int32_t value)
 {
     int num_retires_left = NUM_RETRIES_SPI;
     int read_value       = 0;
@@ -372,7 +382,7 @@ void MotorService::writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int3
                                << " received: " << read_value;
 }
 
-void TmcMotor::resetMotor()
+void TmcMotorController::resetMotor()
 {
     reset_gpio_->setValue(GpioState::LOW);
 }
