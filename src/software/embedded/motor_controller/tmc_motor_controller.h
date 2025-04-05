@@ -113,7 +113,7 @@ class TmcMotorController : public MotorController
     uint8_t position_       = 0;
 
     // SPI Trinamic Motor Driver Paths
-    static constexpr std::map<MotorIndex, std::string> SPI_PATHS = {
+    static const inline std::unordered_map<MotorIndex, std::string> SPI_PATHS = {
         {MotorIndex::FRONT_LEFT, "/dev/spidev0.0"},
         {MotorIndex::FRONT_RIGHT, "/dev/spidev0.1"},
         {MotorIndex::BACK_LEFT, "/dev/spidev0.2"},
