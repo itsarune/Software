@@ -3,6 +3,9 @@
 #include <cstdint>
 #include <string.h>
 
+void readThenWriteSpiTransfer(int fd, const uint8_t* read_tx, const uint8_t* write_tx, const uint8_t* read_rx,
+        uint32_t spi_speed);
+
     /**
      * Trigger an SPI transfer over an open SPI connection
      *

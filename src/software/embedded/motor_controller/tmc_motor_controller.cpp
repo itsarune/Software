@@ -1,5 +1,6 @@
 #include "software/embedded/motor_controller/tmc_motor_controller.h"
 
+#include "software/embedded/spi_utils.h"
 #include "software/logger/logger.h"
 
 extern "C"
@@ -9,6 +10,9 @@ extern "C"
 #include "external/trinamic/tmc/ic/TMC4671/TMC4671_Variants.h"
 #include "external/trinamic/tmc/ic/TMC6100/TMC6100.h"
 }
+
+#include <bitset>
+#include <linux/spi/spidev.h>
 
 extern "C"
 {
@@ -40,11 +44,61 @@ TmcMotorController::TmcMotorController()
       reset_gpio_(
           setupGpio(MOTOR_DRIVER_RESET_GPIO, GpioDirection::OUTPUT, GpioState::HIGH))
 {
-    openSpiFileDescriptor(front_left, FRONT_LEFT_MOTOR_CHIP_SELECT)
-    openSpiFileDescriptor(front_right, FRONT_RIGHT_MOTOR_CHIP_SELECT)
-    openSpiFileDescriptor(back_left, BACK_LEFT_MOTOR_CHIP_SELECT)
-    openSpiFileDescriptor(back_right, BACK_RIGHT_MOTOR_CHIP_SELECT)
-    openSpiFileDescriptor(dribbler, DRIBBLER_MOTOR_CHIP_SELECT)
+    openSpiFileDescriptor(MotorIndex::FRONT_LEFT);
+    openSpiFileDescriptor(MotorIndex::FRONT_RIGHT);
+    openSpiFileDescriptor(MotorIndex::BACK_LEFT);
+    openSpiFileDescriptor(MotorIndex::BACK_RIGHT);
+    openSpiFileDescriptor(MotorIndex::DRIBBLER);
+}
+
+void TmcMotorController::writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int32_t value)
+{
+    int num_retires_left = NUM_RETRIES_SPI;
+    int read_value       = 0;
+
+    // The SPI lines have a lot of noise, and sometimes a transfer will fail
+    // randomly. So we retry a few times before giving up.
+    while (num_retires_left > 0)
+    {
+        tmc6100_writeInt(motor, address, value);
+        read_value = tmc6100_readInt(motor, address);
+        if (read_value == value)
+        {
+            return;
+        }
+        LOG(DEBUG) << "SPI Transfer to Driver Failed, retrying...";
+        num_retires_left--;
+    }
+
+    // If we get here, we have failed to write to the driver. We reset
+    // the chip to clear any bad values we just wrote and crash so everything stops.
+    reset_gpio_->setValue(GpioState::LOW);
+    CHECK(read_value == value) << "Couldn't write " << value
+                               << " to the TMC6100 at address " << address
+                               << " at address " << static_cast<uint32_t>(address)
+                               << " on motor " << static_cast<uint32_t>(motor)
+                               << " received: " << read_value;
+}
+
+void TmcMotorController::writeToControllerOrDieTrying(uint8_t motor, uint8_t address,
+                                                int32_t value)
+{
+    int num_retires_left = NUM_RETRIES_SPI;
+    int read_value       = 0;
+
+    // The SPI lines have a lot of noise, and sometimes a transfer will fail
+    // randomly. So we retry a few times before giving up.
+    while (num_retires_left > 0)
+    {
+        tmc4671_writeInt(motor, address, value);
+        read_value = tmc4671_readInt(motor, address);
+        if (read_value == value)
+        {
+            return;
+        }
+        LOG(DEBUG) << "SPI Transfer to Controller Failed, retrying...";
+        num_retires_left--;
+    }
 }
 
 void TmcMotorController::setup()
@@ -90,17 +144,110 @@ void TmcMotorController::setup()
     }
 }
 
-Motor::MotorFaultIndicator TmcMotorController::checkDriverFault(uint8_t motor)
+void TmcMotorController::configurePWM(uint8_t motor)
+{
+    LOG(INFO) << "Configuring PWM for motor " << static_cast<uint32_t>(motor);
+    // Please read the header file and the datasheet for more info
+    writeToControllerOrDieTrying(motor, TMC4671_PWM_POLARITIES, 0x00000000);
+    writeToControllerOrDieTrying(motor, TMC4671_PWM_MAXCNT, 0x00000F9F);
+    writeToControllerOrDieTrying(motor, TMC4671_PWM_BBM_H_BBM_L, 0x00002828);
+    writeToControllerOrDieTrying(motor, TMC4671_PWM_SV_CHOP, 0x00000107);
+}
+
+void TmcMotorController::configureDrivePI(uint8_t motor)
+{
+    LOG(INFO) << "Configuring Drive PI for motor " << static_cast<uint32_t>(motor);
+    // Please read the header file and the datasheet for more info
+    // These values were calibrated using the TMC-IDE
+    writeToControllerOrDieTrying(motor, TMC4671_PID_FLUX_P_FLUX_I, 67109376);
+    writeToControllerOrDieTrying(motor, TMC4671_PID_TORQUE_P_TORQUE_I, 67109376);
+    writeToControllerOrDieTrying(motor, TMC4671_PID_VELOCITY_P_VELOCITY_I, 52428800);
+
+    // Explicitly disable the position controller
+    writeToControllerOrDieTrying(motor, TMC4671_PID_POSITION_P_POSITION_I, 0);
+
+    writeToControllerOrDieTrying(motor, TMC4671_PIDOUT_UQ_UD_LIMITS, 32767);
+    writeToControllerOrDieTrying(motor, TMC4671_PID_TORQUE_FLUX_LIMITS, 2500);
+    writeToControllerOrDieTrying(motor, TMC4671_PID_ACCELERATION_LIMIT, 1000);
+
+    writeToControllerOrDieTrying(motor, TMC4671_PID_VELOCITY_LIMIT, 45000);
+
+    tmc4671_switchToMotionMode(motor, TMC4671_MOTION_MODE_VELOCITY);
+}
+
+void TmcMotorController::configureDribblerPI(uint8_t motor)
+{
+    LOG(INFO) << "Configuring Dribbler PI for motor " << static_cast<uint32_t>(motor);
+    // Please read the header file and the datasheet for more info
+    // These values were calibrated using the TMC-IDE
+    writeToControllerOrDieTrying(motor, TMC4671_PID_FLUX_P_FLUX_I, 39337600);
+    writeToControllerOrDieTrying(motor, TMC4671_PID_TORQUE_P_TORQUE_I, 39333600);
+    writeToControllerOrDieTrying(motor, TMC4671_PID_VELOCITY_P_VELOCITY_I, 2621448);
+
+    // Explicitly disable the position controller
+    writeToControllerOrDieTrying(motor, TMC4671_PID_POSITION_P_POSITION_I, 0);
+
+    writeToControllerOrDieTrying(motor, TMC4671_PIDOUT_UQ_UD_LIMITS, 32767);
+    // TODO (#2677) support MAX_FORCE mode. This value can go up to 4.8 amps but we set it
+    // to 2 for now (sufficient for INDEFINITE mode).
+    writeToControllerOrDieTrying(motor, TMC4671_PID_TORQUE_FLUX_LIMITS, 4000);
+    writeToControllerOrDieTrying(motor, TMC4671_PID_ACCELERATION_LIMIT, 40000);
+    writeToControllerOrDieTrying(motor, TMC4671_PID_VELOCITY_LIMIT, 15000);
+}
+
+void TmcMotorController::configureADC(uint8_t motor)
+{
+    LOG(INFO) << "Configuring ADC for motor " << static_cast<uint32_t>(motor);
+    // ADC configuration
+    writeToControllerOrDieTrying(motor, TMC4671_ADC_I_SELECT, 0x18000100);
+    writeToControllerOrDieTrying(motor, TMC4671_dsADC_MDEC_B_MDEC_A, 0x014E014E);
+
+    // These values have been calibrated for the TI INA240 current sense amplifier.
+    // The scaling is also set to work with both the drive and dribbler motors.
+    //
+    // If you wish to use the TMC4671+TMC6100-BOB you can use the following values,
+    // that work for the AD8418 current sense amplifier
+    //
+    // TMC4671_ADC_I0_SCALE_OFFSET = 0x010081DD
+    // TMC4671_ADC_I1_SCALE_OFFSET = 0x0100818E
+    //
+    writeToControllerOrDieTrying(motor, TMC4671_ADC_I0_SCALE_OFFSET, 0x000981DD);
+    writeToControllerOrDieTrying(motor, TMC4671_ADC_I1_SCALE_OFFSET, 0x0009818E);
+}
+
+void TmcMotorController::configureEncoder(uint8_t motor)
+{
+    LOG(INFO) << "Configuring Encoder for motor " << static_cast<uint32_t>(motor);
+    // ABN encoder settings
+    writeToControllerOrDieTrying(motor, TMC4671_ABN_DECODER_MODE, 0x00000000);
+    writeToControllerOrDieTrying(motor, TMC4671_ABN_DECODER_PPR, 0x00001000);
+}
+
+void TmcMotorController::configureHall(uint8_t motor)
+{
+    LOG(INFO) << "Configuring Hall for motor " << static_cast<uint32_t>(motor);
+    // Digital hall settings
+    writeToControllerOrDieTrying(motor, TMC4671_HALL_MODE, 0x00000000);
+    writeToControllerOrDieTrying(motor, TMC4671_HALL_PHI_E_PHI_M_OFFSET, 0x00000000);
+
+    // Feedback selection
+    writeToControllerOrDieTrying(motor, TMC4671_PHI_E_SELECTION, TMC4671_PHI_E_HALL);
+    writeToControllerOrDieTrying(motor, TMC4671_VELOCITY_SELECTION,
+                                 TMC4671_VELOCITY_PHI_E_HAL);
+}
+
+MotorFaultIndicator TmcMotorController::checkDriverFault(MotorIndex motor)
 {
     bool drive_enabled = true;
     std::unordered_set<TbotsProto::MotorFault> motor_faults;
 
-    int gstat = tmc6100_readInt(motor, TMC6100_GSTAT);
+    uint8_t motor_cs = CHIP_SELECTS[motor];
+    int gstat = tmc6100_readInt(motor_cs, TMC6100_GSTAT);
     std::bitset<32> gstat_bitset(gstat);
 
     if (gstat_bitset.any())
     {
-        LOG(WARNING) << "======= Faults For Motor " << std::to_string(motor) << "=======";
+        LOG(WARNING) << "======= Faults For Motor " << motor << "=======";
     }
 
     if (gstat_bitset[0])
@@ -208,7 +355,7 @@ Motor::MotorFaultIndicator TmcMotorController::checkDriverFault(uint8_t motor)
     return MotorFaultIndicator(drive_enabled, motor_faults);
 }
 
-double TmcMotorController::readThenWriteValue(const MotorIndex motor, const int value)
+double TmcMotorController::readThenWriteValue(const MotorIndex motor, const uint8_t read_addr, const uint8_t write_addr, const int write_data)
 {
     spi_demux_select_0_->setValue(GpioState::HIGH);
     spi_demux_select_1_->setValue(GpioState::LOW);
@@ -250,29 +397,81 @@ double TmcMotorController::readThenWriteValue(const MotorIndex motor, const int 
 void TmcMotorController::openSpiFileDescriptor(const MotorIndex& motor_index)
 {
     file_descriptors_[motor_index] = open(SPI_PATHS[motor_index], O_RDWR);
-    CHECK(file_descriptors_[motor_index] >= 0) << "can't open device: " << std::string(motor_index)
+    CHECK(file_descriptors_[motor_index] >= 0) << "can't open device: " << motor_index
                                                << "error: " << strerror(errno);
 
     int ret = ioctl(file_descriptors_[motor_index], SPI_IOC_WR_MODE32, &SPI_MODE);
-    CHECK(ret != -1) << "can't set spi mode for: " << std::string(motor_index)
+    CHECK(ret != -1) << "can't set spi mode for: " << motor_index
                      << "error: " << strerror(errno);
 
     ret = ioctl(file_descriptors_[motor_index], SPI_IOC_WR_BITS_PER_WORD, &SPI_BITS);
-    CHECK(ret != -1) << "can't set bits_per_word for: " << std::string(motor_index)
+    CHECK(ret != -1) << "can't set bits_per_word for: " << motor_index
                      << "error: " << strerror(errno);
 
     ret = ioctl(file_descriptors_[motor_index], SPI_IOC_WR_MAX_SPEED_HZ, &MAX_SPI_SPEED_HZ);
-    CHECK(ret != -1) << "can't set spi max speed hz for: " << std::string(motor_index)
+    CHECK(ret != -1) << "can't set spi max speed hz for: " << motor_index
                      << "error: " << strerror(errno);
 }
 
-void TmcMotorController::setUpDriveMotor(uint8_t motor)
+void TmcMotorController::setUpDriveMotor(MotorIndex motor)
 {
     startDriver(motor);
     checkDriverFault(motor);
     // Start all the controllers as drive motor controllers
     startController(motor, false);
     tmc4671_setTargetVelocity(motor, 0);
+}
+
+void TmcMotorController::startDriver(MotorIndex motor)
+{
+    uint8_t motor_cs = CHIP_SELECTS[motor];
+
+    // Set the drive strength to 0, the weakest it can go as recommended
+    // by the TMC4671-TMC6100-BOB datasheet.
+    int32_t current_drive_conf = tmc6100_readInt(motor_cs, TMC6100_DRV_CONF);
+    writeToDriverOrDieTrying(motor_cs, TMC6100_DRV_CONF,
+                             current_drive_conf & (~TMC6100_DRVSTRENGTH_MASK));
+    writeToDriverOrDieTrying(motor_cs, TMC6100_GCONF, 0x40);
+
+    // All default but updated SHORTFILTER to 2us to avoid false positive shorts
+    // detection.
+    writeToDriverOrDieTrying(motor_cs, TMC6100_SHORT_CONF, 0x13020606);
+
+    LOG(DEBUG) << "Driver " << std::to_string(motor) << " accepted conf";
+}
+
+void TmcMotorController::startController(MotorIndex motor, bool dribbler)
+{
+    uint8_t motor_cs = CHIP_SELECTS[motor];
+
+    // Read the chip ID to validate the SPI connection
+    tmc4671_writeInt(motor_cs, TMC4671_CHIPINFO_ADDR, 0x000000000);
+    int chip_id = tmc4671_readInt(motor_cs, TMC4671_CHIPINFO_DATA);
+
+    CHECK(0x34363731 == chip_id) << "The TMC4671 of motor "
+                                 << static_cast<uint32_t>(motor) << " is not responding";
+
+    LOG(DEBUG) << "Controller " << std::to_string(motor)
+               << " online, responded with: " << chip_id;
+
+    // Configure common controller params
+    configurePWM(motor);
+    configureADC(motor);
+
+    if (dribbler)
+    {
+        // Configure to brushless DC motor with 1 pole pair
+        writeToControllerOrDieTrying(motor, TMC4671_MOTOR_TYPE_N_POLE_PAIRS, 0x00030001);
+        configureHall(motor);
+
+        configureDribblerPI(motor);
+    }
+    else
+    {
+        // Configure to brushless DC motor with 8 pole pairs
+        writeToControllerOrDieTrying(motor, TMC4671_MOTOR_TYPE_N_POLE_PAIRS, 0x00030008);
+        configureEncoder(motor);
+    }
 }
 
 uint8_t TmcMotorController::tmc4671ReadWriteByte(uint8_t motor, uint8_t data,

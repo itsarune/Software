@@ -162,56 +162,6 @@ class MotorService
     void motorServiceInit(const RobotConstants_t& robot_constants,
                           int control_loop_frequency_hz);
 
-    /**
-     * Calls the configuration functions below in the right sequence
-     *
-     * @param motor The motor setup the driver/controller for
-     * @param dribbler If true, configures the motor to be a dribbler
-     */
-    void startDriver(uint8_t motor);
-    void startController(uint8_t motor, bool dribbler);
-
-    /**
-     * Configuration settings
-     *
-     * These values were determined by reading the datasheets and user manual
-     * here: https://www.trinamic.com/support/eval-kits/details/tmc4671-tmc6100-bob/
-     *
-     * If you are planning to change these settings, I highly recommend that you
-     * plug the motor + encoder pair in the TMC-IDE and use the TMC4671 EVAL
-     * with the TMC6100 EVAL to get the motor spinning.
-     *
-     * Then using the exported registers as a baseline, you can use the
-     * runOpenLoopCalibrationRoutine and plot the generated csvs. These csvs capture the
-     * data for encoder calibration and adc configuration, the two most important steps
-     * for the motor to work. Page 143 (title Setup Guidelines) of the TMC4671 is very
-     * useful.
-     *
-     * @param motor The motor to configure (the same value as the chip select)
-     */
-    void configurePWM(uint8_t motor);
-    void configureDribblerPI(uint8_t motor);
-    void configureDrivePI(uint8_t motor);
-    void configureADC(uint8_t motor);
-    void configureEncoder(uint8_t motor);
-    void configureHall(uint8_t motor);
-
-    /**
-     * A lot of initialization parameters are necessary to function. Even if
-     * there is a single bit error, we can risk frying the motor driver or
-     * controller.
-     *
-     * The following functions can be used to setup initialization params
-     * that _must_ be set to continue. A failed call will crash the program
-     *
-     * @param motor Which motor to talk to (in our case, the chip select)
-     * @param address The address to send data to
-     * @param value The value to write
-     *
-     */
-    void writeToControllerOrDieTrying(uint8_t motor, uint8_t address, int32_t value);
-    void writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int32_t value);
-
 
     /**
      * Performs two back to back SPI transactions, first a read and then a write.
@@ -327,9 +277,6 @@ class MotorService
 
     // to check if the motors have been calibrated
     bool is_initialized_ = false;
-
-    // SPI File Descriptors
-    std::unordered_map<int, int> file_descriptors_;
 
     RobotConstants_t robot_constants_;
 

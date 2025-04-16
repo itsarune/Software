@@ -28,6 +28,7 @@ cc_library(
         ":motor_board",
         ":motor_fault_indicator",
         ":motor_index",
+        "//software/embedded/constants:constants",
         "//software/embedded:spi_utils",
         "//software/embedded/gpio:gpio",
         "//software/logger:logger",
