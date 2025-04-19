@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+message MotorControl
+{
+  uint32 crc = 1;
+
+  oneof Command
+  {
+    SetSpeed set_speed = 2;
+  }
+}
+
+message SetSpeed
+{
+  uint32 speed = 1;
+}

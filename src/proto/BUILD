@@ -12,6 +12,7 @@ proto_library(
         "geneva_slot.proto",
         "geometry.proto",
         "ip_notification.proto",
+        "motor_control.proto",
         "parameters.proto",
         "play.proto",
         "power_frame_msg.proto",
