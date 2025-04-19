@@ -22,6 +22,8 @@
 
 #include "proto/tbots_software_msgs.pb.h"
 #include "software/embedded/motor_controller/motor_board.h"
+#include "software/embedded/motor_controller/stspin_motor_controller.h"
+#include "software/embedded/motor_controller/tmc_motor_controller.h"
 #include "software/logger/logger.h"
 #include "software/util/scoped_timespec_timer/scoped_timespec_timer.h"
 
@@ -34,20 +36,11 @@ static int DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S_2 = 10000;
 MotorService::MotorService(const RobotConstants_t& robot_constants,
                            int control_loop_frequency_hz)
     : motor_controller_(setupMotorController()),
-      spi_demux_select_0_(setupGpio(SPI_CS_DRIVER_TO_CONTROLLER_MUX_0_GPIO,
-                                    GpioDirection::OUTPUT, GpioState::LOW)),
-      spi_demux_select_1_(setupGpio(SPI_CS_DRIVER_TO_CONTROLLER_MUX_1_GPIO,
-                                    GpioDirection::OUTPUT, GpioState::LOW)),
-      driver_control_enable_gpio_(
-          setupGpio(DRIVER_CONTROL_ENABLE_GPIO, GpioDirection::OUTPUT, GpioState::HIGH)),
-      reset_gpio_(
-          setupGpio(MOTOR_DRIVER_RESET_GPIO, GpioDirection::OUTPUT, GpioState::HIGH)),
       robot_constants_(robot_constants),
       euclidean_to_four_wheel_(robot_constants),
       motor_fault_detector_(0),
       dribbler_ramp_rpm_(0),
-      tracked_motor_fault_start_time_(std::nullopt),
-      num_tracked_motor_resets_(0)
+      tracked_motor_fault_start_time_(std::nullopt)
 {
 }
 
@@ -55,6 +48,11 @@ MotorService::~MotorService() {}
 
 void MotorService::setup()
 {
+    for (const MotorIndex& motor : reflective_enum::values<MotorIndex>())
+    {
+        cached_motor_faults_[motor] = MotorFaultIndicator();
+    }
+
     const auto now                             = std::chrono::system_clock::now();
     long int total_duration_since_last_fault_s = 0;
     if (tracked_motor_fault_start_time_.has_value())
@@ -113,11 +111,12 @@ TbotsProto::MotorStatus MotorService::updateMotorStatus(double front_left_veloci
 {
     TbotsProto::MotorStatus motor_status;
 
-    cached_motor_faults_[motor_fault_detector_] = motor->checkDriverFault(motor_fault_detector_);
+    cached_motor_faults_[motor_fault_detector_] = motor_controller_->checkDriverFault(motor_fault_detector_);
 
     for (uint8_t motor = 0; motor < NUM_MOTORS; ++motor)
+    for (const MotorIndex& motor : reflective_enum::values<MotorIndex>())
     {
-        if (motor != DRIBBLER_MOTOR_CHIP_SELECT)
+        if (motor != MotorIndex::DRIBBLER)
         {
             TbotsProto::DriveUnit drive_status;
             drive_status.set_enabled(cached_motor_faults_[motor].drive_enabled);
@@ -170,7 +169,7 @@ TbotsProto::MotorStatus MotorService::updateMotorStatus(double front_left_veloci
         static_cast<float>(back_right_velocity_mps));
 
     motor_fault_detector_ =
-        static_cast<uint8_t>((motor_fault_detector_ + 1) % NUM_MOTORS);
+        static_cast<MotorIndex>((static_cast<int>(motor_fault_detector_) + 1) % reflective_enum::size<MotorIndex>());
 
     return motor_status;
 }
@@ -178,22 +177,17 @@ TbotsProto::MotorStatus MotorService::updateMotorStatus(double front_left_veloci
 TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor,
                                            double time_elapsed_since_last_poll_s)
 {
-    bool encoders_calibrated = (encoder_calibrated_[FRONT_LEFT_MOTOR_CHIP_SELECT] ||
-                                encoder_calibrated_[FRONT_RIGHT_MOTOR_CHIP_SELECT] ||
-                                encoder_calibrated_[BACK_LEFT_MOTOR_CHIP_SELECT] ||
-                                encoder_calibrated_[BACK_RIGHT_MOTOR_CHIP_SELECT]);
-
-    if (!encoders_calibrated)
+    if (motor_controller_->earlyPoll() != MotorControllerStatus::OK)
     {
         is_initialized_ = false;
     }
 
     // checks if any motor has reset, sends a log message if so
-    for (uint8_t motor = 0; motor < NUM_MOTORS; ++motor)
+    for (const MotorIndex& motor_index : MotorIndex::values)
     {
-        if (requiresMotorReinit(motor))
+        if (requiresMotorReinit(motor_index))
         {
-            LOG(DEBUG) << "RESET DETECTED FOR MOTOR: " << MOTOR_NAMES[motor];
+            LOG(DEBUG) << "RESET DETECTED FOR MOTOR: " << motor_index;
             is_initialized_ = false;
         }
     }
@@ -213,10 +207,16 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
     // Get current wheel electical RPM (don't account for pole pairs). We will use these
     // for robot status feedback We assume the motors have ramped to the expected RPM from
     // the previous iteration.
-    double front_right_velocity = writeThenReadValue(FRONT_RIGHT, front_right_target_rpm*MECHANICAL_MPS_PER_ELECTRICAL_RPM);
-    double front_left_velocity = writeThenReadValue(FRONT_LEFT, front_left_target_rpm*MECHANICAL_MPS_PER_ELECTRICAL_RPM);
-    double back_right_velocity = writeThenReadValue(BACK_RIGHT, back_right_target_rpm*MECHANICAL_MPS_PER_ELECTRICAL_RPM);
-    double back_left_velocity = writeThenReadValue(BACK_LEFT, back_left_target_rpm*MECHANICAL_MPS_PER_ELECTRICAL_RPM);
+    double front_right_velocity = motor_controller_->readThenWriteVelocity(MotorIndex::FRONT_RIGHT,
+            front_right_target_rpm)*MECHANICAL_MPS_PER_ELECTRICAL_RPM;
+    double front_left_velocity = motor_controller_->readThenWriteVelocity(MotorIndex::FRONT_LEFT,
+            front_left_target_rpm)*MECHANICAL_MPS_PER_ELECTRICAL_RPM;
+    double back_right_velocity = motor_controller_->readThenWriteVelocity(MotorIndex::BACK_RIGHT,
+            back_right_target_rpm)*MECHANICAL_MPS_PER_ELECTRICAL_RPM;
+    double back_left_velocity = motor_controller_->readThenWriteVelocity(MotorIndex::BACK_LEFT,
+            back_left_target_rpm)*MECHANICAL_MPS_PER_ELECTRICAL_RPM;
+    double dribbler_rpm = motor_controller_->readThenWriteVelocity(MotorIndex::DRIBBLER,
+            dribbler_ramp_rpm_);
 
     // Construct a MotorStatus object with the current velocities and dribbler rpm
     TbotsProto::MotorStatus motor_status =
@@ -233,28 +233,28 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
                  prev_wheel_velocities_[FRONT_RIGHT_WHEEL_SPACE_INDEX]) >
         RUNAWAY_PROTECTION_THRESHOLD_MPS)
     {
-        driver_control_enable_gpio_->setValue(GpioState::LOW);
+        motor_controller_->immediatelyDisable();
         LOG(FATAL) << "Front right motor runaway";
     }
     else if (std::abs(current_wheel_velocities[FRONT_LEFT_WHEEL_SPACE_INDEX] -
                       prev_wheel_velocities_[FRONT_LEFT_WHEEL_SPACE_INDEX]) >
              RUNAWAY_PROTECTION_THRESHOLD_MPS)
     {
-        driver_control_enable_gpio_->setValue(GpioState::LOW);
+        motor_controller_->immediatelyDisable();
         LOG(FATAL) << "Front left motor runaway";
     }
     else if (std::abs(current_wheel_velocities[BACK_LEFT_WHEEL_SPACE_INDEX] -
                       prev_wheel_velocities_[BACK_LEFT_WHEEL_SPACE_INDEX]) >
              RUNAWAY_PROTECTION_THRESHOLD_MPS)
     {
-        driver_control_enable_gpio_->setValue(GpioState::LOW);
+        motor_controller_->immediatelyDisable();
         LOG(FATAL) << "Back left motor runaway";
     }
     else if (std::abs(current_wheel_velocities[BACK_RIGHT_WHEEL_SPACE_INDEX] -
                       prev_wheel_velocities_[BACK_RIGHT_WHEEL_SPACE_INDEX]) >
              RUNAWAY_PROTECTION_THRESHOLD_MPS)
     {
-        driver_control_enable_gpio_->setValue(GpioState::LOW);
+        motor_controller_->immediatelyDisable();
         LOG(FATAL) << "Back right motor runaway";
     }
 
@@ -348,7 +348,7 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
     return motor_status;
 }
 
-bool MotorService::requiresMotorReinit(uint8_t motor)
+bool MotorService::requiresMotorReinit(const MotorIndex& motor)
 {
     auto reset_search =
         cached_motor_faults_[motor].motor_faults.find(TbotsProto::MotorFault::RESET);

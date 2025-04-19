@@ -1,6 +1,11 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "motor_controller_status",
+    hdrs = ["motor_controller_status.h"]
+)
+
+cc_library(
     name = "motor_index",
     hdrs = ["motor_index.h"],
     deps = [
@@ -29,6 +34,7 @@ cc_library(
     ],
     deps = [
         ":motor_board",
+        ":motor_controller_status",
         ":motor_fault_indicator",
         ":motor_index",
         "//software/embedded/constants:constants",

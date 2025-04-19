@@ -13,12 +13,15 @@ class TmcMotorController : public MotorController
     public:
     TmcMotorController();
         
+    MotorControllerStatus earlyPoll() override;
+
     void reset() override;
 
-    MotorFaultIndicator checkDriverFault(MotorIndex motor) override;
+    MotorFaultIndicator checkDriverFault(const MotorIndex& motor) override;
 
-    double readThenWriteValue(const MotorIndex motor, const uint8_t read_addr, const uint8_t write_addr,
-            const uint8_t write_data) override;
+    void immediatelyDisable() override;
+
+    double readThenWriteVelocity(const MotorIndex& motor, const int& target_velocity) override;
 
     private:
     /**
@@ -42,6 +45,9 @@ class TmcMotorController : public MotorController
      */
     void openSpiFileDescriptor(const MotorIndex& motor_name);
 
+    double readThenWriteValue(const MotorIndex& motor, const uint8_t& read_addr, const uint8_t& write_addr,
+            const int& write_data);
+
     /**
      * A lot of initialization parameters are necessary to function. Even if
      * there is a single bit error, we can risk frying the motor driver or
@@ -55,12 +61,12 @@ class TmcMotorController : public MotorController
      * @param value The value to write
      *
      */
-    void writeToControllerOrDieTrying(uint8_t motor, uint8_t address, int32_t value);
+    void writeToControllerOrDieTrying(const MotorIndex& motor, uint8_t address, int32_t value);
     void writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int32_t value);
 
     void setup();
 
-    void setUpDriveMotor(const MotorIndex motor);
+    void setupDriveMotor(const MotorIndex& motor);
 
     /**
      * Calls the configuration functions below in the right sequence
@@ -141,6 +147,23 @@ class TmcMotorController : public MotorController
 
     void resetMotor();
 
+    /*
+     * For FOC to work, the controller needs to know the electical angle of the rotor
+     * relative to the mechanical angle of the rotor. In an incremental-encoder-only
+     * setup, we can energize the motor coils so that the rotor locks itself along
+     * one of its pole-pairs, allowing us to reset the encoder.
+     *
+     * WARNING: Do not try to spin the motor without initializing the encoder!
+     *          The motor can overheat if the TMC4671 doesn't auto shut-off.
+     *
+     *          There are some safety checks to ensure that the encoder is
+     *          initialized, do not tamper with them. You have been warned.
+     *
+     * @param motor The motor to initialize the encoder for
+     */
+    void startEncoderCalibration(const MotorIndex& motor);
+    void endEncoderCalibration(const MotorIndex& motor);
+
     void checkEncoderConnections();
 
     // Select between driver and controller gpio
@@ -165,6 +188,9 @@ class TmcMotorController : public MotorController
     bool currently_writing_ = false;
     bool currently_reading_ = false;
     uint8_t position_       = 0;
+
+    // Tracks whether each motor's encoder has been calibrated
+    std::unordered_map<MotorIndex, bool> encoder_calibrated_;
 
     // SPI Chip Selects
     static constexpr uint8_t FRONT_LEFT_MOTOR_CHIP_SELECT  = 0;
@@ -202,7 +228,7 @@ class TmcMotorController : public MotorController
                                                   "front_right", "dribbler"};
 
     // SPI File Descriptors mapping from Chip Select -> File Descriptor
-    std::array<int, MotorIndex::size()> file_descriptors_;
+    std::array<int, reflective_enum::size<MotorIndex>()> file_descriptors_;
 
     // Number of times that Thunderloop will try to write the configuration to the driver before giving up
     static constexpr int NUM_RETRIES_SPI = 3;

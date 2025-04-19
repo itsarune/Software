@@ -14,6 +14,7 @@ extern "C"
 
 #include <bitset>
 #include <linux/spi/spidev.h>
+#include <numeric>
 
 extern "C"
 {
@@ -52,6 +53,26 @@ TmcMotorController::TmcMotorController()
     openSpiFileDescriptor(MotorIndex::DRIBBLER);
 }
 
+MotorControllerStatus TmcMotorController::earlyPoll()
+{
+    auto motors = driveMotors();
+    bool encoders_calibrated = std::reduce(motors.begin(), motors.end(), false,
+            [](const bool& acc, const MotorIndex& motor) {
+            return acc || encoder_calibrated_[motor];
+            });
+
+    if (!encoders_calibrated) {
+        return MotorControllerStatus::CALIBRATION_FAILURE;
+    }
+
+    return MotorControllerStatus::OK;
+}
+
+double TmcMotorController::readThenWriteVelocity(const MotorIndex& motor, const int& target_velocity)
+{
+    return readThenWriteValue(motor, TMC4671_PID_VELOCITY_ACTUAL, TMC4671_PID_VELOCITY_TARGET, target_velocity);
+}
+
 void TmcMotorController::writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int32_t value)
 {
     int num_retires_left = NUM_RETRIES_SPI;
@@ -81,7 +102,7 @@ void TmcMotorController::writeToDriverOrDieTrying(uint8_t motor, uint8_t address
                                << " received: " << read_value;
 }
 
-void TmcMotorController::writeToControllerOrDieTrying(uint8_t motor, uint8_t address,
+void TmcMotorController::writeToControllerOrDieTrying(const MotorIndex& motor, uint8_t address,
                                                 int32_t value)
 {
     int num_retires_left = NUM_RETRIES_SPI;
@@ -91,8 +112,8 @@ void TmcMotorController::writeToControllerOrDieTrying(uint8_t motor, uint8_t add
     // randomly. So we retry a few times before giving up.
     while (num_retires_left > 0)
     {
-        tmc4671_writeInt(motor, address, value);
-        read_value = tmc4671_readInt(motor, address);
+        tmc4671_writeInt(CHIP_SELECTS[motor], address, value);
+        read_value = tmc4671_readInt(CHIP_SELECTS[motor], address);
         if (read_value == value)
         {
             return;
@@ -110,18 +131,17 @@ void TmcMotorController::setup()
     reset_gpio_->setValue(GpioState::HIGH);
     usleep(MICROSECONDS_PER_MILLISECOND * 100);
 
-    for (const MotorIndex& motor : MotorIndex::values())
+    for (const MotorIndex& motor : reflective_enum::values<MotorIndex>())
     {
-        LOG(INFO) << "Clearing RESET for " << MOTOR_NAMES[motor];
-        tmc6100_writeInt(motor, TMC6100_GSTAT, 0x00000001);
-        cached_motor_faults_[motor] = MotorFaultIndicator();
-        encoder_calibrated_[motor]  = false;
+        LOG(INFO) << "Clearing RESET for " << motor;
+        tmc6100_writeInt(CHIP_SELECTS[motor], TMC6100_GSTAT, 0x00000001);
+        encoder_calibrated_[motor] = false;
     }
 
     // Drive Motor Setup
     for (const MotorIndex& motor : driveMotors())
     {
-        setUpDriveMotor(motor);
+        setupDriveMotor(motor);
     }
 
     // Dribbler Motor Setup
@@ -237,7 +257,7 @@ void TmcMotorController::configureHall(uint8_t motor)
                                  TMC4671_VELOCITY_PHI_E_HAL);
 }
 
-MotorFaultIndicator TmcMotorController::checkDriverFault(MotorIndex motor)
+MotorFaultIndicator TmcMotorController::checkDriverFault(const MotorIndex& motor)
 {
     bool drive_enabled = true;
     std::unordered_set<TbotsProto::MotorFault> motor_faults;
@@ -356,7 +376,8 @@ MotorFaultIndicator TmcMotorController::checkDriverFault(MotorIndex motor)
     return MotorFaultIndicator(drive_enabled, motor_faults);
 }
 
-double TmcMotorController::readThenWriteValue(const MotorIndex motor, const uint8_t read_addr, const uint8_t write_addr, const int write_data)
+double TmcMotorController::readThenWriteValue(const MotorIndex& motor, const uint8_t& read_addr,
+        const uint8_t& write_addr, const int& write_data)
 {
     spi_demux_select_0_->setValue(GpioState::HIGH);
     spi_demux_select_1_->setValue(GpioState::LOW);
@@ -397,24 +418,24 @@ double TmcMotorController::readThenWriteValue(const MotorIndex motor, const uint
 
 void TmcMotorController::openSpiFileDescriptor(const MotorIndex& motor_index)
 {
-    file_descriptors_[CHIP_SELECTS.at(motor_index)] = open(SPI_PATHS[motor_index], O_RDWR);
-    CHECK(file_descriptors_[motor_index] >= 0) << "can't open device: " << motor_index
+    file_descriptors_[CHIP_SELECTS[motor_index]] = open(SPI_PATHS[motor_index], O_RDWR);
+    CHECK(file_descriptors_[CHIP_SELECTS[motor_index]] >= 0) << "can't open device: " << motor_index
                                                << "error: " << strerror(errno);
 
-    int ret = ioctl(file_descriptors_[motor_index], SPI_IOC_WR_MODE32, &SPI_MODE);
+    int ret = ioctl(file_descriptors_[CHIP_SELECTS[motor_index]], SPI_IOC_WR_MODE32, &SPI_MODE);
     CHECK(ret != -1) << "can't set spi mode for: " << motor_index
                      << "error: " << strerror(errno);
 
-    ret = ioctl(file_descriptors_[motor_index], SPI_IOC_WR_BITS_PER_WORD, &SPI_BITS);
+    ret = ioctl(file_descriptors_[CHIP_SELECTS[motor_index]], SPI_IOC_WR_BITS_PER_WORD, &SPI_BITS);
     CHECK(ret != -1) << "can't set bits_per_word for: " << motor_index
                      << "error: " << strerror(errno);
 
-    ret = ioctl(file_descriptors_[motor_index], SPI_IOC_WR_MAX_SPEED_HZ, &MAX_SPI_SPEED_HZ);
+    ret = ioctl(file_descriptors_[CHIP_SELECTS[motor_index]], SPI_IOC_WR_MAX_SPEED_HZ, &MAX_SPI_SPEED_HZ);
     CHECK(ret != -1) << "can't set spi max speed hz for: " << motor_index
                      << "error: " << strerror(errno);
 }
 
-void TmcMotorController::setUpDriveMotor(const MotorIndex& motor)
+void TmcMotorController::setupDriveMotor(const MotorIndex& motor)
 {
     startDriver(motor);
     checkDriverFault(motor);
@@ -438,7 +459,7 @@ void TmcMotorController::startDriver(MotorIndex motor)
     // detection.
     writeToDriverOrDieTrying(motor_cs, TMC6100_SHORT_CONF, 0x13020606);
 
-    LOG(DEBUG) << "Driver " << std::to_string(motor) << " accepted conf";
+    LOG(DEBUG) << "Driver " << motor << " accepted conf";
 }
 
 void TmcMotorController::startController(MotorIndex motor, bool dribbler)
@@ -514,7 +535,7 @@ uint8_t TmcMotorController::readWriteByte(uint8_t motor, uint8_t data, uint8_t l
             // The first byte should contain the address on a read operation.
             // Trigger a transfer (1 byte) and buffer the response (4 bytes)
             tx_[position_] = data;
-            spiTransfer(file_descriptors_.at(motor), tx_, rx_, 5, spi_speed);
+            spiTransfer(file_descriptors_[motor], tx_, rx_, 5, spi_speed);
 
             currently_reading_ = true;
             currently_writing_ = false;
@@ -540,7 +561,7 @@ uint8_t TmcMotorController::readWriteByte(uint8_t motor, uint8_t data, uint8_t l
     {
         // we have all the bytes for this transfer, lets trigger the transfer and
         // reset state
-        spiTransfer(file_descriptors_.at(motor), tx_, rx_, 5, spi_speed);
+        spiTransfer(file_descriptors_[motor], tx_, rx_, 5, spi_speed);
         transfer_started_ = false;
     }
 
@@ -557,13 +578,13 @@ void TmcMotorController::checkEncoderConnections()
 {
     LOG(INFO) << "Starting encoder connection check!";
 
-    std::vector<bool> calibrated_motors(NUM_DRIVE_MOTORS, false);
-    std::vector<int> initial_velocities(NUM_DRIVE_MOTORS, 0);
+    std::unordered_map<MotorIndex, bool> calibrated_motors;
+    std::unordered_map<MotorIndex, int> initial_velocities;
 
-    for (uint8_t motor = 0; motor < NUM_DRIVE_MOTORS; ++motor)
+    for (const MotorIndex& motor : driveMotors())
     {
         // read back current velocity
-        initial_velocities[motor] = tmc4671_readInt(motor, TMC4671_ABN_DECODER_COUNT);
+        initial_velocities[motor] = tmc4671_readInt(CHIP_SELECTS[motor], TMC4671_ABN_DECODER_COUNT);
 
         // open loop mode can be used without an encoder, set open loop phi positive
         // direction
@@ -585,10 +606,12 @@ void TmcMotorController::checkEncoderConnections()
     for (int num_iterations = 0;
          num_iterations < 10 &&
          std::any_of(calibrated_motors.begin(), calibrated_motors.end(),
-                     [](bool calibration_status) { return !calibration_status; });
+                     [](std::pair<const MotorIndex, bool> calibration_status_pair) {
+                     return !calibration_status.second;
+                     });
          ++num_iterations)
     {
-        for (uint8_t motor = 0; motor < NUM_DRIVE_MOTORS; ++motor)
+        for (const MotorIndex& motor : driveMotors())
         {
             if (calibrated_motors[motor])
             {
@@ -596,7 +619,7 @@ void TmcMotorController::checkEncoderConnections()
             }
             // now read back the velocity
             int read_back_velocity = tmc4671_readInt(motor, TMC4671_ABN_DECODER_COUNT);
-            LOG(INFO) << MOTOR_NAMES[motor] << " read back: " << read_back_velocity
+            LOG(INFO) << motor << " read back: " << read_back_velocity
                       << " and initially read: " << initial_velocities[motor];
 
             if (read_back_velocity != initial_velocities[motor])
@@ -610,12 +633,12 @@ void TmcMotorController::checkEncoderConnections()
     }
 
     bool calibrated = true;
-    for (uint8_t motor = 0; motor < NUM_DRIVE_MOTORS; ++motor)
+    for (const MotorIndex& motor : driveMotors())
     {
         if (!calibrated_motors[motor])
         {
             calibrated = false;
-            LOG(WARNING) << "Encoder calibration check failure. " << MOTOR_NAMES[motor]
+            LOG(WARNING) << "Encoder calibration check failure. " << motor
                          << " did not change as expected";
         }
     }
@@ -626,7 +649,7 @@ void TmcMotorController::checkEncoderConnections()
     }
 
     // stop all motors, reset back to velocity control mode
-    for (uint8_t motor = 0; motor < NUM_DRIVE_MOTORS; ++motor)
+    for (const MotorIndex& motor : driveMotors())
     {
         writeToControllerOrDieTrying(motor, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x00000000);
         tmc4671_switchToMotionMode(motor, TMC4671_MOTION_MODE_VELOCITY);
@@ -638,4 +661,38 @@ void TmcMotorController::checkEncoderConnections()
 void TmcMotorController::resetMotor()
 {
     reset_gpio_->setValue(GpioState::LOW);
+}
+
+void TmcMotorController::startEncoderCalibration(const MotorIndex& motor)
+{
+    LOG(WARNING) << "Calibrating the encoder, ensure the robot is lifted off the ground";
+
+    writeToControllerOrDieTrying(motor, TMC4671_PID_TORQUE_FLUX_LIMITS, 0x000003E8);
+    writeToControllerOrDieTrying(motor, TMC4671_PID_TORQUE_P_TORQUE_I, 0x01000100);
+    writeToControllerOrDieTrying(motor, TMC4671_PID_FLUX_P_FLUX_I, 0x01000100);
+
+    writeToControllerOrDieTrying(motor, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);
+    writeToControllerOrDieTrying(motor, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET,
+                                 0x00000000);
+    writeToControllerOrDieTrying(motor, TMC4671_PHI_E_SELECTION, 0x00000001);
+    writeToControllerOrDieTrying(motor, TMC4671_PHI_E_EXT, 0x00000000);
+    writeToControllerOrDieTrying(motor, TMC4671_UQ_UD_EXT, 0x00000FFF);
+}
+
+void TmcMotorController::endEncoderCalibration(const MotorIndex& motor)
+{
+    LOG(WARNING) << "Calibrating the encoder, wheels may move";
+
+    writeToControllerOrDieTrying(motor, TMC4671_ABN_DECODER_COUNT, 0x00000000);
+    writeToControllerOrDieTrying(motor, TMC4671_UQ_UD_EXT, 0x00000000);
+    writeToControllerOrDieTrying(motor, TMC4671_PHI_E_SELECTION, TMC4671_PHI_E_ABN);
+
+    encoder_calibrated_[motor] = true;
+
+    configureDrivePI(motor);
+}
+
+void TmcMotorController::immediatelyDisable()
+{
+    driver_control_enable_gpio_->setValue(GpioState::LOW);
 }

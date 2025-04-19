@@ -69,23 +69,6 @@ class MotorService
     uint8_t tmc4671ReadWriteByte(uint8_t motor, uint8_t data, uint8_t last_transfer);
     uint8_t tmc6100ReadWriteByte(uint8_t motor, uint8_t data, uint8_t last_transfer);
 
-    /*
-     * For FOC to work, the controller needs to know the electical angle of the rotor
-     * relative to the mechanical angle of the rotor. In an incremental-encoder-only
-     * setup, we can energize the motor coils so that the rotor locks itself along
-     * one of its pole-pairs, allowing us to reset the encoder.
-     *
-     * WARNING: Do not try to spin the motor without initializing the encoder!
-     *          The motor can overheat if the TMC4671 doesn't auto shut-off.
-     *
-     *          There are some safety checks to ensure that the encoder is
-     *          initialized, do not tamper with them. You have been warned.
-     *
-     * @param motor The motor to initialize the encoder for
-     */
-    void startEncoderCalibration(uint8_t motor);
-    void endEncoderCalibration(uint8_t motor);
-
     /**
      * Spin the motor in openloop mode (safe to run before encoder initialization)
      *
@@ -261,7 +244,7 @@ class MotorService
      *
      * @return true if the motor has returned a cached RESET fault, false otherwise
      */
-    bool requiresMotorReinit(uint8_t motor);
+    bool requiresMotorReinit(const MotorIndex& motor);
 
     // All trinamic RPMS are electrical RPMS, they don't factor in the number of pole
     // pairs of the drive motor.
@@ -282,8 +265,7 @@ class MotorService
 
     // Drive Motors
     EuclideanToWheel euclidean_to_four_wheel_;
-    std::unordered_map<int, bool> encoder_calibrated_;
-    std::unordered_map<int, MotorFaultIndicator> cached_motor_faults_;
+    std::unordered_map<MotorIndex, MotorFaultIndicator> cached_motor_faults_;
 
     // Previous wheel velocities
     WheelSpace_t prev_wheel_velocities_;
@@ -294,7 +276,7 @@ class MotorService
     int back_right_target_rpm  = 0;
 
     // the motor cs id to check for motor faults
-    uint8_t motor_fault_detector_;
+    MotorIndex motor_fault_detector_;
 
     static const int NUM_CALIBRATION_ATTEMPTS = 10;
 
