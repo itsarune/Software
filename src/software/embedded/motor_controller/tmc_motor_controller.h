@@ -18,7 +18,7 @@ class TmcMotorController : public MotorController
     MotorFaultIndicator checkDriverFault(MotorIndex motor) override;
 
     double readThenWriteValue(const MotorIndex motor, const uint8_t read_addr, const uint8_t write_addr,
-            const int write_data) override;
+            const uint8_t write_data) override;
 
     private:
     /**
@@ -60,7 +60,7 @@ class TmcMotorController : public MotorController
 
     void setup();
 
-    void setUpDriveMotor(MotorIndex motor);
+    void setUpDriveMotor(const MotorIndex motor);
 
     /**
      * Calls the configuration functions below in the right sequence
@@ -139,9 +139,9 @@ class TmcMotorController : public MotorController
     uint8_t readWriteByte(uint8_t motor, uint8_t data, uint8_t last_transfer,
                                     uint32_t spi_speed);
 
-    void writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int32_t value);
-
     void resetMotor();
+
+    void checkEncoderConnections();
 
     // Select between driver and controller gpio
     std::unique_ptr<Gpio> spi_demux_select_0_;
@@ -201,8 +201,14 @@ class TmcMotorController : public MotorController
     static constexpr const char* MOTOR_NAMES[] = {"front_left", "back_left", "back_right",
                                                   "front_right", "dribbler"};
 
+    // SPI File Descriptors mapping from Chip Select -> File Descriptor
+    std::array<int, MotorIndex::size()> file_descriptors_;
+
     // Number of times that Thunderloop will try to write the configuration to the driver before giving up
     static constexpr int NUM_RETRIES_SPI = 3;
+
+    // Trinamics communicate with 5 byte messages
+    static constexpr uint32_t TMC_CMD_MSG_SIZE  = 5;
 };
 
 template <typename T>

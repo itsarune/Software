@@ -26,7 +26,6 @@
 #include "software/util/scoped_timespec_timer/scoped_timespec_timer.h"
 
 static const uint32_t NUM_RETRIES_SPI   = 3;
-static const uint32_t TMC_CMD_MSG_SIZE  = 5;
 
 static double RUNAWAY_PROTECTION_THRESHOLD_MPS         = 2.00;
 static int DRIBBLER_ACCELERATION_THRESHOLD_RPM_PER_S_2 = 10000;

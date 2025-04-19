@@ -4,6 +4,7 @@
 #include <string.h>
 
 void readThenWriteSpiTransfer(int fd, const uint8_t* read_tx, const uint8_t* write_tx, const uint8_t* read_rx,
+        const uint32_t read_len, const uint32_t write_len,
         uint32_t spi_speed);
 
     /**

@@ -1,5 +1,6 @@
 #include "software/embedded/motor_controller/tmc_motor_controller.h"
 
+#include "shared/constants.h"
 #include "software/embedded/spi_utils.h"
 #include "software/logger/logger.h"
 
@@ -109,7 +110,7 @@ void TmcMotorController::setup()
     reset_gpio_->setValue(GpioState::HIGH);
     usleep(MICROSECONDS_PER_MILLISECOND * 100);
 
-    for (uint8_t motor = 0; motor < NUM_MOTORS; ++motor)
+    for (const MotorIndex& motor : MotorIndex::values())
     {
         LOG(INFO) << "Clearing RESET for " << MOTOR_NAMES[motor];
         tmc6100_writeInt(motor, TMC6100_GSTAT, 0x00000001);
@@ -118,27 +119,27 @@ void TmcMotorController::setup()
     }
 
     // Drive Motor Setup
-    for (uint8_t motor = 0; motor < NUM_DRIVE_MOTORS; motor++)
+    for (const MotorIndex& motor : driveMotors())
     {
         setUpDriveMotor(motor);
     }
 
     // Dribbler Motor Setup
-    startDriver(DRIBBLER_MOTOR_CHIP_SELECT);
-    checkDriverFault(DRIBBLER_MOTOR_CHIP_SELECT);
-    startController(DRIBBLER_MOTOR_CHIP_SELECT, true);
+    startDriver(MotorIndex::DRIBBLER);
+    checkDriverFault(MotorIndex::DRIBBLER);
+    startController(MotorIndex::DRIBBLER, true);
     tmc4671_setTargetVelocity(DRIBBLER_MOTOR_CHIP_SELECT, 0);
     checkEncoderConnections();
 
     // calibrate the encoders
-    for (uint8_t motor = 0; motor < NUM_DRIVE_MOTORS; motor++)
+    for (const MotorIndex& motor : driveMotors())
     {
         startEncoderCalibration(motor);
     }
 
     sleep(1);
 
-    for (uint8_t motor = 0; motor < NUM_DRIVE_MOTORS; motor++)
+    for (const MotorIndex& motor : driveMotors())
     {
         endEncoderCalibration(motor);
     }
@@ -382,8 +383,8 @@ double TmcMotorController::readThenWriteValue(const MotorIndex motor, const uint
         write_tx_[4 - i]     = byte_to_copy;
     }
 
-    readThenWriteSpiTransfer(file_descriptors_[motor], read_tx_, write_tx_, read_rx_,
-                             TMC4671_SPI_SPEED);
+    readThenWriteSpiTransfer(file_descriptors_[motor], read_tx_, write_tx_, read_rx_, TMC_CMD_MSG_SIZE,
+                             TMC_CMD_MSG_SIZE, TMC4671_SPI_SPEED);
 
     int32_t value = read_rx_[0];
     for (int i = 1; i < 5; i++)
@@ -396,7 +397,7 @@ double TmcMotorController::readThenWriteValue(const MotorIndex motor, const uint
 
 void TmcMotorController::openSpiFileDescriptor(const MotorIndex& motor_index)
 {
-    file_descriptors_[motor_index] = open(SPI_PATHS[motor_index], O_RDWR);
+    file_descriptors_[CHIP_SELECTS.at(motor_index)] = open(SPI_PATHS[motor_index], O_RDWR);
     CHECK(file_descriptors_[motor_index] >= 0) << "can't open device: " << motor_index
                                                << "error: " << strerror(errno);
 
@@ -413,18 +414,18 @@ void TmcMotorController::openSpiFileDescriptor(const MotorIndex& motor_index)
                      << "error: " << strerror(errno);
 }
 
-void TmcMotorController::setUpDriveMotor(MotorIndex motor)
+void TmcMotorController::setUpDriveMotor(const MotorIndex& motor)
 {
     startDriver(motor);
     checkDriverFault(motor);
     // Start all the controllers as drive motor controllers
     startController(motor, false);
-    tmc4671_setTargetVelocity(motor, 0);
+    tmc4671_setTargetVelocity(CHIP_SELECTS.at(motor), 0);
 }
 
 void TmcMotorController::startDriver(MotorIndex motor)
 {
-    uint8_t motor_cs = CHIP_SELECTS[motor];
+    uint8_t motor_cs = CHIP_SELECTS.at(motor);
 
     // Set the drive strength to 0, the weakest it can go as recommended
     // by the TMC4671-TMC6100-BOB datasheet.
@@ -442,35 +443,35 @@ void TmcMotorController::startDriver(MotorIndex motor)
 
 void TmcMotorController::startController(MotorIndex motor, bool dribbler)
 {
-    uint8_t motor_cs = CHIP_SELECTS[motor];
+    uint8_t motor_cs = CHIP_SELECTS.at(motor);
 
     // Read the chip ID to validate the SPI connection
     tmc4671_writeInt(motor_cs, TMC4671_CHIPINFO_ADDR, 0x000000000);
     int chip_id = tmc4671_readInt(motor_cs, TMC4671_CHIPINFO_DATA);
 
     CHECK(0x34363731 == chip_id) << "The TMC4671 of motor "
-                                 << static_cast<uint32_t>(motor) << " is not responding";
+                                 << motor << " is not responding";
 
-    LOG(DEBUG) << "Controller " << std::to_string(motor)
+    LOG(DEBUG) << "Controller " << motor
                << " online, responded with: " << chip_id;
 
     // Configure common controller params
-    configurePWM(motor);
-    configureADC(motor);
+    configurePWM(motor_cs);
+    configureADC(motor_cs);
 
     if (dribbler)
     {
         // Configure to brushless DC motor with 1 pole pair
-        writeToControllerOrDieTrying(motor, TMC4671_MOTOR_TYPE_N_POLE_PAIRS, 0x00030001);
-        configureHall(motor);
+        writeToControllerOrDieTrying(motor_cs, TMC4671_MOTOR_TYPE_N_POLE_PAIRS, 0x00030001);
+        configureHall(motor_cs);
 
-        configureDribblerPI(motor);
+        configureDribblerPI(motor_cs);
     }
     else
     {
         // Configure to brushless DC motor with 8 pole pairs
-        writeToControllerOrDieTrying(motor, TMC4671_MOTOR_TYPE_N_POLE_PAIRS, 0x00030008);
-        configureEncoder(motor);
+        writeToControllerOrDieTrying(motor_cs, TMC4671_MOTOR_TYPE_N_POLE_PAIRS, 0x00030008);
+        configureEncoder(motor_cs);
     }
 }
 
@@ -513,7 +514,7 @@ uint8_t TmcMotorController::readWriteByte(uint8_t motor, uint8_t data, uint8_t l
             // The first byte should contain the address on a read operation.
             // Trigger a transfer (1 byte) and buffer the response (4 bytes)
             tx_[position_] = data;
-            spiTransfer(file_descriptors_[motor], tx_, rx_, 5, spi_speed);
+            spiTransfer(file_descriptors_.at(motor), tx_, rx_, 5, spi_speed);
 
             currently_reading_ = true;
             currently_writing_ = false;
@@ -539,7 +540,7 @@ uint8_t TmcMotorController::readWriteByte(uint8_t motor, uint8_t data, uint8_t l
     {
         // we have all the bytes for this transfer, lets trigger the transfer and
         // reset state
-        spiTransfer(file_descriptors_[motor], tx_, rx_, 5, spi_speed);
+        spiTransfer(file_descriptors_.at(motor), tx_, rx_, 5, spi_speed);
         transfer_started_ = false;
     }
 
@@ -552,33 +553,86 @@ uint8_t TmcMotorController::readWriteByte(uint8_t motor, uint8_t data, uint8_t l
     return ret_byte;
 }
 
-void TmcMotorController::writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int32_t value)
+void TmcMotorController::checkEncoderConnections()
 {
-    int num_retires_left = NUM_RETRIES_SPI;
-    int read_value       = 0;
+    LOG(INFO) << "Starting encoder connection check!";
 
-    // The SPI lines have a lot of noise, and sometimes a transfer will fail
-    // randomly. So we retry a few times before giving up.
-    while (num_retires_left > 0)
+    std::vector<bool> calibrated_motors(NUM_DRIVE_MOTORS, false);
+    std::vector<int> initial_velocities(NUM_DRIVE_MOTORS, 0);
+
+    for (uint8_t motor = 0; motor < NUM_DRIVE_MOTORS; ++motor)
     {
-        tmc6100_writeInt(motor, address, value);
-        read_value = tmc6100_readInt(motor, address);
-        if (read_value == value)
-        {
-            return;
-        }
-        LOG(DEBUG) << "SPI Transfer to Driver Failed, retrying...";
-        num_retires_left--;
+        // read back current velocity
+        initial_velocities[motor] = tmc4671_readInt(motor, TMC4671_ABN_DECODER_COUNT);
+
+        // open loop mode can be used without an encoder, set open loop phi positive
+        // direction
+        writeToControllerOrDieTrying(motor, TMC4671_OPENLOOP_MODE, 0x00000000);
+        writeToControllerOrDieTrying(motor, TMC4671_PHI_E_SELECTION,
+                                     TMC4671_PHI_E_OPEN_LOOP);
+        writeToControllerOrDieTrying(motor, TMC4671_OPENLOOP_ACCELERATION, 0x0000003C);
+
+        // represents effective voltage applied to the motors (% voltage)
+        writeToControllerOrDieTrying(motor, TMC4671_UQ_UD_EXT, 0x00000799);
+
+        // uq_ud_ext mode
+        writeToControllerOrDieTrying(motor, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);
+
+        // 10 RPM
+        writeToControllerOrDieTrying(motor, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x0000000A);
     }
 
-    // If we get here, we have failed to write to the driver. We reset
-    // the chip to clear any bad values we just wrote and crash so everything stops.
-    reset_gpio_->setValue(GpioState::LOW);
-    CHECK(read_value == value) << "Couldn't write " << value
-                               << " to the TMC6100 at address " << address
-                               << " at address " << static_cast<uint32_t>(address)
-                               << " on motor " << static_cast<uint32_t>(motor)
-                               << " received: " << read_value;
+    for (int num_iterations = 0;
+         num_iterations < 10 &&
+         std::any_of(calibrated_motors.begin(), calibrated_motors.end(),
+                     [](bool calibration_status) { return !calibration_status; });
+         ++num_iterations)
+    {
+        for (uint8_t motor = 0; motor < NUM_DRIVE_MOTORS; ++motor)
+        {
+            if (calibrated_motors[motor])
+            {
+                continue;
+            }
+            // now read back the velocity
+            int read_back_velocity = tmc4671_readInt(motor, TMC4671_ABN_DECODER_COUNT);
+            LOG(INFO) << MOTOR_NAMES[motor] << " read back: " << read_back_velocity
+                      << " and initially read: " << initial_velocities[motor];
+
+            if (read_back_velocity != initial_velocities[motor])
+            {
+                calibrated_motors[motor] = true;
+            }
+        }
+
+        // sleep for 100 milliseconds
+        usleep(MICROSECONDS_PER_MILLISECOND * 100);
+    }
+
+    bool calibrated = true;
+    for (uint8_t motor = 0; motor < NUM_DRIVE_MOTORS; ++motor)
+    {
+        if (!calibrated_motors[motor])
+        {
+            calibrated = false;
+            LOG(WARNING) << "Encoder calibration check failure. " << MOTOR_NAMES[motor]
+                         << " did not change as expected";
+        }
+    }
+    if (!calibrated)
+    {
+        LOG(FATAL)
+            << "Encoder calibration check failure. Not all encoders responded as expected";
+    }
+
+    // stop all motors, reset back to velocity control mode
+    for (uint8_t motor = 0; motor < NUM_DRIVE_MOTORS; ++motor)
+    {
+        writeToControllerOrDieTrying(motor, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x00000000);
+        tmc4671_switchToMotionMode(motor, TMC4671_MOTION_MODE_VELOCITY);
+    }
+
+    LOG(INFO) << "All encoders appear to be connected!";
 }
 
 void TmcMotorController::resetMotor()

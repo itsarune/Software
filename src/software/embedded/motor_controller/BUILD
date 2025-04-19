@@ -3,6 +3,9 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "motor_index",
     hdrs = ["motor_index.h"],
+    deps = [
+        "//software/util/make_enum:make_enum",
+    ]
 )
 
 cc_library(

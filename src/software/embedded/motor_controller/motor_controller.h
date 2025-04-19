@@ -13,7 +13,4 @@ class MotorController
 
     virtual double readThenWriteValue(const MotorIndex motor, const uint8_t read_addr, const uint8_t write_addr,
             const uint8_t write_data) = 0;
-    private:
-    // SPI File Descriptors
-    std::unordered_map<MotorIndex, int> file_descriptors_;
 };
