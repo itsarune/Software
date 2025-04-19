@@ -95,12 +95,12 @@ class TmcMotorController : public MotorController
      *
      * @param motor The motor to configure (the same value as the chip select)
      */
-    void configurePWM(uint8_t motor);
-    void configureDribblerPI(uint8_t motor);
-    void configureDrivePI(uint8_t motor);
-    void configureADC(uint8_t motor);
-    void configureEncoder(uint8_t motor);
-    void configureHall(uint8_t motor);
+    void configurePWM(const MotorIndex& motor);
+    void configureDribblerPI(const MotorIndex& motor);
+    void configureDrivePI(const MotorIndex& motor);
+    void configureADC(const MotorIndex& motor);
+    void configureEncoder(const MotorIndex& motor);
+    void configureHall(const MotorIndex& motor);
 
     // Both the TMC4671 (the controller) and the TMC6100 (the driver) respect
     // the same SPI interface. So when we bind the API, we can use the same

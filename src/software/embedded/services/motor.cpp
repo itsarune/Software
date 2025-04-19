@@ -38,13 +38,17 @@ MotorService::MotorService(const RobotConstants_t& robot_constants,
     : motor_controller_(setupMotorController()),
       robot_constants_(robot_constants),
       euclidean_to_four_wheel_(robot_constants),
-      motor_fault_detector_(0),
       dribbler_ramp_rpm_(0),
       tracked_motor_fault_start_time_(std::nullopt)
 {
 }
 
 MotorService::~MotorService() {}
+
+void MotorService::resetMotorBoard()
+{
+    motor_controller_->reset();
+}
 
 void MotorService::setup()
 {
@@ -127,21 +131,21 @@ TbotsProto::MotorStatus MotorService::updateMotorStatus(double front_left_veloci
                 drive_status.add_motor_faults(fault);
             }
 
-            if (motor == FRONT_LEFT_MOTOR_CHIP_SELECT)
+            if (motor == MotorIndex::FRONT_LEFT)
             {
                 *(motor_status.mutable_front_left()) = drive_status;
             }
-            if (motor == FRONT_RIGHT_MOTOR_CHIP_SELECT)
+            if (motor == MotorIndex::FRONT_RIGHT)
             {
                 *(motor_status.mutable_front_right()) = drive_status;
             }
-            if (motor == BACK_LEFT_MOTOR_CHIP_SELECT)
-            {
-                *(motor_status.mutable_back_left()) = drive_status;
-            }
-            if (motor == BACK_RIGHT_MOTOR_CHIP_SELECT)
+            if (motor == MotorIndex::BACK_RIGHT)
             {
                 *(motor_status.mutable_back_right()) = drive_status;
+            }
+            if (motor == MotorIndex::BACK_LEFT)
+            {
+                *(motor_status.mutable_back_left()) = drive_status;
             }
         }
         else
@@ -183,7 +187,7 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
     }
 
     // checks if any motor has reset, sends a log message if so
-    for (const MotorIndex& motor_index : MotorIndex::values)
+    for (const MotorIndex& motor_index : reflective_enum::values<MotorIndex>())
     {
         if (requiresMotorReinit(motor_index))
         {
@@ -197,12 +201,6 @@ TbotsProto::MotorStatus MotorService::poll(const TbotsProto::MotorControl& motor
         LOG(INFO) << "MotorService re-initializing";
         setup();
     }
-
-    CHECK(encoder_calibrated_[FRONT_LEFT_MOTOR_CHIP_SELECT] &&
-          encoder_calibrated_[FRONT_RIGHT_MOTOR_CHIP_SELECT] &&
-          encoder_calibrated_[BACK_LEFT_MOTOR_CHIP_SELECT] &&
-          encoder_calibrated_[BACK_RIGHT_MOTOR_CHIP_SELECT])
-        << "Running without encoder calibration can cause serious harm, exiting";
 
     // Get current wheel electical RPM (don't account for pole pairs). We will use these
     // for robot status feedback We assume the motors have ramped to the expected RPM from
