@@ -4,24 +4,24 @@ load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 
 string_flag(
     name = "motor_board",
-    build_setting_default = "TRINAMIC_MOTOR_BOARD",
+    build_setting_default = "TRINAMIC",
     values = [
-        "TRINAMIC_MOTOR_BOARD",
-        "STSPIN_MOTOR_BOARD",
+        "TRINAMIC",
+        "STSPIN",
     ],
 )
 
 config_setting(
-    name = "trinamic",
+    name = "build_trinamic",
     flag_values = {
-        ":motor_board": "TRINAMIC_MOTOR_BOARD",
+        ":motor_board": "TRINAMIC",
     },
 )
 
 config_setting(
-    name = "stspin",
+    name = "build_stspin",
     flag_values = {
-        ":motor_board": "STSPIN_MOTOR_BOARD",
+        ":motor_board": "STSPIN",
     },
 )
 
@@ -36,8 +36,8 @@ cc_library(
             "//software/embedded:build_limited": ["LIMITED"],
         }) +
         select({
-            ":trinamic": ["TRINAMIC_MOTOR_BOARD"],
-            ":stspin": ["STSPIN_MOTOR_BOARD"],
+            ":build_trinamic": ["TRINAMIC_MOTOR_BOARD"],
+            ":build_stspin": ["STSPIN_MOTOR_BOARD"],
         }),
     deps = [
         "//proto:tbots_cc_proto",
