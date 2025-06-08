@@ -172,8 +172,12 @@ class SimulatedTestRunner(TbotsTestRunner):
             processing_time = time.time() - processing_start_time
 
             # if the time we have blocked is less than a tick, sleep for the remaining time (for Thunderscope only)
-            if self.thunderscope and tick_duration_s > processing_time:
-                time.sleep(tick_duration_s - processing_time)
+            if self.thunderscope:
+                if processing_time < tick_duration_s:
+                    time.sleep(tick_duration_s - processing_time)
+                else:
+                    # Encourage Python to yield the thread to update the UI
+                    time.sleep(0)
 
             # Validate
             (
