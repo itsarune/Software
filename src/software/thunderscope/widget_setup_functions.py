@@ -7,6 +7,9 @@ from proto.import_all_protos import *
 from software.thunderscope.common.fps_widget import FPSWidget
 from software.thunderscope.common.frametime_counter import FrameTimeCounter
 from software.thunderscope.common.proto_plotter import ProtoPlotter
+from software.thunderscope.gl.layers.gl_draw_polygon_obstacle import (
+    GLDrawPolygonObstacleLayer,
+)
 from software.thunderscope.proto_unix_io import ProtoUnixIO
 from proto.robot_log_msg_pb2 import RobotLog
 from extlibs.er_force_sim.src.protobuf.world_pb2 import *
@@ -27,6 +30,9 @@ from software.thunderscope.gl.layers import (
     gl_tactic_layer,
     gl_cost_vis_layer,
     gl_trail_layer,
+    gl_movement_field_test_layer,
+    gl_max_dribble_layer,
+    gl_referee_info_layer,
 )
 
 from software.thunderscope.common.proto_configuration_widget import (
@@ -57,6 +63,7 @@ def setup_gl_widget(
     replay: bool = False,
     replay_log: os.PathLike = None,
     frame_swap_counter: Optional[FrameTimeCounter] = None,
+    send_sync_message: bool = False,
 ) -> Field:
     """Setup the GLWidget with its constituent layers
 
@@ -69,6 +76,7 @@ def setup_gl_widget(
     :param replay_log: The file path of the replay log
     :param frame_swap_counter: FrameTimeCounter to keep track of the time between
                                frame swaps in the GLWidget
+    :param send_sync_message: Whether to synchronize Thunderscope with a listener
     :return: The GLWidget
     """
     # Create ProtoPlayer if replay is enabled
@@ -88,6 +96,7 @@ def setup_gl_widget(
         "Validation", visualization_buffer_size
     )
     path_layer = gl_path_layer.GLPathLayer("Paths", visualization_buffer_size)
+
     obstacle_layer = gl_obstacle_layer.GLObstacleLayer(
         "Obstacles", visualization_buffer_size
     )
@@ -118,16 +127,30 @@ def setup_gl_widget(
             visualization_buffer_size,
         )
     )
+    field_movement_layer = gl_movement_field_test_layer.GLMovementFieldTestLayer(
+        "Field Movement Layer", full_system_proto_unix_io
+    )
     simulator_layer = gl_simulator_layer.GLSimulatorLayer(
         "Simulator", friendly_colour_yellow, visualization_buffer_size
     )
     tactic_layer = gl_tactic_layer.GLTacticLayer("Tactics", visualization_buffer_size)
     trail_layer = gl_trail_layer.GLTrailLayer("Trail", visualization_buffer_size)
+    max_dribble_layer = gl_max_dribble_layer.GLMaxDribbleLayer(
+        "Dribble Tracking", visualization_buffer_size
+    )
+    referee_layer = gl_referee_info_layer.GLRefereeInfoLayer(
+        "Referee Info", visualization_buffer_size
+    )
+
+    draw_obstacle_layer = GLDrawPolygonObstacleLayer(
+        "Draw Obstacle Layer", full_system_proto_unix_io
+    )
 
     gl_widget.add_layer(world_layer)
     gl_widget.add_layer(simulator_layer, False)
     gl_widget.add_layer(path_layer)
     gl_widget.add_layer(obstacle_layer)
+    gl_widget.add_layer(draw_obstacle_layer, False)
     gl_widget.add_layer(passing_layer)
     gl_widget.add_layer(attacker_layer)
     gl_widget.add_layer(cost_vis_layer, True)
@@ -135,6 +158,9 @@ def setup_gl_widget(
     gl_widget.add_layer(validation_layer)
     gl_widget.add_layer(trail_layer, False)
     gl_widget.add_layer(debug_shapes_layer, True)
+    gl_widget.add_layer(field_movement_layer, False)
+    gl_widget.add_layer(max_dribble_layer, True)
+    gl_widget.add_layer(referee_layer)
 
     simulation_control_toolbar = gl_widget.get_sim_control_toolbar()
     simulation_control_toolbar.set_speed_callback(world_layer.set_simulation_speed)
@@ -168,6 +194,8 @@ def setup_gl_widget(
     for arg in [
         (World, world_layer.world_buffer),
         (World, cost_vis_layer.world_buffer),
+        (World, field_movement_layer.world_buffer),
+        (World, max_dribble_layer.world_buffer),
         (RobotStatus, world_layer.robot_status_buffer),
         (Referee, world_layer.referee_buffer),
         (ObstacleList, obstacle_layer.obstacles_list_buffer),
@@ -183,6 +211,9 @@ def setup_gl_widget(
         (CostVisualization, cost_vis_layer.cost_visualization_buffer),
         (World, trail_layer.world_buffer),
         (DebugShapes, debug_shapes_layer.debug_shapes_buffer),
+        (Referee, referee_layer.referee_vis_buffer),
+        (BallPlacementVisualization, referee_layer.ball_placement_vis_buffer),
+        (World, referee_layer.world_buffer),
     ]:
         full_system_proto_unix_io.register_observer(*arg)
 
@@ -204,6 +235,9 @@ def setup_parameter_widget(
         attr: Any, value: Any, updated_proto: ThunderbotsConfig
     ) -> None:
         proto_unix_io.send_proto(ThunderbotsConfig, updated_proto)
+        proto_unix_io.send_proto(
+            NetworkConfig, updated_proto.ai_config.ai_control_config.network_config
+        )
 
     return ProtoConfigurationWidget(
         on_change_callback, is_yellow=friendly_colour_yellow
@@ -301,7 +335,7 @@ def setup_robot_view(
     """
     robot_view = RobotView(available_control_modes)
     proto_unix_io.register_observer(RobotStatus, robot_view.robot_status_buffer)
-    proto_unix_io.register_observer(RobotStatistic, robot_view.round_trip_time_buffer)
+    proto_unix_io.register_observer(RobotStatistic, robot_view.robot_statistic_buffer)
     return robot_view
 
 

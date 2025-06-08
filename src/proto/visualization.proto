@@ -41,6 +41,11 @@ message AttackerVisualization
     optional Point chip_target = 4;
 }
 
+message BallPlacementVisualization
+{
+    Point ball_placement_point = 1;
+}
+
 message CostVisualization
 {
     uint32 num_rows      = 1;
@@ -59,6 +64,11 @@ message Obstacle
 }
 
 message ObstacleList
+{
+    repeated Obstacle obstacles = 1;
+}
+
+message VirtualObstacles
 {
     repeated Obstacle obstacles = 1;
 }

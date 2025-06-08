@@ -3,6 +3,7 @@
 
 #include <boost/circular_buffer.hpp>
 
+#include "proto/visualization.pb.h"
 #include "software/world/ball.h"
 #include "software/world/field.h"
 #include "software/world/game_state.h"
@@ -195,6 +196,49 @@ class World final
 
     // The size of the referee history buffers to filter out noise with
     static constexpr unsigned int REFEREE_COMMAND_BUFFER_SIZE = 3;
+    /**
+     * Sets the segment representing the displacement of the ball (in metres) due to
+     * the friendly team continuously dribbling the ball across the field.
+     *
+     * @see getDribbleDisplacement for details
+     *
+     * @param distance the displacement of the ball
+     */
+    void setDribbleDisplacement(const std::optional<Segment>& displacement);
+
+    /**
+     * Gets a segment representing the displacement of the ball (in metres) due to
+     * the friendly team continuously dribbling the ball across the field.
+     *
+     * - The start point of the segment is the point on the field where the friendly
+     *   team started dribbling the ball.
+     *
+     * - The end point of the segment is the current position of the ball.
+     *
+     * - The length of the segment is the distance between where the friendly team
+     *   started dribbling the ball and where the ball is now.
+     *
+     * If the friendly team does not have possession over the ball, std::nullopt
+     * is returned.
+     *
+     * @return A segment representing the displacement of the ball (in metres) due to
+     * the friendly team continuously dribbling the ball
+     */
+    const std::optional<Segment>& getDribbleDisplacement() const;
+
+    /**
+     * Set the list of virtual obstacles
+     *
+     * @param virtual_obstacles a list of the virtual_obstacles
+     */
+    void setVirtualObstacles(const TbotsProto::VirtualObstacles& virtual_obstacles);
+
+    /**
+     * Get a list of virtual obstacles
+     *
+     * @return a list of virtual obstacles
+     */
+    TbotsProto::VirtualObstacles getVirtualObstacles() const;
 
    private:
     /**
@@ -202,6 +246,10 @@ class World final
      *
      */
     Timestamp getMostRecentTimestampFromMembers();
+
+    // Segment representing the displacement of the ball (in metres) due to
+    // the friendly team continuously dribbling the ball across the field
+    std::optional<Segment> dribble_displacement_;
 
     Field field_;
     Ball ball_;
@@ -216,6 +264,9 @@ class World final
     boost::circular_buffer<RefereeStage> referee_stage_history_;
     // which team has possession of the ball
     TeamPossession team_with_possession_;
+
+    // Virtual Obstacles for the Trajectory Planner
+    TbotsProto::VirtualObstacles virtual_obstacles_;
 };
 
 using WorldPtr = std::shared_ptr<const World>;
