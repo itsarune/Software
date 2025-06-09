@@ -70,7 +70,6 @@ py_library(
         "//software:py_constants.so",
     ],
     deps = [
-        requirement("protobuf"),
         ":tbots_test_runner",
         "//proto:import_all_protos",
         "//software/logger:py_logger",
@@ -81,6 +80,7 @@ py_library(
         "//software/thunderscope/binary_context_managers:full_system",
         "//software/thunderscope/binary_context_managers:game_controller",
         "//software/thunderscope/binary_context_managers:simulator",
+        requirement("protobuf"),
     ],
 )
 
