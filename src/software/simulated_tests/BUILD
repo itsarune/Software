@@ -70,6 +70,7 @@ py_library(
         "//software:py_constants.so",
     ],
     deps = [
+        requirement("protobuf"),
         ":tbots_test_runner",
         "//proto:import_all_protos",
         "//software/logger:py_logger",

@@ -4,10 +4,20 @@ import argparse
 import time
 import sys
 import os
+import cProfile
 
 import pytest
-from proto.import_all_protos import *
 
+from proto.import_all_protos import *
+import google.protobuf
+from google.protobuf.internal import api_implementation
+
+protobuf_impl_type = api_implementation.Type()
+assert protobuf_impl_type == "upb", (
+    f"Trying to use the {protobuf_impl_type} protobuf implementation. "
+    "Please use the upb implementation, available in python protobuf version 4.21.0 and above."
+    f"The current version of protobuf is {google.protobuf.__version__}"
+)
 
 from software.simulated_tests import validation
 from software.simulated_tests.tbots_test_runner import TbotsTestRunner
@@ -280,7 +290,7 @@ class SimulatedTestRunner(TbotsTestRunner):
                 ],
             )
             run_sim_thread.start()
-            self.thunderscope.show()
+            cProfile.runctx("self.thunderscope.show()", globals(), locals(), "/home/arun/profile.output")
             run_sim_thread.join()
 
             if self.last_exception:

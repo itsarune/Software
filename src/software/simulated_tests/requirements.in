@@ -1,1 +1,2 @@
+protobuf==5.27.3
 pytest==6.2.5
