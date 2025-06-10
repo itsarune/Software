@@ -1,8 +1,16 @@
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load("//proto:nanopb.bzl", "nanopb_proto_library")
 load("@com_google_protobuf//:protobuf.bzl", "py_proto_library")
+load("@proto_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 
 package(default_visibility = ["//visibility:public"])
+
+compile_pip_requirements(
+    name = "requirements",
+    src = "requirements.in",
+    requirements_txt = "requirements_lock.txt",
+)
 
 proto_library(
     name = "tbots_proto",
@@ -234,5 +242,6 @@ py_library(
     deps = [
         ":software_py_proto",
         ":tbots_py_proto",
+        requirement("protobuf"),
     ],
 )

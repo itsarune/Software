@@ -149,7 +149,6 @@ py_library(
     name = "constants",
     srcs = ["constants.py"],
     deps = [
-        requirement("protobuf"),
     ],
 )
 

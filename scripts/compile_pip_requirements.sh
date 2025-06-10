@@ -16,6 +16,7 @@ BAZEL_ROOT_DIR="$CURR_DIR/../src"
 
 cd $BAZEL_ROOT_DIR
 bazel run //extlibs:nanopb_requirements.update
+bazel run //proto:requirements.update
 bazel run //software/thunderscope:requirements.update
 bazel run //software/embedded/ansible:requirements.update
 bazel run //software/simulated_tests:requirements.update
