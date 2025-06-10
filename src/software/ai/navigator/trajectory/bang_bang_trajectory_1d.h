@@ -29,13 +29,14 @@ class BangBangTrajectory1D : public Trajectory<double, double, double>
 
     /**
      * Generate a 1D trajectory from the initial position to the final position with the
-     * given initial velocity and kinematic constraints.
+     * given initial velocity, final velocity and kinematic constraints.
      * @note This method will overwrite the existing trajectory.
      * @note The generated trajectory will always have a final velocity of 0
      *
      * @param initial_pos Starting position of the trajectory
      * @param final_pos Destination. Where the trajectory should end at
      * @param initial_vel The velocity at the start of the trajectory
+     * @param final_velo The velocity at the end of the trajectory.
      * @param max_vel The maximum velocity (magnitude) the trajectory could have. Must be
      * non-zero.
      * @param max_accel The maximum acceleration the trajectory could have. Must be
@@ -43,7 +44,7 @@ class BangBangTrajectory1D : public Trajectory<double, double, double>
      * @param max_decel The maximum deceleration the trajectory could have. Must be
      * non-zero.
      */
-    void generate(double initial_pos, double final_pos, double initial_vel,
+    void generate(double initial_pos, double final_pos, double initial_vel, double final_vel,
                   double max_vel, double max_accel, double max_decel);
 
     /**
@@ -150,15 +151,16 @@ class BangBangTrajectory1D : public Trajectory<double, double, double>
                                       double max_decel, double time_offset_sec = 0.0);
 
     /**
-     * Calculates the closest position at which the trajectory could stop at (velocity =
-     * 0) given the initial velocity.
+     * Calculates the closest position at which the trajectory could reach the goal velocity, given the initial
+     * velocity.
      *
      * @param initial_vel Initial velocity
-     * @param max_decel Max achievable deceleration
+     * @param final_vel Final velocity
+     * @param accel_limit Acceleration limit
      * @return Closest position to the initial position that it can stop at
      */
-    inline double closestPositionToStop(double initial_pos, double initial_vel,
-                                        double max_decel) const;
+    inline double closestPositionToGoal(double initial_pos, double initial_vel, double final_vel,
+                                        double accel_limit) const;
 
     /**
      * Calculates the position at which the robot will be at if it accelerates from the

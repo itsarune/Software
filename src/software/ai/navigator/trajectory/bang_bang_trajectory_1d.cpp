@@ -13,7 +13,7 @@ BangBangTrajectory1D::BangBangTrajectory1D()
 }
 
 void BangBangTrajectory1D::generate(double initial_pos, double final_pos,
-                                    double initial_vel, double max_vel, double max_accel,
+                                    double initial_vel, double final_vel, double max_vel, double max_accel,
                                     double max_decel)
 {
     // We will overwrite the previous trajectory
@@ -22,6 +22,7 @@ void BangBangTrajectory1D::generate(double initial_pos, double final_pos,
     CHECK(max_vel != 0) << "Max velocity cannot be 0";
     CHECK(max_accel != 0) << "Max acceleration cannot be 0";
     CHECK(max_decel != 0) << "Max deceleration cannot be 0";
+    CHECK(final_vel <= max_vel && final_vel >= -max_vel) << "Final velocity cannot be higher than max velocity";
 
     // Unify the signs of the kinematic constraints
     max_accel = std::abs(max_accel);
@@ -30,18 +31,24 @@ void BangBangTrajectory1D::generate(double initial_pos, double final_pos,
 
     // From initial position, where the closest position is where we can stop.
     // If it is not between initial and final position, then we must break right away.
-    double stop_pos = closestPositionToStop(initial_pos, initial_vel, max_decel);
-    if (isInRangeInclusive(stop_pos, initial_pos, final_pos))
+    double accel_limit = max_decel;
+    if (final_vel > initial_vel)
     {
-        // If we start decelerating right now, we will stop before our destination,
+        accel_limit = max_accel;
+    }
+    double goal_pos = closestPositionToGoal(initial_pos, initial_vel, final_vel, accel_limit);
+    if (isInRangeInclusive(goal_pos, initial_pos, final_pos))
+    {
+        // If we start decelerating right now, we will reach before our destination,
         // so we can accelerate for a bit before having to decelerate.
         double direction      = std::copysign(1, final_pos - initial_pos);
-        double triangular_pos = triangularProfileStopPosition(
-            initial_pos, initial_vel, max_vel, max_accel, max_decel, direction);
+        // minimum position at which we can reach max velocity and decelerate to the final velocity
+        double triangular_pos = triangularProfileGoalPosition(
+            initial_pos, initial_vel, final_vel, max_vel, max_accel, max_decel, direction);
         if (isInRangeExclusive(triangular_pos, initial_pos, final_pos))
         {
             // We have time to reach max velocity, so we can use a trapezoidal profile
-            generateTrapezoidalTrajectory(initial_pos, final_pos, initial_vel, max_vel,
+            generateTrapezoidalTrajectory(initial_pos, final_pos, initial_vel, final_vel, max_vel,
                                           max_accel, max_decel);
         }
         else
@@ -64,27 +71,27 @@ void BangBangTrajectory1D::generate(double initial_pos, double final_pos,
                            .velocity     = initial_vel,
                            .acceleration = -std::copysign(max_decel, initial_vel)});
 
-        double direction      = std::copysign(1, final_pos - stop_pos);
+        double direction      = std::copysign(1, final_pos - goal_pos);
         double triangular_pos = triangularProfileStopPosition(
-            stop_pos, 0, max_vel, max_accel, max_decel, direction);
-        if (isInRangeExclusive(triangular_pos, stop_pos, final_pos))
+            goal_pos, 0, max_vel, max_accel, max_decel, direction);
+        if (isInRangeExclusive(triangular_pos, goal_pos, final_pos))
         {
             // We have time to reach max velocity, so we can use a trapezoidal profile
-            generateTrapezoidalTrajectory(stop_pos, final_pos, 0, max_vel, max_accel,
+            generateTrapezoidalTrajectory(goal_pos, final_pos, 0, max_vel, max_accel,
                                           max_decel, time_to_stop_sec);
         }
         else
         {
             // We can't reach max velocity and cruise at it, so we have to use
             // a triangular profile
-            generateTriangularTrajectory(stop_pos, final_pos, 0, max_accel, max_decel,
+            generateTriangularTrajectory(goal_pos, final_pos, 0, max_accel, max_decel,
                                          time_to_stop_sec);
         }
     }
 }
 
 void BangBangTrajectory1D::generateTrapezoidalTrajectory(
-    double initial_pos, double final_pos, double initial_vel, double max_vel,
+    double initial_pos, double final_pos, double initial_vel, double final_vel, double max_vel,
     double max_accel, double max_decel, double time_offset_sec)
 {
     if (final_pos < initial_pos)
@@ -218,19 +225,19 @@ void BangBangTrajectory1D::getTrajPartAndDeltaTime(
     out_t_delta_sec = t_sec - last_part_start_time;
 }
 
-inline double BangBangTrajectory1D::closestPositionToStop(double initial_pos,
-                                                          double initial_vel,
-                                                          double max_decel) const
+inline double BangBangTrajectory1D::closestPositionToGoal(double initial_pos,
+                                                          double initial_vel, double final_vel,
+                                                          double accel_limit) const
 {
     // vf^2 = vi^2 + 2ad  =>  d = (vf^2 - vi^2) / 2a  =>  d = (vi^2) / 2a
-    double dist_to_stop = (initial_vel * initial_vel) / (2 * std::abs(max_decel));
+    double dist_to_goal = (final_vel * final_vel - initial_vel * initial_vel) / (2 * std::abs(accel_limit));
 
     // Make the distance to stop negative if we are moving backwards
-    return initial_pos + std::copysign(dist_to_stop, initial_vel);
+    return initial_pos + dist_to_stop;
 }
 
-inline double BangBangTrajectory1D::triangularProfileStopPosition(
-    double initial_pos, double initial_vel, double max_vel, double max_accel,
+double BangBangTrajectory1D::triangularProfileGoalPosition(
+    double initial_pos, double initial_vel, double final_vel, double max_vel, double max_accel,
     double max_decel, double direction) const
 {
     if (std::abs(initial_vel) <= max_vel)
@@ -239,15 +246,15 @@ inline double BangBangTrajectory1D::triangularProfileStopPosition(
         double d_accel =
             (max_vel * max_vel - initial_vel * initial_vel) / (2 * max_accel);
 
-        // Distance to decelerate from max velocity to 0
-        double d_decel = (max_vel * max_vel) / (2 * max_decel);
+        // Distance to decelerate from max velocity to final velocity
+        double d_decel = (max_vel * max_vel - final_vel * final_vel) / (2 * max_decel);
 
         return initial_pos + std::copysign(d_accel + d_decel, direction);
     }
     else
     {
-        // Initial velocity is higher than max velocity, so we will just decelerate to 0
-        double d_decel = (initial_vel * initial_vel) / (2 * max_decel);
+        // Initial velocity is higher than max velocity, so we will just decelerate to the final velocity
+        double d_decel = (initial_vel * initial_vel - final_vel * final_vel) / (2 * max_decel);
         return initial_pos + std::copysign(d_decel, direction);
     }
 }
