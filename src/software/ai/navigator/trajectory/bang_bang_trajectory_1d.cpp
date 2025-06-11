@@ -55,7 +55,7 @@ void BangBangTrajectory1D::generate(double initial_pos, double final_pos,
         {
             // We can't reach max velocity and cruise at it, so we have to use
             // a triangular profile
-            generateTriangularTrajectory(initial_pos, final_pos, initial_vel, max_accel,
+            generateTriangularTrajectory(initial_pos, final_pos, initial_vel, final_vel, max_accel,
                                          max_decel);
         }
     }
@@ -140,7 +140,7 @@ void BangBangTrajectory1D::generateTrapezoidalTrajectory(
 }
 
 void BangBangTrajectory1D::generateTriangularTrajectory(
-    double initial_pos, double final_pos, double initial_vel, double max_accel,
+    double initial_pos, double final_pos, double initial_vel, double final_vel, double max_accel,
     double max_decel, double time_offset_sec)
 {
     double direction = std::copysign(1.0, final_pos - initial_pos);
@@ -148,7 +148,7 @@ void BangBangTrajectory1D::generateTriangularTrajectory(
 
     // Given the following constraints:
     // - Travel exactly a distance of dist
-    // - Have a final velocity of 0
+    // - Have a final velocity of final_vel
     // - Take the least amount of time possible (i.e. accelerate until we have to
     // decelerate) Calculate the time it takes for us to decelerate from the highest
     // velocity we can reach to a full stop. The full derivation of the formula can be
