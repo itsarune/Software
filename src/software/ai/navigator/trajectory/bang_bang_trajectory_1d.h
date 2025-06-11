@@ -116,6 +116,7 @@ class BangBangTrajectory1D : public Trajectory<double, double, double>
      * @param initial_pos Starting position of the trajectory
      * @param final_pos Destination. Where the trajectory should end at
      * @param initial_vel The velocity at the start of the trajectory
+     * @param final_vel The velocity at the end of the trajectory.
      * @param max_vel The maximum velocity (magnitude) the trajectory could have. Assumes
      * value is positive
      * @param max_accel The maximum acceleration the trajectory could have. Assumes value
@@ -125,7 +126,7 @@ class BangBangTrajectory1D : public Trajectory<double, double, double>
      * @param time_offset_sec The time offset to start the trajectory at
      */
     void generateTrapezoidalTrajectory(double initial_pos, double final_pos,
-                                       double initial_vel, double max_vel,
+                                       double initial_vel, double final_vel, double max_vel,
                                        double max_accel, double max_decel,
                                        double time_offset_sec = 0.0);
 
@@ -140,6 +141,7 @@ class BangBangTrajectory1D : public Trajectory<double, double, double>
      * @param initial_pos Starting position of the trajectory
      * @param final_pos Destination. Where the trajectory should end at
      * @param initial_vel The velocity at the start of the trajectory
+     * @param final_vel The velocity at the end of the trajectory.
      * @param max_accel The maximum acceleration the trajectory could have. Assumes value
      * is positive
      * @param max_decel The maximum deceleration the trajectory could have. Assumes value
@@ -147,7 +149,7 @@ class BangBangTrajectory1D : public Trajectory<double, double, double>
      * @param time_offset_sec The time offset to start the trajectory at
      */
     void generateTriangularTrajectory(double initial_pos, double final_pos,
-                                      double initial_vel, double max_accel,
+                                      double initial_vel, double final_vel, double max_accel,
                                       double max_decel, double time_offset_sec = 0.0);
 
     /**
@@ -179,7 +181,7 @@ class BangBangTrajectory1D : public Trajectory<double, double, double>
      * @return The final position of the robot after a triangular profile trajectory to
      * the max velocity
      */
-    inline double triangularProfileStopPosition(double initial_pos, double initial_vel,
+    inline double triangularProfileGoalPosition(double initial_pos, double initial_vel, double final_vel,
                                                 double max_vel, double max_accel,
                                                 double max_decel, double direction) const;
 
