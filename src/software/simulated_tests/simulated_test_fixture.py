@@ -8,7 +8,6 @@ import cProfile
 
 import pytest
 
-from proto.import_all_protos import *
 import google.protobuf
 from google.protobuf.internal import api_implementation
 
@@ -19,6 +18,7 @@ assert protobuf_impl_type == "upb", (
     f"The current version of protobuf is {google.protobuf.__version__}"
 )
 
+from proto.import_all_protos import *
 from software.simulated_tests import validation
 from software.simulated_tests.tbots_test_runner import TbotsTestRunner
 from software.thunderscope.thunderscope import Thunderscope
