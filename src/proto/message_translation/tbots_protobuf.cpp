@@ -424,7 +424,7 @@ std::unique_ptr<TbotsProto::CostVisualization> createCostVisualization(
 }
 
 std::optional<TrajectoryPath> createTrajectoryPathFromParams(
-    const TbotsProto::TrajectoryPathParams2D& params, const Vector& initial_velocity, const double& final_vel,
+    const TbotsProto::TrajectoryPathParams2D& params, const Vector& initial_velocity,
     const RobotConstants& robot_constants)
 {
     double max_speed = convertMaxAllowedSpeedModeToMaxAllowedSpeed(
@@ -448,7 +448,7 @@ std::optional<TrajectoryPath> createTrajectoryPathFromParams(
     }
 
     auto trajectory = std::make_shared<BangBangTrajectory2D>(
-        createPoint(params.start_position()), initial_destination, initial_velocity, final_vel,
+        createPoint(params.start_position()), initial_destination, initial_velocity, params.final_velocity(),
         constraints);
 
     TrajectoryPath trajectory_path(trajectory, BangBangTrajectory2D::generator);
@@ -458,7 +458,7 @@ std::optional<TrajectoryPath> createTrajectoryPathFromParams(
     {
         // Append a sub-trajectory to the sub-destination
         trajectory_path.append(params.sub_destinations(i - 1).connection_time_s(),
-                               createPoint(params.sub_destinations(i).sub_destination()), final_vel,
+                               createPoint(params.sub_destinations(i).sub_destination()), params.final_velocity(),
                                constraints);
     }
 
@@ -467,7 +467,7 @@ std::optional<TrajectoryPath> createTrajectoryPathFromParams(
         // Append a final sub-trajectory to the final destination
         trajectory_path.append(params.sub_destinations(params.sub_destinations_size() - 1)
                                    .connection_time_s(),
-                               createPoint(params.destination()), final_vel, constraints);
+                               createPoint(params.destination()), params.final_velocity(), constraints);
     }
 
     return trajectory_path;
