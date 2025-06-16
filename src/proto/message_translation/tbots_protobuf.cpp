@@ -458,8 +458,8 @@ std::optional<TrajectoryPath> createTrajectoryPathFromParams(
     {
         // Append a sub-trajectory to the sub-destination
         trajectory_path.append(params.sub_destinations(i - 1).connection_time_s(),
-                               createPoint(params.sub_destinations(i).sub_destination()), params.final_velocity(),
-                               constraints);
+                               createPoint(params.sub_destinations(i).sub_destination()),
+                               params.final_velocity(), constraints);
     }
 
     if (!params.sub_destinations().empty())

@@ -149,7 +149,7 @@ message TrajectoryPathParams2D
     Vector initial_velocity                  = 3;
     MaxAllowedSpeedMode max_speed_mode       = 4;
     repeated SubDestination sub_destinations = 5;
-    Vector final_velocity = 6;
+    double final_velocity = 6;
 }
 
 message TrajectoryParamsAngular1D
