@@ -7,7 +7,7 @@
 #include "software/ai/navigator/trajectory/trajectory_path_node.h"
 
 using TrajectoryGenerator = std::function<std::shared_ptr<Trajectory2D>(
-    const Point& initial_pos, const Point& final_pos, const Vector& initial_vel,
+    const Point& initial_pos, const Point& final_pos, const Vector& initial_vel, const double& final_vel,
     const KinematicConstraints& constraints)>;
 
 /**
@@ -37,8 +37,9 @@ class TrajectoryPath : public Trajectory2D
      * @param connection_time_sec The time where the last existing trajectory should
      * connect to the newly generated trajectory
      * @param destination Destination of the newly generated trajectory
+     * @param final_vel The final velocity of the trajectory
      */
-    void append(double connection_time_sec, const Point& destination,
+    void append(double connection_time_sec, const Point& destination, const double& final_vel,
                 const KinematicConstraints& constraints);
 
     /**

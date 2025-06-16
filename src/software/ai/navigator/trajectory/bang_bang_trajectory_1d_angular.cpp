@@ -20,7 +20,7 @@ void BangBangTrajectory1DAngular::generate(Angle initial_orient, Angle final_ori
     Angle relative_final_orient =
         initial_orient + (final_orient - initial_orient).clamp();
     trajectory.generate(initial_orient.toRadians(), relative_final_orient.toRadians(),
-                        initial_angular_vel.toRadians(), max_angular_vel.toRadians(),
+                        initial_angular_vel.toRadians(), 0, max_angular_vel.toRadians(),
                         max_angular_accel.toRadians(), max_angular_decel.toRadians());
 }
 

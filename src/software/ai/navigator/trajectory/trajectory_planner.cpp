@@ -54,7 +54,7 @@ std::vector<Point> TrajectoryPlanner::getSubDestinations(
 }
 
 std::optional<TrajectoryPath> TrajectoryPlanner::findTrajectory(
-    const Point &start, const Point &destination, const Vector &initial_velocity,
+    const Point &start, const Point &destination, const Vector &initial_velocity, const double& final_vel,
     const KinematicConstraints &constraints, const std::vector<ObstaclePtr> &obstacles,
     const Rectangle &navigable_area, const std::optional<Point> &prev_sub_destination)
 {
@@ -65,7 +65,7 @@ std::optional<TrajectoryPath> TrajectoryPlanner::findTrajectory(
     }
 
     TrajectoryPathWithCost best_traj_with_cost = getDirectTrajectoryWithCost(
-        start, destination, initial_velocity, constraints, obstacles);
+        start, destination, initial_velocity, final_vel, constraints, obstacles);
 
     // Return direct trajectory to the destination if it doesn't have any collisions
     if (!best_traj_with_cost.collides())
@@ -79,7 +79,7 @@ std::optional<TrajectoryPath> TrajectoryPlanner::findTrajectory(
     {
         // Generate a direct trajectory to the sub destination
         TrajectoryPathWithCost sub_trajectory = getDirectTrajectoryWithCost(
-            start, sub_dest, initial_velocity, constraints, obstacles);
+            start, sub_dest, initial_velocity, final_vel, constraints, obstacles);
 
         // Prefer sub destinations that are closer to the previous sub destination.
         // This is used to avoid oscillation between two sub destinations that return a
@@ -99,7 +99,7 @@ std::optional<TrajectoryPath> TrajectoryPlanner::findTrajectory(
             // Branch off of a copy of the initial trajectory at connection_time
             // to move towards the actual destination.
             TrajectoryPath traj_path_to_dest = sub_trajectory.traj_path;
-            traj_path_to_dest.append(connection_time, destination, constraints);
+            traj_path_to_dest.append(connection_time, destination, final_vel, constraints);
 
             // Return early for this sub destination if the trajectory can
             // not have a lower cost than the best trajectory.
@@ -136,12 +136,12 @@ std::optional<TrajectoryPath> TrajectoryPlanner::findTrajectory(
 }
 
 TrajectoryPathWithCost TrajectoryPlanner::getDirectTrajectoryWithCost(
-    const Point &start, const Point &destination, const Vector &initial_velocity,
+    const Point &start, const Point &destination, const Vector &initial_velocity, const double &final_vel,
     const KinematicConstraints &constraints, const std::vector<ObstaclePtr> &obstacles)
 {
     return getTrajectoryWithCost(
         TrajectoryPath(std::make_shared<BangBangTrajectory2D>(
-                           start, destination, initial_velocity, constraints),
+                           start, destination, initial_velocity, final_vel, constraints),
                        BangBangTrajectory2D::generator),
         obstacles, std::nullopt, std::nullopt);
 }

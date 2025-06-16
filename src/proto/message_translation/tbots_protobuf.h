@@ -244,7 +244,7 @@ std::unique_ptr<TbotsProto::CostVisualization> createCostVisualization(
  * from the given parameters
  */
 std::optional<TrajectoryPath> createTrajectoryPathFromParams(
-    const TbotsProto::TrajectoryPathParams2D& params, const Vector& initial_velocity,
+    const TbotsProto::TrajectoryPathParams2D& params, const Vector& initial_velocity, const double& final_vel,
     const RobotConstants& robot_constants);
 
 /**

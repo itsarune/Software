@@ -3,14 +3,15 @@
 BangBangTrajectory2D::BangBangTrajectory2D(const Point& initial_pos,
                                            const Point& final_pos,
                                            const Vector& initial_vel,
+                                           const double& final_vel,
                                            const KinematicConstraints& constraints)
 {
-    generate(initial_pos, final_pos, initial_vel, constraints.getMaxVelocity(),
+    generate(initial_pos, final_pos, initial_vel, final_vel, constraints.getMaxVelocity(),
              constraints.getMaxAcceleration(), constraints.getMaxDeceleration());
 }
 
 void BangBangTrajectory2D::generate(const Point& initial_pos, const Point& final_pos,
-                                    const Vector& initial_vel, double max_vel,
+                                    const Vector& initial_vel, const double &final_vel, double max_vel,
                                     double max_accel, double max_decel)
 {
     /**
@@ -43,9 +44,9 @@ void BangBangTrajectory2D::generate(const Point& initial_pos, const Point& final
         const double cos = std::cos(alpha);
         const double sin = std::sin(alpha);
 
-        x_trajectory.generate(initial_pos.x(), final_pos.x(), initial_vel.x(),
+        x_trajectory.generate(initial_pos.x(), final_pos.x(), initial_vel.x(), final_vel * cos,
                               max_vel * cos, max_accel * cos, max_decel * cos);
-        y_trajectory.generate(initial_pos.y(), final_pos.y(), initial_vel.y(),
+        y_trajectory.generate(initial_pos.y(), final_pos.y(), initial_vel.y(), final_vel * sin,
                               max_vel * sin, max_accel * sin, max_decel * sin);
 
         const double x_time_sec = x_trajectory.getTotalTime();
@@ -115,9 +116,9 @@ std::vector<Rectangle> BangBangTrajectory2D::getBoundingBoxes() const
 }
 
 std::shared_ptr<Trajectory2D> BangBangTrajectory2D::generator(
-    const Point& initial_pos, const Point& final_pos, const Vector& initial_vel,
+    const Point& initial_pos, const Point& final_pos, const Vector& initial_vel, const double& final_vel,
     const KinematicConstraints& constraints)
 {
-    return std::make_shared<BangBangTrajectory2D>(initial_pos, final_pos, initial_vel,
+    return std::make_shared<BangBangTrajectory2D>(initial_pos, final_pos, initial_vel, final_vel,
                                                   constraints);
 }

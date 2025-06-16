@@ -22,10 +22,11 @@ class BangBangTrajectory2D : public Trajectory2D
      * @param initial_pos Starting position of the trajectory
      * @param final_pos Destination. Where the trajectory should end at
      * @param initial_vel The initial velocity of the trajectory
+     * @param final_vel The final velocity at the destination
      * @param constraints Kinematic constraints of the new generated trajectory
      */
     BangBangTrajectory2D(const Point& initial_pos, const Point& final_pos,
-                         const Vector& initial_vel,
+                         const Vector& initial_vel, const double& final_vel,
                          const KinematicConstraints& constraints);
 
     /**
@@ -36,6 +37,7 @@ class BangBangTrajectory2D : public Trajectory2D
      * @param initial_pos Starting position of the trajectory
      * @param final_pos Destination. Where the trajectory should end at
      * @param initial_vel The initial velocity of the trajectory
+     * @param final_vel The final velocity at the destination
      * @param max_vel The max velocity (in 2D) that the trajectory can reach at any given
      * point
      * @param max_accel The max acceleration (in 2D) that the trajectory can reach at any
@@ -44,7 +46,7 @@ class BangBangTrajectory2D : public Trajectory2D
      * given point
      */
     void generate(const Point& initial_pos, const Point& final_pos,
-                  const Vector& initial_vel, double max_vel, double max_accel,
+                  const Vector& initial_vel, const double &final_vel, double max_vel, double max_accel,
                   double max_decel);
 
     /**
@@ -90,11 +92,12 @@ class BangBangTrajectory2D : public Trajectory2D
      * @param initial_pos Where the trajectory should start at
      * @param final_pos Where the trajectory should end at
      * @param initial_vel The initial velocity of the trajectory
+     * @param final_vel The final velocity at the destination
      * @param constraints The kinematic constraints of the trajectory
      * @return A shared pointer to a BangBangTrajectory2D
      */
     static std::shared_ptr<Trajectory2D> generator(
-        const Point& initial_pos, const Point& final_pos, const Vector& initial_vel,
+        const Point& initial_pos, const Point& final_pos, const Vector& initial_vel, const double& final_vel,
         const KinematicConstraints& constraints);
 
    private:

@@ -29,8 +29,8 @@ void BangBangTrajectory1D::generate(double initial_pos, double final_pos,
     max_decel = std::abs(max_decel);
     max_vel   = std::abs(max_vel);
 
-    // From initial position, where the closest position is where we can stop.
-    // If it is not between initial and final position, then we must break right away.
+    // From initial position, where is the closest position is where we can reach the final_vel?
+    // If it is not between initial and final position, then we must brake right away.
     double accel_limit = max_decel;
     if (final_vel > initial_vel)
     {
@@ -65,28 +65,27 @@ void BangBangTrajectory1D::generate(double initial_pos, double final_pos,
         // velocity is moving away from the destination. In either case, we have to
         // decelerate to stop first, then we can generate a profile to our destination.
         // vf = vi + at  =>  t = (vf-vi) / a
-        // TODO(arun): do this
-        double time_to_stop_sec = std::abs(initial_vel) / max_decel;
-        addTrajectoryPart({.end_time_sec = time_to_stop_sec,
+        double time_to_goal_sec = std::abs(final_vel - initial_vel) / accel_limit;
+        addTrajectoryPart({.end_time_sec = time_to_goal_sec,
                            .position     = initial_pos,
                            .velocity     = initial_vel,
-                           .acceleration = -std::copysign(max_decel, initial_vel)});
+                           .acceleration = std::copysign(accel_limit, final_vel - initial_vel)});
 
         double direction      = std::copysign(1, final_pos - goal_pos);
         double triangular_pos = triangularProfileGoalPosition(
-            goal_pos, 0, final_vel, max_vel, max_accel, max_decel, direction);
+            goal_pos, final_vel, final_vel, max_vel, max_accel, max_decel, direction);
         if (isInRangeExclusive(triangular_pos, goal_pos, final_pos))
         {
             // We have time to reach max velocity, so we can use a trapezoidal profile
-            generateTrapezoidalTrajectory(goal_pos, final_pos, 0, max_vel, max_accel,
-                                          max_decel, time_to_stop_sec);
+            generateTrapezoidalTrajectory(goal_pos, final_pos, final_vel, final_vel, max_vel, max_accel,
+                                          max_decel, time_to_goal_sec);
         }
         else
         {
             // We can't reach max velocity and cruise at it, so we have to use
             // a triangular profile
-            generateTriangularTrajectory(goal_pos, final_pos, 0, final_vel, max_accel, max_decel,
-                                         time_to_stop_sec);
+            generateTriangularTrajectory(goal_pos, final_pos, final_vel, final_vel, max_accel, max_decel,
+                                         time_to_goal_sec);
         }
     }
 }

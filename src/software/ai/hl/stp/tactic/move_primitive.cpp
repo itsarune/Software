@@ -12,10 +12,11 @@ MovePrimitive::MovePrimitive(
     const TbotsProto::ObstacleAvoidanceMode &obstacle_avoidance_mode,
     const TbotsProto::DribblerMode &dribbler_mode,
     const TbotsProto::BallCollisionType &ball_collision_type,
-    const AutoChipOrKick &auto_chip_or_kick, std::optional<double> cost_override)
+    const AutoChipOrKick &auto_chip_or_kick, const double& final_vel, std::optional<double> cost_override)
     : robot(robot),
       destination(destination),
       final_angle(final_angle),
+      final_vel(final_vel),
       dribbler_mode(dribbler_mode),
       auto_chip_or_kick(auto_chip_or_kick),
       ball_collision_type(ball_collision_type),
@@ -30,7 +31,7 @@ MovePrimitive::MovePrimitive(
     {
         double max_speed = convertMaxAllowedSpeedModeToMaxAllowedSpeed(
             max_allowed_speed_mode, robot.robotConstants());
-        trajectory.generate(robot.position(), destination, robot.velocity(), max_speed,
+        trajectory.generate(robot.position(), destination, robot.velocity(), final_vel, max_speed,
                             robot.robotConstants().robot_max_acceleration_m_per_s_2,
                             robot.robotConstants().robot_max_deceleration_m_per_s_2);
 
@@ -107,7 +108,7 @@ MovePrimitive::generatePrimitiveProtoMessage(
         }
     }
 
-    traj_path = planner.findTrajectory(robot.position(), destination, robot.velocity(),
+    traj_path = planner.findTrajectory(robot.position(), destination, robot.velocity(), final_vel,
                                        constraints, obstacles, navigable_area,
                                        prev_sub_destination);
 

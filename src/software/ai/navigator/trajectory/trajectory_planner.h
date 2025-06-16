@@ -21,6 +21,7 @@ class TrajectoryPlanner
      * @param start Start position of the trajectory
      * @param destination Destination of the trajectory
      * @param initial_velocity Initial velocity of the trajectory
+     * @param final_vel Final velocity of the trajectory
      * @param constraints Kinematic constraints of the trajectory
      * @param obstacles List of obstacles to avoid
      * @param navigable_area The navigable area of the field
@@ -29,7 +30,7 @@ class TrajectoryPlanner
      * @return TrajectoryPath which attempts to avoid the obstacles
      */
     std::optional<TrajectoryPath> findTrajectory(
-        const Point &start, const Point &destination, const Vector &initial_velocity,
+        const Point &start, const Point &destination, const Vector &initial_velocity, const double &final_vel,
         const KinematicConstraints &constraints,
         const std::vector<ObstaclePtr> &obstacles, const Rectangle &navigable_area,
         const std::optional<Point> &prev_sub_destination = std::nullopt);
@@ -50,12 +51,13 @@ class TrajectoryPlanner
      * @param start Start position of the trajectory
      * @param destination Destination of the trajectory
      * @param initial_velocity Initial velocity of the trajectory
+     * @param final_vel Final velocity of the trajectory
      * @param constraints Kinematic constraints of the trajectory
      * @param obstacles List of all obstacles
      * @return A trajectory path with only a single trajectory + its cost
      */
     TrajectoryPathWithCost getDirectTrajectoryWithCost(
-        const Point &start, const Point &destination, const Vector &initial_velocity,
+        const Point &start, const Point &destination, const Vector &initial_velocity, const double &final_vel,
         const KinematicConstraints &constraints,
         const std::vector<ObstaclePtr> &obstacles);
 
