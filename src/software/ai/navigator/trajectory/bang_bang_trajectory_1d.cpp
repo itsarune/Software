@@ -29,12 +29,15 @@ void BangBangTrajectory1D::generate(double initial_pos, double final_pos,
     max_decel = std::abs(max_decel);
     max_vel   = std::abs(max_vel);
 
+    double accel_limit = max_accel;
+    double decel_limit = max_decel;
+
     // From initial position, where is the closest position is where we can reach the final_vel?
     // If it is not between initial and final position, then we must brake right away.
-    double accel_limit = max_decel;
     if (final_vel > initial_vel)
     {
-        accel_limit = max_accel;
+        accel_limit = max_decel;
+        decel_limit = max_accel;
     }
     double goal_pos = closestPositionToGoal(initial_pos, initial_vel, final_vel, accel_limit);
     if (isInRangeInclusive(goal_pos, initial_pos, final_pos))
@@ -44,19 +47,19 @@ void BangBangTrajectory1D::generate(double initial_pos, double final_pos,
         double direction      = std::copysign(1, final_pos - initial_pos);
         // minimum position at which we can reach max velocity and decelerate to the final velocity
         double triangular_pos = triangularProfileGoalPosition(
-            initial_pos, initial_vel, final_vel, max_vel, max_accel, max_decel, direction);
+            initial_pos, initial_vel, final_vel, max_vel, accel_limit, decel_limit, direction);
         if (isInRangeExclusive(triangular_pos, initial_pos, final_pos))
         {
             // We have time to reach max velocity, so we can use a trapezoidal profile
             generateTrapezoidalTrajectory(initial_pos, final_pos, initial_vel, final_vel, max_vel,
-                                          max_accel, max_decel);
+                                          accel_limit, decel_limit);
         }
         else
         {
             // We can't reach max velocity and cruise at it, so we have to use
             // a triangular profile
-            generateTriangularTrajectory(initial_pos, final_pos, initial_vel, final_vel, max_vel, max_accel,
-                                         max_decel);
+            generateTriangularTrajectory(initial_pos, final_pos, initial_vel, final_vel, max_vel, accel_limit,
+                                         decel_limit);
         }
     }
     else
@@ -73,18 +76,18 @@ void BangBangTrajectory1D::generate(double initial_pos, double final_pos,
 
         double direction      = std::copysign(1, final_pos - goal_pos);
         double triangular_pos = triangularProfileGoalPosition(
-            goal_pos, final_vel, final_vel, max_vel, max_accel, max_decel, direction);
+            goal_pos, final_vel, final_vel, max_vel, accel_limit, decel_limit, direction);
         if (isInRangeExclusive(triangular_pos, goal_pos, final_pos))
         {
             // We have time to reach max velocity, so we can use a trapezoidal profile
-            generateTrapezoidalTrajectory(goal_pos, final_pos, final_vel, final_vel, max_vel, max_accel,
-                                          max_decel, time_to_goal_sec);
+            generateTrapezoidalTrajectory(goal_pos, final_pos, final_vel, final_vel, max_vel, accel_limit,
+                                          decel_limit, time_to_goal_sec);
         }
         else
         {
             // We can't reach max velocity and cruise at it, so we have to use
             // a triangular profile
-            generateTriangularTrajectory(goal_pos, final_pos, final_vel, final_vel, max_accel, max_decel,
+            generateTriangularTrajectory(goal_pos, final_pos, final_vel, final_vel, accel_limit, decel_limit,
                                          time_to_goal_sec);
         }
     }
@@ -238,7 +241,7 @@ inline double BangBangTrajectory1D::closestPositionToGoal(double initial_pos,
                                                           double accel_limit) const
 {
     // vf^2 = vi^2 + 2ad  =>  d = (vf^2 - vi^2) / 2a  =>  d = (vi^2) / 2a
-    double dist_to_goal = (final_vel * final_vel - initial_vel * initial_vel) / (2 * std::abs(accel_limit));
+    double dist_to_goal = std::abs((final_vel * final_vel - initial_vel * initial_vel) / (2 * accel_limit));
 
     // Make the distance to stop negative if we are moving backwards
     return initial_pos + dist_to_goal;
