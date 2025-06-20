@@ -83,7 +83,7 @@ class BangBangTrajectory1DTest : public testing::Test
     BangBangTrajectory1D traj;
 };
 
-TEST_F(BangBangTrajectory1DTest, DISABLED_positive_symmetrical_trapezoidal_profile)
+TEST_F(BangBangTrajectory1DTest, positive_symmetrical_trapezoidal_profile)
 {
     double initial_pos = 0;
     double destination = 3;
@@ -136,7 +136,7 @@ TEST_F(BangBangTrajectory1DTest, positive_non_symmetrical_trapezoidal_profile)
 }
 
 TEST_F(BangBangTrajectory1DTest,
-       DISABLED_positive_non_symmetrical_trapezoidal_profile_with_negative_initial_velocity)
+       positive_non_symmetrical_trapezoidal_profile_with_negative_initial_velocity)
 {
     double initial_pos = 5;
     double destination = 27;

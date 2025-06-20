@@ -34,12 +34,12 @@ void BangBangTrajectory1D::generate(double initial_pos, double final_pos,
 
     // From initial position, where is the closest position is where we can reach the final_vel?
     // If it is not between initial and final position, then we must brake right away.
-    if (final_vel > initial_vel)
+    if (std::abs(final_vel) > std::abs(initial_vel))
     {
         accel_limit = max_decel;
         decel_limit = max_accel;
     }
-    double goal_pos = closestPositionToGoal(initial_pos, initial_vel, final_vel, accel_limit);
+    double goal_pos = closestPositionToGoal(initial_pos, initial_vel, final_vel, decel_limit);
     if (isInRangeInclusive(goal_pos, initial_pos, final_pos))
     {
         // If we start decelerating right now, we will reach before our destination,
@@ -244,7 +244,7 @@ inline double BangBangTrajectory1D::closestPositionToGoal(double initial_pos,
     double dist_to_goal = std::abs((final_vel * final_vel - initial_vel * initial_vel) / (2 * accel_limit));
 
     // Make the distance to stop negative if we are moving backwards
-    return initial_pos + dist_to_goal;
+    return initial_pos + std::copysign(dist_to_goal, initial_vel);
 }
 
 double BangBangTrajectory1D::triangularProfileGoalPosition(
