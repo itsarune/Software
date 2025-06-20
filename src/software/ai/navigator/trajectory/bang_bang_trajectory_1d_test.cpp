@@ -168,7 +168,7 @@ TEST_F(BangBangTrajectory1DTest,
     verifyFinalState(destination, max_decel);
 }
 
-TEST_F(BangBangTrajectory1DTest, DISABLED_negative_non_symmetrical_trapezoidal_profile)
+TEST_F(BangBangTrajectory1DTest, negative_non_symmetrical_trapezoidal_profile)
 {
     double initial_pos = -2;
     double destination = -8.5;
@@ -194,7 +194,7 @@ TEST_F(BangBangTrajectory1DTest, DISABLED_negative_non_symmetrical_trapezoidal_p
     verifyFinalState(destination, -max_decel);
 }
 
-TEST_F(BangBangTrajectory1DTest, DISABLED_positive_non_symmetrical_triangular_profile)
+TEST_F(BangBangTrajectory1DTest, positive_non_symmetrical_triangular_profile)
 {
     double initial_pos = 2;
     double destination = 10.5;
@@ -218,7 +218,7 @@ TEST_F(BangBangTrajectory1DTest, DISABLED_positive_non_symmetrical_triangular_pr
     verifyFinalState(destination, max_decel);
 }
 
-TEST_F(BangBangTrajectory1DTest, DISABLED_negative_non_symmetrical_triangular_profile)
+TEST_F(BangBangTrajectory1DTest, negative_non_symmetrical_triangular_profile)
 {
     double initial_pos = -2;
     double destination = -10.5;
@@ -243,7 +243,7 @@ TEST_F(BangBangTrajectory1DTest, DISABLED_negative_non_symmetrical_triangular_pr
 }
 
 TEST_F(BangBangTrajectory1DTest,
-       DISABLED_positive_non_symmetrical_triangular_profile_with_negative_initial_velocity)
+       positive_non_symmetrical_triangular_profile_with_negative_initial_velocity)
 {
     double initial_pos = 5;
     double destination = 15;

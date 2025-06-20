@@ -58,7 +58,7 @@ void BangBangTrajectory1D::generate(double initial_pos, double final_pos,
         {
             // We can't reach max velocity and cruise at it, so we have to use
             // a triangular profile
-            generateTriangularTrajectory(initial_pos, final_pos, initial_vel, final_vel, max_vel, accel_limit,
+            generateTriangularTrajectory(initial_pos, final_pos, initial_vel, final_vel, accel_limit,
                                          decel_limit);
         }
     }
@@ -68,11 +68,11 @@ void BangBangTrajectory1D::generate(double initial_pos, double final_pos,
         // velocity is moving away from the destination. In either case, we have to
         // decelerate to stop first, then we can generate a profile to our destination.
         // vf = vi + at  =>  t = (vf-vi) / a
-        double time_to_goal_sec = std::abs(final_vel - initial_vel) / accel_limit;
+        double time_to_goal_sec = std::abs(final_vel - initial_vel) / decel_limit;
         addTrajectoryPart({.end_time_sec = time_to_goal_sec,
                            .position     = initial_pos,
                            .velocity     = initial_vel,
-                           .acceleration = std::copysign(accel_limit, final_vel - initial_vel)});
+                           .acceleration = std::copysign(decel_limit, final_vel - initial_vel)});
 
         double direction      = std::copysign(1, final_pos - goal_pos);
         double triangular_pos = triangularProfileGoalPosition(
@@ -158,16 +158,24 @@ void BangBangTrajectory1D::generateTriangularTrajectory(
     // found here: https://www.desmos.com/calculator/qvrvtplgk7 Note that the full
     // derivation also supports a non-zero final velocity, but we currently don't support
     // that here.
-    double a_decel_2 = max_decel * max_decel;
-    double a_accel_2 = max_accel * max_accel;
+    double a_accel = max_accel;
+    double a_decel = max_decel;
+    double a_decel_2 = a_decel * a_decel;
+    double a_accel_2 = a_accel * a_accel;
     double v_initial_2 = initial_vel * initial_vel;
     double v_final_2 = final_vel * final_vel;
-    double t_decel = (a_decel_2 * initial_vel + a_accel_2 * final_vel + max_accel * max_decel * final_vel -
-        (max_accel + max_decel) * std::sqrt((max_decel * v_initial_2 + max_accel * v_final_2 +
-                    2 * dist * max_accel * max_decel) * (max_accel + max_decel)) - initial_vel * a_decel_2 +
-        max_decel * std::sqrt(max_accel * max_decel * v_initial_2 + 2 * dist * a_accel_2 * max_decel +
-                a_decel_2 * v_initial_2 + max_accel * v_final_2 + 2 * dist * max_accel * a_decel_2))/
-        -(max_decel * (max_accel + max_decel));
+    double t_decel = (a_accel_2 * final_vel + a_accel * a_decel * final_vel -
+        (a_accel + a_decel) * std::sqrt((a_decel * v_initial_2 + a_accel * v_final_2 +
+                    2 * dist * a_accel * a_decel) * (a_decel + a_accel)) + a_decel *
+        std::sqrt(a_accel * a_decel * v_initial_2 + 2 * dist * a_accel_2 * a_decel + a_decel_2 * v_initial_2 +
+                a_accel * v_final_2 + 2 * dist * a_accel * a_decel_2)) /
+        (-a_decel * (a_accel + a_decel));
+    //double t_decel = (a_decel_2 * initial_vel + a_accel_2 * final_vel + max_accel * max_decel * final_vel -
+    //    (max_accel + max_decel) * std::sqrt((max_decel * v_initial_2 + max_accel * v_final_2 +
+    //                2 * dist * max_accel * max_decel) * (max_accel + max_decel)) - initial_vel * a_decel_2 +
+    //    max_decel * std::sqrt(max_accel * max_decel * v_initial_2 + 2 * dist * a_accel_2 * max_decel +
+    //            a_decel_2 * v_initial_2 + max_accel * v_final_2 + 2 * dist * max_accel * a_decel_2))/
+    //    -(max_decel * (max_accel + max_decel));
 
     double signed_accel = std::copysign(max_accel, direction);
     double signed_decel = -std::copysign(max_decel, direction);
