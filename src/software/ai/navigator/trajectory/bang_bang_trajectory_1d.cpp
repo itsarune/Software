@@ -169,7 +169,7 @@ void BangBangTrajectory1D::generateTriangularTrajectory(
                     2 * dist * a_accel * a_decel) * (a_decel + a_accel)) + a_decel *
         std::sqrt(a_accel * a_decel * v_initial_2 + 2 * dist * a_accel_2 * a_decel + a_decel_2 * v_initial_2 +
                 a_accel * v_final_2 + 2 * dist * a_accel * a_decel_2)) /
-        (-a_decel * (a_accel + a_decel));
+        (-a_decel * a_accel * (a_accel + a_decel));
     //double t_decel = (a_decel_2 * initial_vel + a_accel_2 * final_vel + max_accel * max_decel * final_vel -
     //    (max_accel + max_decel) * std::sqrt((max_decel * v_initial_2 + max_accel * v_final_2 +
     //                2 * dist * max_accel * max_decel) * (max_accel + max_decel)) - initial_vel * a_decel_2 +
