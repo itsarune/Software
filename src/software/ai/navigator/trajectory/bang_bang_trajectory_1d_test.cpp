@@ -275,7 +275,7 @@ TEST_F(BangBangTrajectory1DTest,
 }
 
 TEST_F(BangBangTrajectory1DTest,
-       DISABLED_positive_non_symmetrical_triangular_profile_overshooting_destination)
+       positive_non_symmetrical_triangular_profile_overshooting_destination)
 {
     // We're near the destination, but our initial velocity is too high, resulting
     // in us overshooting the destination.
@@ -302,7 +302,7 @@ TEST_F(BangBangTrajectory1DTest,
     verifyFinalState(destination, max_decel);
 }
 
-TEST_F(BangBangTrajectory1DTest, DISABLED_already_at_destination)
+TEST_F(BangBangTrajectory1DTest, already_at_destination)
 {
     double initial_pos = 0;
     double destination = 0;
@@ -314,7 +314,7 @@ TEST_F(BangBangTrajectory1DTest, DISABLED_already_at_destination)
         TestUtil::equalWithinTolerance(initial_pos, traj.getDestination(), 0.001));
 }
 
-TEST_F(BangBangTrajectory1DTest, DISABLED_test_trajectory_min_max_range)
+TEST_F(BangBangTrajectory1DTest, test_trajectory_min_max_range)
 {
     // Trajectory from 0 to 1
     traj.generate(0.0, 1.0, 0.0, 0, 1.0, 1.0, 1.0);
