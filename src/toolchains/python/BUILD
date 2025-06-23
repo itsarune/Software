@@ -51,7 +51,7 @@ toolchain(
 
 py_cc_toolchain(
     name = "py_cc_toolchain_host_data",
-    headers = "@py_cc_toolchain_host//:headers",
+    headers = "@py_cc_toolchain_for_host_x86_64//:headers",
     libs = ":empty",
     python_version = "3.12",
 )
