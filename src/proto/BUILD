@@ -4,12 +4,6 @@ load("@protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
-compile_pip_requirements(
-    name = "requirements",
-    src = "requirements.in",
-    requirements_txt = "requirements_lock.txt",
-)
-
 proto_library(
     name = "geneva_proto",
     srcs = [
@@ -269,6 +263,5 @@ py_library(
     deps = [
         ":software_py_proto",
         ":tbots_py_proto",
-        requirement("protobuf"),
     ],
 )

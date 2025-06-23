@@ -250,7 +250,7 @@ register_toolchains("//toolchains/python:py_toolchain")
 
 register_toolchains(
     "//toolchains/python:k8_jetson_nano_cross_compile_py_cc_toolchain",
-    "//toolchains/python:py_cc_toolchain_for_host_x86_64",
+    "//toolchains/python:py_cc_toolchain_host_x86_64",
 )
 
 register_toolchains(
