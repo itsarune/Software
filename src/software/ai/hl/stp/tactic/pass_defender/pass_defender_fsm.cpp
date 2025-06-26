@@ -3,6 +3,7 @@
 #include "proto/message_translation/tbots_protobuf.h"
 #include "software/ai/hl/stp/tactic/move_primitive.h"
 #include "software/geom/algorithms/closest_point.h"
+#include "software/math/kinematics.h"
 
 bool PassDefenderFSM::passStarted(const Update& event)
 {
@@ -58,17 +59,29 @@ void PassDefenderFSM::interceptBall(const Update& event)
 {
     auto ball           = event.common.world_ptr->ball();
     auto robot_position = event.common.robot.position();
+    double final_speed = 0.0;
 
     if ((ball.position() - robot_position).length() >
         BALL_TO_FRONT_OF_ROBOT_DISTANCE_WHEN_DRIBBLING)
     {
         Point intercept_position = ball.position();
+
         if (ball.velocity().length() != 0)
         {
             // Find the closest point on the line of the ball's current trajectory
             // that the defender can move to and intercept the pass
             intercept_position = closestPoint(
                 robot_position, Line(ball.position(), ball.position() + ball.velocity()));
+            Duration ball_to_intercept = timeToDestination(
+                ball.position(), intercept_position, ball.velocity());
+
+            // Calculate the speed needed to reach the intercept position
+            Vector ball_travel = intercept_position - ball.position();
+            if (ball_travel.length() > 0)
+            {
+                final_speed = std::min(ball_travel.length() / ball_to_intercept.toSeconds(),
+                        static_cast<double>(event.common.robot.robotConstants().robot_max_speed_m_per_s));
+            }
         }
 
         auto face_ball_orientation = (ball.position() - robot_position).orientation();
@@ -80,7 +93,7 @@ void PassDefenderFSM::interceptBall(const Update& event)
             TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
             TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE,
             TbotsProto::DribblerMode::MAX_FORCE, TbotsProto::BallCollisionType::ALLOW,
-            AutoChipOrKick{AutoChipOrKickMode::OFF, 0}));
+            AutoChipOrKick{AutoChipOrKickMode::OFF, 0}, final_speed));
         return;
     }
 

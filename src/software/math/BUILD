@@ -20,6 +20,17 @@ cc_test(
 )
 
 cc_library(
+    name = "kinematics",
+    srcs = ["kinematics.cpp"],
+    hdrs = ["kinematics.h"],
+    deps = [
+        "//software/geom:point",
+        "//software/geom:vector",
+        "//software/time:duration",
+    ],
+)
+
+cc_library(
     name = "statistics_functions",
     hdrs = ["statistics_functions.hpp"],
 )

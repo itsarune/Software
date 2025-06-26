@@ -21,6 +21,7 @@ cc_library(
         "//software/ai/hl/stp/tactic/dribble:dribble_tactic",
         "//software/geom/algorithms",
         "//software/logger",
+        "//software/math:kinematics",
     ],
 )
 

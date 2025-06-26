@@ -24,6 +24,7 @@ cc_library(
         "//software/geom/algorithms",
         "//software/logger",
         "//software/math:math_functions",
+        "//software/math:kinematics",
     ],
 )
 
